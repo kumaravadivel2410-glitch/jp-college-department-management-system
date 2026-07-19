@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark-theme">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Central Downloads - J.P. College of Engineering - AI&DS Department Management System</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="navbar-container"></div>
+
+  <main class="app-main-content">
+    <div class="glass-card">
+      <div class="card-header-flex">
+        <h2><i class="fa-solid fa-download"></i> Central Download Center</h2>
+      </div>
+
+      <div class="download-grid">
+        <div class="glass-card download-card">
+          <div class="download-card-title">
+            <i class="fa-solid fa-user-graduate"></i>
+            <div>
+              <h3>Student List</h3>
+              <p style="font-size:0.78rem; color:var(--text-secondary);">Full database of registered students</p>
+            </div>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn-gold" style="flex:1;" onclick="app.downloadStudentsPDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+            <button class="btn-red" style="flex:1;" onclick="exporter.exportToExcel('Student_List', app.data.students)"><i class="fa-solid fa-file-excel"></i> Excel</button>
+          </div>
+        </div>
+
+        <div class="glass-card download-card">
+          <div class="download-card-title">
+            <i class="fa-solid fa-chalkboard-user"></i>
+            <div>
+              <h3>Faculty List</h3>
+              <p style="font-size:0.78rem; color:var(--text-secondary);">Faculty members directory and contacts</p>
+            </div>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn-gold" style="flex:1;" onclick="app.downloadFacultyPDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+            <button class="btn-red" style="flex:1;" onclick="exporter.exportToExcel('Faculty_List', app.data.faculty)"><i class="fa-solid fa-file-excel"></i> Excel</button>
+          </div>
+        </div>
+
+        <div class="glass-card download-card">
+          <div class="download-card-title">
+            <i class="fa-solid fa-calendar-check"></i>
+            <div>
+              <h3>Attendance Register</h3>
+              <p style="font-size:0.78rem; color:var(--text-secondary);">Daily and monthly attendance records</p>
+            </div>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn-gold" style="flex:1;" onclick="app.downloadAttendancePDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+            <button class="btn-red" style="flex:1;" onclick="exporter.exportToExcel('Attendance_Report', app.data.attendance)"><i class="fa-solid fa-file-excel"></i> Excel</button>
+          </div>
+        </div>
+
+        <div class="glass-card download-card">
+          <div class="download-card-title">
+            <i class="fa-solid fa-graduation-cap"></i>
+            <div>
+              <h3>Semester Marks</h3>
+              <p style="font-size:0.78rem; color:var(--text-secondary);">Grade sheet, CGPA, and arrear status</p>
+            </div>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn-gold" style="flex:1;" onclick="app.downloadMarksPDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+            <button class="btn-red" style="flex:1;" onclick="exporter.exportToExcel('Semester_Marks', app.data.semesterMarks)"><i class="fa-solid fa-file-excel"></i> Excel</button>
+          </div>
+        </div>
+
+        <div class="glass-card download-card">
+          <div class="download-card-title">
+            <i class="fa-solid fa-file-signature"></i>
+            <div>
+              <h3>Internal Marks</h3>
+              <p style="font-size:0.78rem; color:var(--text-secondary);">Internal 1, 2, model exam scores</p>
+            </div>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn-gold" style="flex:1;" onclick="exporter.exportToExcel('Internal_Marks', app.data.internalMarks)"><i class="fa-solid fa-file-excel"></i> Excel</button>
+          </div>
+        </div>
+
+        <div class="glass-card download-card">
+          <div class="download-card-title">
+            <i class="fa-solid fa-building-columns"></i>
+            <div>
+              <h3>Department Reports</h3>
+              <p style="font-size:0.78rem; color:var(--text-secondary);">Department overview and details</p>
+            </div>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn-red" style="flex:1;" onclick="exporter.exportToExcel('Department_Report', app.data.departments)"><i class="fa-solid fa-file-excel"></i> Excel</button>
+          </div>
+        </div>
+
+        <div class="glass-card download-card">
+          <div class="download-card-title">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            <div>
+              <h3>History Audit Logs</h3>
+              <p style="font-size:0.78rem; color:var(--text-secondary);">Full system modification audit trail</p>
+            </div>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn-gold" style="flex:1;" onclick="app.downloadHistoryPDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+            <button class="btn-red" style="flex:1;" onclick="exporter.exportToExcel('History_Log', app.data.history)"><i class="fa-solid fa-file-excel"></i> Excel</button>
+          </div>
+        </div>
+
+        <div class="glass-card download-card">
+          <div class="download-card-title">
+            <i class="fa-solid fa-database"></i>
+            <div>
+              <h3>Database Backup JSON</h3>
+              <p style="font-size:0.78rem; color:var(--text-secondary);">Complete system JSON backup export</p>
+            </div>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn-gold" style="flex:1;" onclick="app.downloadBackupJSON()"><i class="fa-solid fa-download"></i> Download Backup</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/navbar.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

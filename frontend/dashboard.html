@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark-theme">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - J.P. College of Engineering - AI&DS Department Management System</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Container where navbar.js injects sticky top navigation -->
+  <div id="navbar-container"></div>
+
+  <main class="app-main-content">
+    <div class="stats-grid">
+      <div class="glass-card stat-card">
+        <div class="stat-icon-wrapper"><i class="fa-solid fa-user-graduate"></i></div>
+        <div class="stat-details">
+          <h3 id="statTotalStudents">0</h3>
+          <p>Total Students</p>
+        </div>
+      </div>
+      <div class="glass-card stat-card">
+        <div class="stat-icon-wrapper"><i class="fa-solid fa-chalkboard-user"></i></div>
+        <div class="stat-details">
+          <h3 id="statTotalFaculty">0</h3>
+          <p>Total Faculty</p>
+        </div>
+      </div>
+      <div class="glass-card stat-card">
+        <div class="stat-icon-wrapper"><i class="fa-solid fa-building-columns"></i></div>
+        <div class="stat-details">
+          <h3 id="statTotalDepts">0</h3>
+          <p>Departments</p>
+        </div>
+      </div>
+      <div class="glass-card stat-card">
+        <div class="stat-icon-wrapper"><i class="fa-solid fa-book-open"></i></div>
+        <div class="stat-details">
+          <h3 id="statTotalSubjects">0</h3>
+          <p>Total Subjects</p>
+        </div>
+      </div>
+      <div class="glass-card stat-card">
+        <div class="stat-icon-wrapper"><i class="fa-solid fa-door-open"></i></div>
+        <div class="stat-details">
+          <h3 id="statTotalClasses">0</h3>
+          <p>Total Classes</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="charts-grid">
+      <div class="glass-card">
+        <div class="card-header-flex">
+          <h2><i class="fa-solid fa-chart-pie"></i> Department Distribution</h2>
+        </div>
+        <div class="chart-container">
+          <canvas id="deptDistributionChart"></canvas>
+        </div>
+      </div>
+
+      <div class="glass-card">
+        <div class="card-header-flex">
+          <h2><i class="fa-solid fa-chart-column"></i> Attendance Statistics</h2>
+        </div>
+        <div class="chart-container">
+          <canvas id="attendanceTrendChart"></canvas>
+        </div>
+      </div>
+
+      <div class="glass-card">
+        <div class="card-header-flex">
+          <h2><i class="fa-solid fa-chart-line"></i> Academic Pass Rate</h2>
+        </div>
+        <div class="chart-container">
+          <canvas id="academicPassChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="glass-card">
+      <div class="card-header-flex">
+        <h2><i class="fa-solid fa-clock-rotate-left"></i> Recent Activity Log</h2>
+        <a href="history.html" class="btn-outline-gold" style="text-decoration:none;">View Full History</a>
+      </div>
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Date & Time</th>
+              <th>Action</th>
+              <th>User</th>
+              <th>Department</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody id="dashboardActivityTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/navbar.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

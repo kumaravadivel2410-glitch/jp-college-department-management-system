@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark-theme">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Faculty Directory - J.P. College of Engineering - AI&DS Department Management System</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="navbar-container"></div>
+
+  <main class="app-main-content">
+    <div class="glass-card">
+      <div class="card-header-flex">
+        <h2><i class="fa-solid fa-chalkboard-user"></i> Faculty Members Directory</h2>
+        <div style="display:flex; gap:10px;">
+          <button class="btn-red" onclick="app.openAddFacultyModal()"><i class="fa-solid fa-plus"></i> Add Faculty</button>
+          <button class="btn-gold" onclick="app.downloadFacultyPDF()"><i class="fa-solid fa-file-pdf"></i> Export PDF</button>
+          <button class="btn-gold" onclick="exporter.exportToExcel('Faculty_Directory', app.data.faculty)"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
+        </div>
+      </div>
+
+      <div class="filter-toolbar">
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="facultySearchInput" class="search-input" placeholder="Search faculty name, ID, qualification...">
+        </div>
+        <select id="facultyDeptFilter" class="filter-select">
+          <option value="">All Departments</option>
+        </select>
+      </div>
+
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Faculty ID</th>
+              <th>Faculty Name</th>
+              <th>Designation</th>
+              <th>Department</th>
+              <th>Subject</th>
+              <th>Qualification</th>
+              <th>Experience</th>
+              <th>Contact</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="facultyTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <div class="modal-overlay" id="universalModalOverlay">
+    <div class="modal-content-box">
+      <div class="modal-header">
+        <h3 id="modalTitleText"><i class="fa-solid fa-user-plus"></i> Add Faculty</h3>
+        <button class="modal-close-btn" onclick="app.closeModal()">&times;</button>
+      </div>
+      <form id="universalModalForm">
+        <div class="form-grid" id="modalFormGrid"></div>
+        <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:20px;">
+          <button type="button" class="btn-outline-gold" onclick="app.closeModal()">Cancel</button>
+          <button type="submit" class="btn-red" id="modalSubmitBtn">Save Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <button class="fab-add-btn" onclick="app.openAddFacultyModal()" title="Add Faculty">
+    <i class="fa-solid fa-plus"></i>
+  </button>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/navbar.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

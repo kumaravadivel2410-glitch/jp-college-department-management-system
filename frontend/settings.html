@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark-theme">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings - J.P. College of Engineering - AI&DS Department Management System</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="navbar-container"></div>
+
+  <main class="app-main-content">
+    <div class="glass-card" style="max-width:800px; margin:0 auto;">
+      <div class="card-header-flex">
+        <h2><i class="fa-solid fa-gear"></i> System Settings & Access Controls</h2>
+      </div>
+
+      <div class="form-grid" style="grid-template-columns:1fr; gap:20px;">
+        <div class="form-group">
+          <label>Permission / Role Switcher</label>
+          <select id="settingRoleSelect" class="form-control">
+            <option value="Faculty/Admin">Faculty / Admin Mode (Full Edit & Delete Access)</option>
+            <option value="View Only">View Only Mode (Read Only)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Theme Style</label>
+          <select id="settingThemeSelect" class="form-control">
+            <option value="dark-theme">Rich Dark & Golden Glassmorphism</option>
+            <option value="golden-theme">Warm Golden & Obsidian</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Database Backup & Restore</label>
+          <div style="display:flex; gap:12px; margin-top:6px; flex-wrap:wrap;">
+            <button class="btn-gold" onclick="app.downloadBackupJSON()"><i class="fa-solid fa-download"></i> Backup JSON Database</button>
+            <label class="btn-red" style="cursor:pointer; display:inline-flex; align-items:center;">
+              <i class="fa-solid fa-upload"></i> Restore JSON Database
+              <input type="file" id="restoreFileInput" accept=".json" style="display:none;" onchange="app.restoreBackupJSON(event)">
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/navbar.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

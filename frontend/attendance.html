@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark-theme">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attendance - J.P. College of Engineering - AI&DS Department Management System</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="navbar-container"></div>
+
+  <main class="app-main-content">
+    <div class="glass-card">
+      <div class="card-header-flex">
+        <h2><i class="fa-solid fa-calendar-check"></i> Fast Attendance Marking Register</h2>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn-gold" onclick="app.markAllAttendancePresent()"><i class="fa-solid fa-check-double"></i> Mark All Present</button>
+          <button class="btn-red" onclick="app.saveBatchAttendance()"><i class="fa-solid fa-floppy-disk"></i> Save Attendance</button>
+          <button class="btn-outline-gold" onclick="app.downloadAttendancePDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+          <button class="btn-outline-gold" onclick="exporter.exportToExcel('Attendance_Report', app.data.attendance)"><i class="fa-solid fa-file-excel"></i> Excel</button>
+        </div>
+      </div>
+
+      <!-- Filter & Fast Action Bar -->
+      <div class="filter-toolbar">
+        <div class="form-group" style="margin:0; flex:1; min-width:200px;">
+          <input type="date" id="attendanceDatePicker" class="form-control" style="padding:8px 12px;">
+        </div>
+        <select id="attendanceDeptFilter" class="filter-select">
+          <option value="">All Departments</option>
+        </select>
+        <div class="search-box" style="flex:1.5;">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="attendanceSearchInput" class="search-input" placeholder="Search student name or register no...">
+        </div>
+      </div>
+
+      <!-- Interactive Fast Attendance Table -->
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Register No</th>
+              <th>Student Name</th>
+              <th>Dept</th>
+              <th>Fast Mark Status (Click to Toggle)</th>
+              <th>Attendance %</th>
+              <th>Remarks</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="attendanceTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <div class="modal-overlay" id="universalModalOverlay">
+    <div class="modal-content-box">
+      <div class="modal-header">
+        <h3 id="modalTitleText"><i class="fa-solid fa-plus"></i> Mark Attendance</h3>
+        <button class="modal-close-btn" onclick="app.closeModal()">&times;</button>
+      </div>
+      <form id="universalModalForm">
+        <div class="form-grid" id="modalFormGrid"></div>
+        <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:20px;">
+          <button type="button" class="btn-outline-gold" onclick="app.closeModal()">Cancel</button>
+          <button type="submit" class="btn-red" id="modalSubmitBtn">Save Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <button class="fab-add-btn" onclick="app.openAddAttendanceModal()" title="Add Attendance Entry">
+    <i class="fa-solid fa-plus"></i>
+  </button>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/navbar.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
