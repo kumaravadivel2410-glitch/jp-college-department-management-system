@@ -55,7 +55,7 @@ class ApiService {
       console.error(`API Request Error [${method} ${fullUrl}]:`, err.message);
       
       if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError') || err.message.includes('non-JSON response') || err.message.includes('HTTP 502') || err.message.includes('HTTP 503')) {
-        throw new Error('Backend server is currently unavailable. Please try again.');
+        throw new Error('Server connection failed. Please check your internet connection.');
       }
       throw err;
     }

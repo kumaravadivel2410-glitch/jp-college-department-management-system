@@ -237,7 +237,7 @@ class Application {
       tbody.innerHTML = filtered.map(s => `
         <tr>
           <td>
-            <img src="${s.photo || 'https://via.placeholder.com/40'}" class="student-img-thumb" alt="photo" onerror="this.src='https://via.placeholder.com/40'">
+            <img src="${s.photo || 'https://via.placeholder.com/40'}" class="student-img-thumb" alt="photo" loading="lazy" onerror="this.src='https://via.placeholder.com/40'">
           </td>
           <td><strong>${s.registerNo || '-'}</strong></td>
           <td><a href="javascript:void(0)" onclick="app.viewStudentProfile('${s._id}')" style="color:var(--gold-primary); text-decoration:none; font-weight:600;">${s.studentName || '-'}</a></td>
