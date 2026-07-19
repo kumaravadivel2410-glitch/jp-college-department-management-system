@@ -2,8 +2,8 @@ const mongoose = require('mongoose');
 
 const FacultySchema = new mongoose.Schema(
   {
-    facultyId: { type: String, default: '' },
-    facultyName: { type: String, default: '' },
+    facultyId: { type: String, required: true, unique: true, trim: true },
+    facultyName: { type: String, required: true, trim: true },
     department: { type: String, default: '' },
     subject: { type: String, default: '' },
     qualification: { type: String, default: '' },

@@ -59,14 +59,28 @@ const SEED_DATA = {
   ]
 };
 
+// Helper for formatting duplicate key errors into human friendly responses
+const formatDuplicateError = (err, defaultModelName) => {
+  const field = Object.keys(err.keyPattern || err.keyValue || {})[0] || 'field';
+  if (field === 'facultyId' || defaultModelName === 'Faculty') {
+    return 'Faculty ID already exists. Please use a different Faculty ID.';
+  }
+  if (field === 'registerNo' || defaultModelName === 'Student') {
+    return 'Register Number already exists. Please use a different Register Number.';
+  }
+  return `${field} already exists. Please use a unique value.`;
+};
+
 // Seed MongoDB Atlas automatically if collections are empty & log collection stats
 const autoSeedDatabase = async () => {
   try {
     try {
       await Student.collection.dropIndex('studentId_1');
-    } catch (e) {
-      // Ignore if index doesn't exist
-    }
+    } catch (e) {}
+
+    try {
+      await Faculty.collection.dropIndex('email_1');
+    } catch (e) {}
 
     const studentCount = await Student.countDocuments();
     if (studentCount === 0) {
@@ -132,11 +146,22 @@ const createCrudHandlers = (Model, modelName) => ({
       const items = await Model.find().sort({ updatedAt: -1 });
       res.json({ success: true, data: items });
     } catch (err) {
-      res.status(500).json({ success: false, error: err.message });
+      res.status(500).json({ success: false, message: err.message });
     }
   },
   create: async (req, res) => {
     try {
+      // Pre-check for duplicate Faculty ID before save
+      if (modelName === 'Faculty' && req.body.facultyId) {
+        const existing = await Faculty.findOne({ facultyId: req.body.facultyId.trim() });
+        if (existing) {
+          return res.status(400).json({
+            success: false,
+            message: 'Faculty ID already exists. Please use a different Faculty ID.'
+          });
+        }
+      }
+
       const newItem = await Model.create(req.body);
       await recordHistory(
         `Added New ${modelName}`,
@@ -146,13 +171,33 @@ const createCrudHandlers = (Model, modelName) => ({
       );
       res.status(201).json({ success: true, data: newItem });
     } catch (err) {
-      res.status(400).json({ success: false, error: err.message });
+      if (err.code === 11000) {
+        return res.status(400).json({
+          success: false,
+          message: formatDuplicateError(err, modelName)
+        });
+      }
+      res.status(400).json({ success: false, message: err.message });
     }
   },
   update: async (req, res) => {
     try {
-      const updatedItem = await Model.findByIdAndUpdate(req.params.id, req.body, { new: true });
-      if (!updatedItem) return res.status(404).json({ success: false, error: 'Not found' });
+      // Pre-check for duplicate Faculty ID on update
+      if (modelName === 'Faculty' && req.body.facultyId) {
+        const existing = await Faculty.findOne({
+          facultyId: req.body.facultyId.trim(),
+          _id: { $ne: req.params.id }
+        });
+        if (existing) {
+          return res.status(400).json({
+            success: false,
+            message: 'Faculty ID already exists. Please use a different Faculty ID.'
+          });
+        }
+      }
+
+      const updatedItem = await Model.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+      if (!updatedItem) return res.status(404).json({ success: false, message: 'Not found' });
 
       await recordHistory(
         `Updated ${modelName}`,
@@ -162,13 +207,19 @@ const createCrudHandlers = (Model, modelName) => ({
       );
       res.json({ success: true, data: updatedItem });
     } catch (err) {
-      res.status(400).json({ success: false, error: err.message });
+      if (err.code === 11000) {
+        return res.status(400).json({
+          success: false,
+          message: formatDuplicateError(err, modelName)
+        });
+      }
+      res.status(400).json({ success: false, message: err.message });
     }
   },
   delete: async (req, res) => {
     try {
       const deletedItem = await Model.findByIdAndDelete(req.params.id);
-      if (!deletedItem) return res.status(404).json({ success: false, error: 'Not found' });
+      if (!deletedItem) return res.status(404).json({ success: false, message: 'Not found' });
 
       await recordHistory(
         `Deleted ${modelName}`,
@@ -178,7 +229,7 @@ const createCrudHandlers = (Model, modelName) => ({
       );
       res.json({ success: true, data: deletedItem });
     } catch (err) {
-      res.status(500).json({ success: false, error: err.message });
+      res.status(500).json({ success: false, message: err.message });
     }
   }
 });
@@ -205,7 +256,7 @@ const getStats = async (req, res) => {
       }
     });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 

@@ -127,6 +127,21 @@ class Application {
       this.showToast(`Permission Mode: ${e.target.value}`, 'success');
     });
 
+    const backendInput = document.getElementById('settingBackendUrlInput');
+    if (backendInput) {
+      backendInput.value = localStorage.getItem('jp_dms_backend_url') || (window.APP_CONFIG ? window.APP_CONFIG.RENDER_BACKEND_URL : '');
+      backendInput.addEventListener('change', (e) => {
+        const val = e.target.value.trim();
+        if (val) {
+          localStorage.setItem('jp_dms_backend_url', val);
+          this.showToast(`Backend Server API URL updated to: ${val}`, 'success');
+        } else {
+          localStorage.removeItem('jp_dms_backend_url');
+          this.showToast('Backend Server API URL reset to default', 'info');
+        }
+      });
+    }
+
     document.getElementById('universalModalForm')?.addEventListener('submit', (e) => this.handleModalSubmit(e));
   }
 
@@ -774,12 +789,12 @@ class Application {
     document.getElementById('modalTitleText').innerHTML = `<i class="fa-solid fa-user-tie"></i> Add Faculty`;
 
     document.getElementById('modalFormGrid').innerHTML = `
-      <div class="form-group"><label>Faculty ID</label><input type="text" name="facultyId" class="form-control"></div>
-      <div class="form-group"><label>Faculty Name</label><input type="text" name="facultyName" class="form-control"></div>
-      <div class="form-group"><label>Designation</label><input type="text" name="designation" class="form-control" value="Assistant Professor"></div>
+      <div class="form-group"><label>Faculty ID *</label><input type="text" name="facultyId" class="form-control" required placeholder="e.g. JPC-FAC-106"></div>
+      <div class="form-group"><label>Faculty Name *</label><input type="text" name="facultyName" class="form-control" required placeholder="Full Name"></div>
+      <div class="form-group"><label>Designation *</label><input type="text" name="designation" class="form-control" required value="Assistant Professor"></div>
       <div class="form-group">
-        <label>Department</label>
-        <select name="department" class="form-control">
+        <label>Department *</label>
+        <select name="department" class="form-control" required>
           ${this.getDepartmentOptions()}
         </select>
       </div>
@@ -1067,6 +1082,9 @@ class Application {
 
   async handleModalSubmit(e) {
     e.preventDefault();
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    if (submitBtn) submitBtn.disabled = true;
+
     const formData = new FormData(e.target);
     const body = {};
     formData.forEach((val, key) => body[key] = val);
@@ -1080,18 +1098,20 @@ class Application {
     try {
       if (this.editingId) {
         await api.request(`${this.editingModule}/${this.editingId}`, 'PUT', body);
-        this.showToast('Record updated in MongoDB successfully!', 'success');
+        this.showToast('Record updated successfully!', 'success');
       } else {
         await api.request(this.editingModule, 'POST', body);
-        this.showToast('Record saved to MongoDB successfully!', 'success');
+        this.showToast('Record saved successfully!', 'success');
       }
 
       this.closeModal();
       await this.loadAllData();
       this.renderPage();
     } catch (err) {
-      console.error('Save to MongoDB Error:', err.message);
-      this.showToast(`MongoDB Save Error: ${err.message}`, 'error');
+      console.error('Save Record Error:', err.message);
+      this.showToast(err.message || 'Error saving record', 'error');
+    } finally {
+      if (submitBtn) submitBtn.disabled = false;
     }
   }
 
