@@ -1,6 +1,6 @@
 /**
  * JP College DMS - Centralized REST API Service Client
- * Connects all CRUD operations directly to configured backend REST endpoints
+ * Connects all CRUD operations directly to backend MongoDB REST endpoints
  */
 class ApiService {
   constructor() {
@@ -14,13 +14,14 @@ class ApiService {
     }
     return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
       ? 'http://localhost:5000/api' 
-      : '/api';
+      : 'https://jp-college-department-management-system-1.onrender.com/api';
   }
 
-  // Centralized Request Handler with robust error & HTML response handling
+  // Centralized Request Handler with robust error handling and duplicate path prevention
   async request(endpoint, method = 'GET', body = null) {
     const baseUrl = this.getBaseUrl();
-    const cleanEndpoint = endpoint.replace(/^\//, '');
+    // Strip leading slashes and leading "api/" to avoid /api/api duplication
+    const cleanEndpoint = endpoint.replace(/^\/+/, '').replace(/^api\/+/, '');
     const fullUrl = `${baseUrl}/${cleanEndpoint}`;
 
     const options = {
@@ -40,8 +41,8 @@ class ApiService {
       if (contentType.includes('application/json')) {
         json = await response.json();
       } else {
-        const textOutput = await response.text();
-        throw new Error(`Server returned non-JSON response (${response.status}): ${textOutput.slice(0, 100)}`);
+        await response.text();
+        throw new Error('Backend server is currently unavailable. Please try again.');
       }
 
       if (!response.ok || (json && json.success === false)) {
@@ -53,8 +54,8 @@ class ApiService {
     } catch (err) {
       console.error(`API Request Error [${method} ${fullUrl}]:`, err.message);
       
-      if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
-        throw new Error(`Unable to connect to backend server (${baseUrl}). Please verify the backend server is running and CORS is enabled.`);
+      if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError') || err.message.includes('non-JSON response') || err.message.includes('HTTP 502') || err.message.includes('HTTP 503')) {
+        throw new Error('Backend server is currently unavailable. Please try again.');
       }
       throw err;
     }
