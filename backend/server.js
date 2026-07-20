@@ -29,7 +29,7 @@ app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin) || origin.endsWith('.netlify.app') || origin.includes('localhost') || origin.includes('127.0.0.1')) {
+    if (allowedOrigins.includes(origin) || origin.endsWith('.github.io') || origin.endsWith('.netlify.app') || origin.includes('localhost') || origin.includes('127.0.0.1')) {
       return callback(null, true);
     }
     return callback(null, true);
