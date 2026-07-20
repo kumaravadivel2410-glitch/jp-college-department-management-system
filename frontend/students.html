@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JP College ERP - Student Management Module</title>
+  <title>JP College ERP - Student Directory & Semester Promotion</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -16,15 +16,16 @@
 
   <main class="main-content-wrapper">
     <div class="page-header-title">
-      <h2><i class="fa-solid fa-user-graduate" style="color: var(--primary);"></i> Student Management Directory</h2>
+      <h2><i class="fa-solid fa-user-graduate" style="color: var(--primary);"></i> Student Directory & Semester Promotion</h2>
       <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <button id="openPromoteModalBtn" class="btn-primary" style="background:#16A34A; display:none;"><i class="fa-solid fa-angles-up"></i> Promote Students</button>
         <a href="import-export.html" class="btn-secondary"><i class="fa-solid fa-file-import"></i> Bulk Import</a>
         <button id="exportStudentsBtn" class="btn-secondary"><i class="fa-solid fa-file-excel"></i> Export Students</button>
-        <button id="openAddStudentModalBtn" class="btn-primary" style="display:none;"><i class="fa-solid fa-plus-circle"></i> Add New Student</button>
+        <button id="openAddStudentModalBtn" class="btn-primary" style="display:none;"><i class="fa-solid fa-plus-circle"></i> Add Student</button>
       </div>
     </div>
 
-    <!-- Filters Section -->
+    <!-- Filters Section (Semester 1 - 8) -->
     <div class="card-glass" style="margin-bottom: 1.5rem;">
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem;">
         <div class="form-group" style="margin-bottom:0;">
@@ -52,11 +53,17 @@
         </div>
 
         <div class="form-group" style="margin-bottom:0;">
-          <label class="form-label">Semester</label>
+          <label class="form-label">Semester (1–8)</label>
           <select id="stuFilterSem" class="form-control">
             <option value="All">All Semesters</option>
-            <option value="Semester V" selected>Semester V</option>
-            <option value="Semester VI">Semester VI</option>
+            <option value="Semester 1">Semester 1</option>
+            <option value="Semester 2">Semester 2</option>
+            <option value="Semester 3">Semester 3</option>
+            <option value="Semester 4">Semester 4</option>
+            <option value="Semester 5" selected>Semester 5</option>
+            <option value="Semester 6">Semester 6</option>
+            <option value="Semester 7">Semester 7</option>
+            <option value="Semester 8">Semester 8</option>
           </select>
         </div>
 
@@ -93,6 +100,59 @@
       </table>
     </div>
   </main>
+
+  <!-- Promote Students Modal -->
+  <div class="modal-overlay" id="promoteModal">
+    <div class="modal-box" style="max-width: 550px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-angles-up" style="color: var(--primary);"></i> Batch Promote Students Semester</h3>
+        <button class="close-modal-btn" id="closePromoteModalBtn">&times;</button>
+      </div>
+      <form id="promoteForm">
+        <div class="form-group">
+          <label class="form-label">Select Target Department</label>
+          <select id="promoteDept" class="form-control">
+            <option value="All">All Departments</option>
+            <option value="AI & DS" selected>AI & DS</option>
+            <option value="CSE">CSE</option>
+            <option value="ECE">ECE</option>
+            <option value="EEE">EEE</option>
+          </select>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Current Semester *</label>
+            <select id="promoteFromSem" class="form-control">
+              <option value="Semester 1">Semester 1</option>
+              <option value="Semester 2">Semester 2</option>
+              <option value="Semester 3">Semester 3</option>
+              <option value="Semester 4">Semester 4</option>
+              <option value="Semester 5" selected>Semester 5</option>
+              <option value="Semester 6">Semester 6</option>
+              <option value="Semester 7">Semester 7</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Promote To Semester *</label>
+            <select id="promoteToSem" class="form-control">
+              <option value="Semester 2">Semester 2</option>
+              <option value="Semester 3">Semester 3</option>
+              <option value="Semester 4">Semester 4</option>
+              <option value="Semester 5">Semester 5</option>
+              <option value="Semester 6" selected>Semester 6</option>
+              <option value="Semester 7">Semester 7</option>
+              <option value="Semester 8">Semester 8</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-success" style="width: 100%; justify-content: center; margin-top: 0.5rem; padding: 0.85rem;">
+          <i class="fa-solid fa-angles-up"></i> Execute Batch Promotion
+        </button>
+      </form>
+    </div>
+  </div>
 
   <!-- Add/Edit Student Modal -->
   <div class="modal-overlay" id="studentFormModal">
@@ -160,10 +220,16 @@
             </select>
           </div>
           <div class="form-group">
-            <label class="form-label">Semester</label>
+            <label class="form-label">Semester (1–8)</label>
             <select id="mSem" class="form-control">
-              <option value="Semester V" selected>Semester V</option>
-              <option value="Semester VI">Semester VI</option>
+              <option value="Semester 1">Semester 1</option>
+              <option value="Semester 2">Semester 2</option>
+              <option value="Semester 3">Semester 3</option>
+              <option value="Semester 4">Semester 4</option>
+              <option value="Semester 5" selected>Semester 5</option>
+              <option value="Semester 6">Semester 6</option>
+              <option value="Semester 7">Semester 7</option>
+              <option value="Semester 8">Semester 8</option>
             </select>
           </div>
           <div class="form-group">
@@ -190,20 +256,6 @@
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-          <div class="form-group">
-            <label class="form-label">Blood Group</label>
-            <input type="text" id="mBloodGroup" class="form-control" placeholder="O+">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Status</label>
-            <select id="mStatus" class="form-control">
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-            </select>
-          </div>
-        </div>
-
         <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 0.5rem;">
           <i class="fa-solid fa-save"></i> Save Student Record
         </button>
@@ -223,13 +275,14 @@
     document.addEventListener('DOMContentLoaded', () => {
       const user = JSON.parse(localStorage.getItem('jp_dms_user')) || {};
       const isFacultyOrAdmin = user.role === 'faculty' || user.role === 'admin' || user.role === 'super_admin';
+      const isAdmin = user.role === 'admin' || user.role === 'super_admin';
 
-      if (isFacultyOrAdmin) {
-        document.getElementById('openAddStudentModalBtn').style.display = 'inline-flex';
-      }
+      if (isFacultyOrAdmin) document.getElementById('openAddStudentModalBtn').style.display = 'inline-flex';
+      if (isAdmin) document.getElementById('openPromoteModalBtn').style.display = 'inline-flex';
 
       let studentsList = [];
       const modal = document.getElementById('studentFormModal');
+      const promoteModal = document.getElementById('promoteModal');
 
       document.getElementById('openAddStudentModalBtn')?.addEventListener('click', () => {
         document.getElementById('editStudentDbId').value = '';
@@ -238,6 +291,8 @@
         modal.classList.add('active');
       });
 
+      document.getElementById('openPromoteModalBtn')?.addEventListener('click', () => promoteModal.classList.add('active'));
+      document.getElementById('closePromoteModalBtn')?.addEventListener('click', () => promoteModal.classList.remove('active'));
       document.getElementById('closeStudentFormModalBtn')?.addEventListener('click', () => modal.classList.remove('active'));
 
       const fetchStudents = async () => {
@@ -287,6 +342,28 @@
 
       document.querySelectorAll('#stuFilterDept, #stuFilterYear, #stuFilterSem, #stuFilterSec').forEach(el => el.addEventListener('change', fetchStudents));
 
+      document.getElementById('promoteForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const payload = {
+          department: document.getElementById('promoteDept').value,
+          currentSemester: document.getElementById('promoteFromSem').value,
+          targetSemester: document.getElementById('promoteToSem').value
+        };
+
+        const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+        const token = localStorage.getItem('jp_dms_token');
+        const res = await fetch(`${baseUrl}/students/promote`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(payload)
+        });
+
+        const json = await res.json();
+        alert(json.message || 'Students promoted!');
+        promoteModal.classList.remove('active');
+        fetchStudents();
+      });
+
       document.getElementById('studentForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const id = document.getElementById('editStudentDbId').value;
@@ -303,9 +380,7 @@
           section: document.getElementById('mSec').value,
           batch: document.getElementById('mBatch').value,
           parentName: document.getElementById('mParentName').value,
-          parentPhone: document.getElementById('mParentPhone').value,
-          bloodGroup: document.getElementById('mBloodGroup').value,
-          status: document.getElementById('mStatus').value
+          parentPhone: document.getElementById('mParentPhone').value
         };
 
         const baseUrl = window.APP_CONFIG.getApiBaseUrl();
@@ -343,8 +418,6 @@
         document.getElementById('mBatch').value = s.batch || '';
         document.getElementById('mParentName').value = s.parentName || '';
         document.getElementById('mParentPhone').value = s.parentPhone || '';
-        document.getElementById('mBloodGroup').value = s.bloodGroup || '';
-        document.getElementById('mStatus').value = s.status || 'Active';
 
         document.getElementById('modalStudentTitle').innerHTML = '<i class="fa-solid fa-user-pen" style="color: var(--primary);"></i> Edit Student Record';
         modal.classList.add('active');

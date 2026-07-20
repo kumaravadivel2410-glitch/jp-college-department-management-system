@@ -38,12 +38,15 @@ router.put('/auth/reject/:userId', verifyToken, authorizeRoles('admin', 'super_a
 
 // Core CRUD Routes
 mountCrud('students', controllers.students);
+router.post('/students/promote', verifyToken, authorizeRoles('admin', 'super_admin'), controllers.promoteStudents);
 mountCrud('faculty', controllers.faculty);
 mountCrud('departments', controllers.departments);
 mountCrud('subjects', controllers.subjects);
 mountCrud('classes', controllers.classes);
 mountCrud('attendance', controllers.attendance);
 router.post('/attendance/batch', verifyToken, controllers.batchAttendance);
+router.post('/attendance/qr/generate', verifyToken, controllers.generateQR);
+router.post('/attendance/qr/scan', verifyToken, controllers.scanQR);
 mountCrud('semester-marks', controllers.semesterMarks);
 mountCrud('internal-marks', controllers.internalMarks);
 mountCrud('marks', controllers.internalMarks);

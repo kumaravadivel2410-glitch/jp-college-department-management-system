@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JP College ERP - Student Attendance Management</title>
+  <title>JP College ERP - Student Attendance & QR Code Portal</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -33,6 +33,13 @@
     .status-opt-btn.active-absent { background: #DC2626; color: white; }
     .status-opt-btn.active-late { background: #F59E0B; color: white; }
     .status-opt-btn.active-permission { background: #2563EB; color: white; }
+    .qr-box {
+      background: #FFF;
+      border: 2px dashed var(--primary);
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -41,18 +48,19 @@
 
   <main class="main-content-wrapper">
     <div class="page-header-title">
-      <h2><i class="fa-solid fa-calendar-check" style="color: var(--primary);"></i> Student Attendance Management</h2>
+      <h2><i class="fa-solid fa-calendar-check" style="color: var(--primary);"></i> Student Attendance & QR Code System</h2>
       <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-        <button id="markAllPresentBtn" class="btn-success"><i class="fa-solid fa-check-double"></i> Mark All Present</button>
-        <button id="markAllAbsentBtn" class="btn-danger"><i class="fa-solid fa-user-xmark"></i> Mark All Absent</button>
+        <button id="openGenerateQRModalBtn" class="btn-primary" style="background:#1E40AF;"><i class="fa-solid fa-qrcode"></i> Generate Live QR Session</button>
+        <button id="openScanQRModalBtn" class="btn-success"><i class="fa-solid fa-camera"></i> Student QR Scan</button>
+        <button id="markAllPresentBtn" class="btn-secondary"><i class="fa-solid fa-check-double"></i> Mark All Present</button>
         <button id="exportAttendanceBtn" class="btn-secondary"><i class="fa-solid fa-file-excel"></i> Export Sheet</button>
         <button id="submitBatchAttendanceBtn" class="btn-primary"><i class="fa-solid fa-cloud-arrow-up"></i> Save Class Attendance</button>
       </div>
     </div>
 
-    <!-- Attendance Filters Card -->
+    <!-- Attendance Filters Card (Supports Semester 1 to 8) -->
     <div class="card-glass" style="margin-bottom: 1.5rem;">
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
         <div class="form-group" style="margin-bottom:0;">
           <label class="form-label">Department</label>
           <select id="attDept" class="form-control">
@@ -76,10 +84,16 @@
         </div>
 
         <div class="form-group" style="margin-bottom:0;">
-          <label class="form-label">Semester</label>
+          <label class="form-label">Semester (1–8)</label>
           <select id="attSem" class="form-control">
-            <option value="Semester V" selected>Semester V</option>
-            <option value="Semester VI">Semester VI</option>
+            <option value="Semester 1">Semester 1</option>
+            <option value="Semester 2">Semester 2</option>
+            <option value="Semester 3">Semester 3</option>
+            <option value="Semester 4">Semester 4</option>
+            <option value="Semester 5" selected>Semester 5</option>
+            <option value="Semester 6">Semester 6</option>
+            <option value="Semester 7">Semester 7</option>
+            <option value="Semester 8">Semester 8</option>
           </select>
         </div>
 
@@ -136,6 +150,7 @@
             <th>Roll No</th>
             <th>Student Name</th>
             <th>Department & Year</th>
+            <th>Method</th>
             <th>Attendance Status</th>
             <th style="width: 100px;">Actions</th>
           </tr>
@@ -146,6 +161,61 @@
       </table>
     </div>
   </main>
+
+  <!-- Faculty Live QR Generator Modal -->
+  <div class="modal-overlay" id="generateQRModal">
+    <div class="modal-box" style="max-width: 550px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-qrcode" style="color: var(--primary);"></i> Live Class QR Attendance Session</h3>
+        <button class="close-modal-btn" id="closeGenerateQRBtn">&times;</button>
+      </div>
+      <div class="qr-box">
+        <div id="qrImageContainer">
+          <i class="fa-solid fa-qrcode fa-5x" style="color: var(--primary); margin-bottom: 0.5rem;"></i>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">Click generate to start live QR code attendance for this class.</p>
+        </div>
+
+        <div id="qrActiveView" style="display: none; margin-top: 1rem;">
+          <img id="qrCodeImg" src="" alt="Class QR Code" style="width: 200px; height: 200px; border: 4px solid #1E3A8A; border-radius: 12px;">
+          <div style="font-size: 1.4rem; font-weight: 800; color: var(--primary); margin-top: 0.5rem;" id="qrTokenDisplay">QR-ABC123</div>
+          <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">Share this token or project QR code on class screen.</div>
+          <div style="font-size: 0.85rem; font-weight: 700; color: #DC2626; margin-top: 0.5rem;" id="qrTimerDisplay">Session Expires in: 5m 00s</div>
+        </div>
+
+        <div class="form-group" style="margin-top: 1.25rem; text-align: left;">
+          <label class="form-label">Session Validity Duration</label>
+          <select id="qrValiditySelect" class="form-control">
+            <option value="3">3 Minutes</option>
+            <option value="5" selected>5 Minutes</option>
+            <option value="10">10 Minutes</option>
+          </select>
+        </div>
+
+        <button id="startQRSessionBtn" class="btn-primary" style="width: 100%; justify-content: center;">
+          <i class="fa-solid fa-play"></i> Generate QR Session Now
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Student QR Scanner / Token Input Modal -->
+  <div class="modal-overlay" id="scanQRModal">
+    <div class="modal-box" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-camera" style="color: var(--primary);"></i> Student QR Attendance Entry</h3>
+        <button class="close-modal-btn" id="closeScanQRBtn">&times;</button>
+      </div>
+      <form id="scanQRForm" style="padding: 1rem 0;">
+        <div class="form-group">
+          <label class="form-label">Enter Class QR Attendance Code *</label>
+          <input type="text" id="studentQRInput" class="form-control" placeholder="e.g. QR-X9K2L1" style="font-size: 1.2rem; font-weight: 800; text-align: center; text-transform: uppercase;" required>
+        </div>
+        <button type="submit" class="btn-success" style="width: 100%; justify-content: center; padding: 0.85rem;">
+          <i class="fa-solid fa-circle-check"></i> Submit QR Attendance
+        </button>
+      </form>
+    </div>
+  </div>
 
   <footer>
     &copy; 2026 J.P. College of Engineering. All rights reserved. Department Management ERP System.
@@ -161,10 +231,11 @@
 
       let classStudents = [];
       let currentAttendanceMap = {};
+      let qrTimerInterval = null;
 
       const fetchClassRoster = async () => {
         const tbody = document.getElementById('attendanceTbody');
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> Loading class roster...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:2rem; color:var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> Loading class roster...</td></tr>';
 
         const dept = document.getElementById('attDept').value;
         const year = document.getElementById('attYear').value;
@@ -175,8 +246,6 @@
 
         try {
           const baseUrl = window.APP_CONFIG.getApiBaseUrl();
-          
-          // Fetch student roster & existing attendance records
           const [stuRes, attRes] = await Promise.all([
             fetch(`${baseUrl}/students?department=${encodeURIComponent(dept)}&year=${encodeURIComponent(year)}&semester=${encodeURIComponent(sem)}&section=${encodeURIComponent(sec)}`),
             fetch(`${baseUrl}/attendance?department=${encodeURIComponent(dept)}&year=${encodeURIComponent(year)}&semester=${encodeURIComponent(sem)}&section=${encodeURIComponent(sec)}&subject=${encodeURIComponent(subject)}`)
@@ -191,12 +260,12 @@
           currentAttendanceMap = {};
           existingAtt.forEach(a => {
             if (a.date === date) {
-              currentAttendanceMap[a.studentRegisterNo] = { id: a._id, status: a.status };
+              currentAttendanceMap[a.studentRegisterNo] = { id: a._id, status: a.status, scanMethod: a.scanMethod || 'Manual' };
             }
           });
 
           if (classStudents.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--text-secondary);">No enrolled students found for selected class filters.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:2rem; color:var(--text-secondary);">No enrolled students found.</td></tr>';
             updateSummary();
             return;
           }
@@ -204,13 +273,15 @@
           tbody.innerHTML = classStudents.map(s => {
             const existing = currentAttendanceMap[s.registerNo];
             const currentStatus = existing ? existing.status : 'Present';
+            const method = existing ? existing.scanMethod : 'Manual';
 
             return `
               <tr id="row-${s.registerNo}">
                 <td style="font-weight:700; color:var(--primary);">${s.registerNo}</td>
                 <td>${s.rollNumber || '-'}</td>
                 <td style="font-weight:700; color:#1E3A8A;">${s.studentName}</td>
-                <td>${s.department} (${s.year})</td>
+                <td>${s.department} (${s.semester})</td>
+                <td><span class="badge ${method === 'QR_Scan' ? 'badge-success' : 'badge-primary'}">${method}</span></td>
                 <td>
                   <div class="status-btn-group" data-reg="${s.registerNo}">
                     <button type="button" onclick="setStudentStatus('${s.registerNo}', 'Present')" class="status-opt-btn ${currentStatus === 'Present' ? 'active-present' : ''}">P</button>
@@ -229,7 +300,7 @@
           updateSummary();
 
         } catch (err) {
-          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--error);">Failed to load attendance roster.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--error);">Failed to load attendance roster.</td></tr>';
         }
       };
 
@@ -245,7 +316,6 @@
           btns[2].className = `status-opt-btn ${status === 'Late' ? 'active-late' : ''}`;
           btns[3].className = `status-opt-btn ${status === 'Permission' ? 'active-permission' : ''}`;
         }
-
         updateSummary();
       };
 
@@ -267,83 +337,83 @@
         document.getElementById('summaryPercent').textContent = `${pct}%`;
       };
 
-      document.getElementById('markAllPresentBtn').addEventListener('click', () => {
-        classStudents.forEach(s => window.setStudentStatus(s.registerNo, 'Present'));
-      });
+      // QR Code Modals
+      const genModal = document.getElementById('generateQRModal');
+      const scanModal = document.getElementById('scanQRModal');
 
-      document.getElementById('markAllAbsentBtn').addEventListener('click', () => {
-        classStudents.forEach(s => window.setStudentStatus(s.registerNo, 'Absent'));
-      });
+      document.getElementById('openGenerateQRModalBtn')?.addEventListener('click', () => genModal.classList.add('active'));
+      document.getElementById('closeGenerateQRBtn')?.addEventListener('click', () => genModal.classList.remove('active'));
+      document.getElementById('openScanQRModalBtn')?.addEventListener('click', () => scanModal.classList.add('active'));
+      document.getElementById('closeScanQRBtn')?.addEventListener('click', () => scanModal.classList.remove('active'));
 
-      document.getElementById('submitBatchAttendanceBtn').addEventListener('click', async () => {
-        if (!classStudents.length) return alert('No students to submit attendance for.');
+      document.getElementById('startQRSessionBtn').addEventListener('click', async () => {
+        const validity = document.getElementById('qrValiditySelect').value;
+        const payload = {
+          department: document.getElementById('attDept').value,
+          year: document.getElementById('attYear').value,
+          semester: document.getElementById('attSem').value,
+          section: document.getElementById('attSec').value,
+          subject: document.getElementById('attSubject').value,
+          validityMinutes: validity
+        };
 
-        const btn = document.getElementById('submitBatchAttendanceBtn');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+        const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+        const token = localStorage.getItem('jp_dms_token');
+        const res = await fetch(`${baseUrl}/attendance/qr/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(payload)
+        });
 
-        try {
-          const records = classStudents.map(s => ({
-            studentRegisterNo: s.registerNo,
-            studentName: s.studentName,
-            status: (currentAttendanceMap[s.registerNo] && currentAttendanceMap[s.registerNo].status) || 'Present'
-          }));
+        const json = await res.json();
+        if (json.success) {
+          document.getElementById('qrImageContainer').style.display = 'none';
+          document.getElementById('qrActiveView').style.display = 'block';
+          document.getElementById('qrTokenDisplay').textContent = json.qrToken;
+          document.getElementById('qrCodeImg').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(json.qrToken)}`;
 
-          const payload = {
-            date: document.getElementById('attDate').value,
-            department: document.getElementById('attDept').value,
-            year: document.getElementById('attYear').value,
-            semester: document.getElementById('attSem').value,
-            section: document.getElementById('attSec').value,
-            subject: document.getElementById('attSubject').value,
-            records
-          };
-
-          const baseUrl = window.APP_CONFIG.getApiBaseUrl();
-          const token = localStorage.getItem('jp_dms_token');
-
-          const res = await fetch(`${baseUrl}/attendance/batch`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify(payload)
-          });
-
-          const data = await res.json();
-          alert(data.message || 'Batch attendance saved!');
-          fetchClassRoster();
-
-        } catch (err) {
-          alert(`Failed to save attendance: ${err.message}`);
-        } finally {
-          btn.disabled = false;
-          btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Save Class Attendance';
+          let duration = Number(validity) * 60;
+          if (qrTimerInterval) clearInterval(qrTimerInterval);
+          qrTimerInterval = setInterval(() => {
+            duration--;
+            const mins = Math.floor(duration / 60);
+            const secs = duration % 60;
+            document.getElementById('qrTimerDisplay').textContent = `Session Expires in: ${mins}m ${secs < 10 ? '0' : ''}${secs}s`;
+            if (duration <= 0) {
+              clearInterval(qrTimerInterval);
+              document.getElementById('qrTimerDisplay').textContent = '⚠️ QR Session Expired.';
+            }
+          }, 1000);
         }
       });
 
-      window.deleteAttendanceRecord = async (id) => {
-        if (!confirm('Delete this attendance record?')) return;
+      document.getElementById('scanQRForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const code = document.getElementById('studentQRInput').value.trim();
+        const user = JSON.parse(localStorage.getItem('jp_dms_user')) || {};
+
+        const payload = {
+          qrToken: code,
+          studentRegisterNo: user.registerNo || '953621104001',
+          studentName: user.name || 'Student',
+          deviceInfo: window.navigator.userAgent.substring(0, 30)
+        };
+
         const baseUrl = window.APP_CONFIG.getApiBaseUrl();
         const token = localStorage.getItem('jp_dms_token');
-        await fetch(`${baseUrl}/attendance/${id}`, {
-          method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${token}` }
+        const res = await fetch(`${baseUrl}/attendance/qr/scan`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(payload)
         });
+
+        const json = await res.json();
+        alert(json.message || 'QR Scan complete.');
+        scanModal.classList.remove('active');
         fetchClassRoster();
-      };
+      });
 
       document.querySelectorAll('#attDept, #attYear, #attSem, #attSec, #attSubject, #attDate').forEach(el => el.addEventListener('change', fetchClassRoster));
-
-      document.getElementById('exportAttendanceBtn').addEventListener('click', () => {
-        const rows = classStudents.map(s => ({
-          RegisterNo: s.registerNo,
-          StudentName: s.studentName,
-          Department: s.department,
-          Year: s.year,
-          Section: s.section,
-          Status: (currentAttendanceMap[s.registerNo] && currentAttendanceMap[s.registerNo].status) || 'Present'
-        }));
-        exporter.exportToExcel(`JP_College_Attendance_${document.getElementById('attDate').value}`, rows);
-      });
 
       fetchClassRoster();
     });

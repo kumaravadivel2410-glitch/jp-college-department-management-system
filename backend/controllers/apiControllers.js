@@ -1154,6 +1154,120 @@ const batchAttendance = async (req, res) => {
   }
 };
 
+// Active QR Sessions in-memory store
+const activeQRSessions = new Map();
+
+const generateQR = async (req, res) => {
+  try {
+    const { department, year, semester, section, subject, validityMinutes } = req.body;
+    const validity = Number(validityMinutes) || 5;
+    const token = 'QR-' + Math.random().toString(36).substring(2, 9).toUpperCase();
+    const expiresAt = Date.now() + validity * 60 * 1000;
+
+    const sessionData = {
+      token,
+      department: department || 'AI & DS',
+      year: year || 'III Year',
+      semester: semester || 'Semester 5',
+      section: section || 'A',
+      subject: subject || 'AD3501 - Deep Learning',
+      faculty: req.user ? (req.user.name || req.user.email) : 'Faculty Member',
+      expiresAt,
+      date: new Date().toISOString().split('T')[0],
+      scannedStudents: []
+    };
+
+    activeQRSessions.set(token, sessionData);
+
+    res.json({
+      success: true,
+      message: `QR Code generated successfully! Valid for ${validity} minutes.`,
+      qrToken: token,
+      expiresAt,
+      sessionData
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+const scanQR = async (req, res) => {
+  try {
+    const { qrToken, studentRegisterNo, studentName, deviceInfo } = req.body;
+    if (!qrToken || !activeQRSessions.has(qrToken)) {
+      return res.status(400).json({ success: false, message: 'Invalid or expired QR Code token.' });
+    }
+
+    const session = activeQRSessions.get(qrToken);
+    if (Date.now() > session.expiresAt) {
+      activeQRSessions.delete(qrToken);
+      return res.status(400).json({ success: false, message: 'QR Code attendance session has expired.' });
+    }
+
+    const regNo = studentRegisterNo || (req.user ? req.user.registerNo : null);
+    if (!regNo) return res.status(400).json({ success: false, message: 'Student Register Number is required.' });
+
+    if (session.scannedStudents.includes(regNo)) {
+      return res.status(400).json({ success: false, message: 'Attendance already recorded for this QR session.' });
+    }
+
+    session.scannedStudents.push(regNo);
+
+    const markDate = session.date;
+    await Attendance.findOneAndUpdate(
+      { studentRegisterNo: regNo, date: markDate, subject: session.subject },
+      {
+        studentRegisterNo: regNo,
+        studentName: studentName || (req.user ? req.user.name : 'Student'),
+        department: session.department,
+        year: session.year,
+        semester: session.semester,
+        section: session.section,
+        subject: session.subject,
+        date: markDate,
+        status: 'Present',
+        markedBy: session.faculty,
+        scanMethod: 'QR_Scan',
+        scanTime: new Date().toLocaleTimeString(),
+        deviceInfo: deviceInfo || 'Mobile Device'
+      },
+      { upsert: true, new: true }
+    );
+
+    res.json({
+      success: true,
+      message: `✅ Attendance marked Present via QR Scan for ${regNo}!`,
+      subject: session.subject,
+      time: new Date().toLocaleTimeString()
+    });
+
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+const promoteStudents = async (req, res) => {
+  try {
+    const { department, currentSemester, targetSemester } = req.body;
+    if (!currentSemester || !targetSemester) {
+      return res.status(400).json({ success: false, message: 'Please specify current and target semester.' });
+    }
+
+    const filter = { semester: currentSemester };
+    if (department && department !== 'All') filter.department = department;
+
+    const result = await Student.updateMany(filter, { $set: { semester: targetSemester } });
+
+    res.json({
+      success: true,
+      message: `Successfully promoted ${result.modifiedCount} students from ${currentSemester} to ${targetSemester}!`,
+      count: result.modifiedCount
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
 module.exports = {
   students: createCrudControllers(Student, 'Student'),
   faculty: createCrudControllers(Faculty, 'Faculty'),
@@ -1175,5 +1289,8 @@ module.exports = {
   importExport,
   getStats,
   autoSeedDatabase,
-  batchAttendance
+  batchAttendance,
+  generateQR,
+  scanQR,
+  promoteStudents
 };
