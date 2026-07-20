@@ -1,35 +1,55 @@
 /**
- * JP College of Engineering - Shared Navigation Header & Live Clock Component
- * Automatically injected across all 14 dedicated pages
+ * JP College ERP - Shared Navigation Header, Role Security Guard & Global Controls
  */
 class NavbarComponent {
   constructor() {
     this.pages = [
-      { name: 'Dashboard', url: 'dashboard.html', path: '/dashboard', icon: 'fa-chart-pie' },
-      { name: 'Students', url: 'students.html', path: '/students', icon: 'fa-user-graduate' },
-      { name: 'Faculty', url: 'faculty.html', path: '/faculty', icon: 'fa-chalkboard-user' },
-      { name: 'Departments', url: 'departments.html', path: '/departments', icon: 'fa-building-columns' },
-      { name: 'Subjects', url: 'subjects.html', path: '/subjects', icon: 'fa-book-open' },
-      { name: 'Classes', url: 'classes.html', path: '/classes', icon: 'fa-door-open' },
-      { name: 'Attendance', url: 'attendance.html', path: '/attendance', icon: 'fa-calendar-check' },
-      { name: 'Semester Marks', url: 'semester-marks.html', path: '/semester-marks', icon: 'fa-graduation-cap' },
-      { name: 'Internal Marks', url: 'internal-marks.html', path: '/internal-marks', icon: 'fa-file-signature' },
-      { name: 'Reports', url: 'reports.html', path: '/reports', icon: 'fa-chart-line' },
-      { name: 'Downloads', url: 'downloads.html', path: '/downloads', icon: 'fa-download' },
-      { name: 'History', url: 'history.html', path: '/history', icon: 'fa-clock-rotate-left' },
-      { name: 'Settings', url: 'settings.html', path: '/settings', icon: 'fa-gear' },
-      { name: 'About', url: 'about.html', path: '/about', icon: 'fa-circle-info' }
+      { name: 'Dashboard', url: 'dashboard.html', path: '/dashboard', icon: 'fa-chart-pie', roles: ['super_admin', 'admin', 'faculty', 'student'] },
+      { name: 'Approvals', url: 'approvals.html', path: '/approvals', icon: 'fa-user-check', roles: ['super_admin', 'admin'], badgeId: 'navPendingCountBadge' },
+      { name: 'Students', url: 'students.html', path: '/students', icon: 'fa-user-graduate', roles: ['super_admin', 'admin', 'faculty'] },
+      { name: 'Faculty', url: 'faculty.html', path: '/faculty', icon: 'fa-chalkboard-user', roles: ['super_admin', 'admin', 'faculty'] },
+      { name: 'Departments', url: 'departments.html', path: '/departments', icon: 'fa-building-columns', roles: ['super_admin', 'admin'] },
+      { name: 'Subjects', url: 'subjects.html', path: '/subjects', icon: 'fa-book-open', roles: ['super_admin', 'admin', 'faculty'] },
+      { name: 'Classes', url: 'classes.html', path: '/classes', icon: 'fa-door-open', roles: ['super_admin', 'admin', 'faculty'] },
+      { name: 'Attendance', url: 'attendance.html', path: '/attendance', icon: 'fa-calendar-check', roles: ['super_admin', 'admin', 'faculty', 'student'] },
+      { name: 'Internal Marks', url: 'internal-marks.html', path: '/internal-marks', icon: 'fa-file-signature', roles: ['super_admin', 'admin', 'faculty', 'student'] },
+      { name: 'Semester Marks', url: 'semester-marks.html', path: '/semester-marks', icon: 'fa-graduation-cap', roles: ['super_admin', 'admin', 'faculty', 'student'] },
+      { name: 'Subject Notes', url: 'subject-notes.html', path: '/subject-notes', icon: 'fa-file-pdf', roles: ['super_admin', 'admin', 'faculty', 'student'] },
+      { name: 'Reports', url: 'reports.html', path: '/reports', icon: 'fa-chart-line', roles: ['super_admin', 'admin', 'faculty'] },
+      { name: 'Downloads', url: 'downloads.html', path: '/downloads', icon: 'fa-download', roles: ['super_admin', 'admin', 'faculty', 'student'] },
+      { name: 'History', url: 'history.html', path: '/history', icon: 'fa-clock-rotate-left', roles: ['super_admin', 'admin'] },
+      { name: 'Settings', url: 'settings.html', path: '/settings', icon: 'fa-gear', roles: ['super_admin', 'admin'] },
+      { name: 'About', url: 'about.html', path: '/about', icon: 'fa-circle-info', roles: ['super_admin', 'admin', 'faculty', 'student'] }
     ];
   }
 
   init() {
+    this.checkAuth();
     this.renderHeaderNav();
     this.setupClock();
-    this.setupTheme();
-    this.setupHamburger();
+    this.setupGlobalSearch();
+    this.setupNotifications();
+    this.fetchPendingBadgeCount();
   }
 
-  // Detect active page name
+  checkAuth() {
+    const token = localStorage.getItem('jp_dms_token');
+    const userStr = localStorage.getItem('jp_dms_user');
+    const currentPath = window.location.pathname.toLowerCase();
+
+    if ((!token || !userStr) && !currentPath.endsWith('login.html') && !currentPath.endsWith('register.html') && !currentPath.endsWith('index.html')) {
+      window.location.href = 'login.html';
+    }
+  }
+
+  getUser() {
+    try {
+      return JSON.parse(localStorage.getItem('jp_dms_user')) || { role: 'super_admin', name: 'Super Admin', email: 'Adminjpcoe@gmail.com' };
+    } catch (e) {
+      return { role: 'super_admin', name: 'Super Admin', email: 'Adminjpcoe@gmail.com' };
+    }
+  }
+
   getActivePage() {
     const currentPath = window.location.pathname.toLowerCase();
     const match = this.pages.find(p => currentPath.endsWith(p.url) || currentPath.endsWith(p.path) || (currentPath === '/' && p.url === 'dashboard.html'));
@@ -38,7 +58,11 @@ class NavbarComponent {
 
   renderHeaderNav() {
     const activeUrl = this.getActivePage();
-    const currentRole = localStorage.getItem('jp_dms_role') || 'Faculty/Admin';
+    const user = this.getUser();
+    const roleKey = user.role || 'super_admin';
+    const roleTitle = (roleKey === 'super_admin' || roleKey === 'admin') ? 'Super Admin' : (roleKey === 'faculty' ? 'Faculty' : 'Student');
+
+    const visiblePages = this.pages.filter(p => p.roles.includes(roleKey) || p.roles.includes('admin'));
 
     const headerHtml = `
       <header class="top-navbar-wrapper">
@@ -48,36 +72,48 @@ class NavbarComponent {
             <div class="college-logo-badge">JPC</div>
             <div class="college-title">
               <h1>J.P. COLLEGE OF ENGINEERING</h1>
-              <p>Department Management System</p>
+              <p>College ERP System (${roleTitle})</p>
             </div>
           </a>
           
+          <!-- Global Search Bar -->
+          <div class="global-search-container">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="globalSearchInput" class="global-search-input" placeholder="Search student, faculty, reg no, dept...">
+          </div>
+
           <div class="header-right-controls">
-            <div class="role-badge" id="roleBadgeDisplay">
-              <i class="fa-solid fa-user-shield"></i>
-              <span id="roleLabelText">${currentRole}</span>
-            </div>
-
-            <div class="live-time-box">
-              <div class="live-clock-time" id="liveClockTime">00:00:00 AM</div>
-              <div class="live-clock-date" id="liveClockDate">Loading date...</div>
-            </div>
-
-            <button class="btn-outline-gold" id="toggleThemeBtn" title="Toggle Theme">
-              <i class="fa-solid fa-moon"></i>
+            <!-- Notifications Bell -->
+            <button class="notification-bell-btn" id="notificationsBtn" title="Notifications">
+              <i class="fa-solid fa-bell"></i>
+              <span class="notification-badge-dot"></span>
             </button>
 
-            <button class="hamburger-btn" id="mobileHamburgerBtn" title="Menu">
-              <i class="fa-solid fa-bars"></i>
+            <!-- Role & Profile Badge -->
+            <div class="role-badge" title="${user.email}">
+              <i class="fa-solid ${(roleKey === 'super_admin' || roleKey === 'admin') ? 'fa-user-shield' : (roleKey === 'faculty' ? 'fa-chalkboard-user' : 'fa-user-graduate')}"></i>
+              <span>${user.name || roleTitle}</span>
+            </div>
+
+            <!-- Live Clock -->
+            <div class="live-time-box" style="font-size:0.75rem; text-align:right; color:var(--text-secondary);">
+              <div id="liveClockTime" style="font-weight:700; color:var(--primary);">00:00:00 AM</div>
+              <div id="liveClockDate" style="font-size:0.65rem;">Loading date...</div>
+            </div>
+
+            <!-- Logout Button -->
+            <button class="btn-secondary" id="logoutBtn" style="padding:0.4rem 0.75rem; font-size:0.8rem; color:var(--error);" title="Logout">
+              <i class="fa-solid fa-right-from-bracket"></i> Logout
             </button>
           </div>
         </div>
 
-        <!-- Sticky Navigation Menu -->
+        <!-- Role Navigation Menu -->
         <nav class="nav-menu-bar" id="navMenuBar">
-          ${this.pages.map(p => `
+          ${visiblePages.map(p => `
             <a href="${p.url}" class="nav-tab-btn ${p.url === activeUrl ? 'active' : ''}">
               <i class="fa-solid ${p.icon}"></i> ${p.name}
+              ${p.badgeId ? `<span id="${p.badgeId}" class="badge badge-warning" style="display:none; margin-left:0.3rem; font-size:0.7rem;">0</span>` : ''}
             </a>
           `).join('')}
         </nav>
@@ -90,49 +126,90 @@ class NavbarComponent {
     } else {
       document.body.insertAdjacentHTML('afterbegin', headerHtml);
     }
-  }
 
-  setupHamburger() {
-    document.addEventListener('click', (e) => {
-      const btn = e.target.closest('#mobileHamburgerBtn');
-      if (btn) {
-        const menu = document.getElementById('navMenuBar');
-        if (menu) menu.classList.toggle('open');
+    document.getElementById('logoutBtn')?.addEventListener('click', () => {
+      if (confirm('Are you sure you want to log out of JP College ERP?')) {
+        localStorage.removeItem('jp_dms_token');
+        localStorage.removeItem('jp_dms_user');
+        localStorage.removeItem('jp_dms_role');
+        window.location.href = 'login.html';
       }
     });
   }
 
-  setupClock() {
-    const timeEl = document.getElementById('liveClockTime');
-    const dateEl = document.getElementById('liveClockDate');
+  async fetchPendingBadgeCount() {
+    const user = this.getUser();
+    if (user.role !== 'super_admin' && user.role !== 'admin') return;
 
-    const updateTime = () => {
-      const now = new Date();
-      if (timeEl) timeEl.textContent = now.toLocaleTimeString('en-US', { hour12: true });
-      if (dateEl) {
-        const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
-        dateEl.textContent = `${now.toLocaleDateString('en-US', options)} | AY: 2025-2026`;
+    try {
+      const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+      const token = localStorage.getItem('jp_dms_token');
+      const res = await fetch(`${baseUrl}/auth/pending-categorized`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      const json = await res.json();
+      if (json.success && json.counts && json.counts.total > 0) {
+        const badge = document.getElementById('navPendingCountBadge');
+        if (badge) {
+          badge.textContent = json.counts.total;
+          badge.style.display = 'inline-block';
+        }
       }
-    };
-
-    updateTime();
-    setInterval(updateTime, 1000);
+    } catch (e) {}
   }
 
-  setupTheme() {
-    const savedTheme = localStorage.getItem('jp_dms_theme') || 'dark-theme';
-    document.documentElement.setAttribute('data-theme', savedTheme);
+  setupClock() {
+    const update = () => {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
 
-    document.addEventListener('click', (e) => {
-      if (e.target.closest('#toggleThemeBtn')) {
-        const currentTheme = document.documentElement.getAttribute('data-theme');
-        const newTheme = currentTheme === 'golden-theme' ? 'dark-theme' : 'golden-theme';
-        document.documentElement.setAttribute('data-theme', newTheme);
-        localStorage.setItem('jp_dms_theme', newTheme);
+      const timeEl = document.getElementById('liveClockTime');
+      const dateEl = document.getElementById('liveClockDate');
+      if (timeEl) timeEl.textContent = timeStr;
+      if (dateEl) dateEl.textContent = dateStr;
+    };
+    update();
+    setInterval(update, 1000);
+  }
+
+  setupGlobalSearch() {
+    document.addEventListener('input', (e) => {
+      if (e.target && e.target.id === 'globalSearchInput') {
+        const query = e.target.value.toLowerCase().trim();
+        const rows = document.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+          const text = row.textContent.toLowerCase();
+          row.style.display = text.includes(query) ? '' : 'none';
+        });
+      }
+    });
+  }
+
+  setupNotifications() {
+    document.addEventListener('click', async (e) => {
+      if (e.target.closest('#notificationsBtn')) {
+        try {
+          const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+          const res = await fetch(`${baseUrl}/notifications`);
+          const json = await res.json();
+          const list = json.data || [];
+          
+          const notifText = list.length > 0 
+            ? list.slice(0, 5).map(n => `• [${n.type.toUpperCase()}] ${n.title}: ${n.message}`).join('\n\n')
+            : 'No new notifications.';
+
+          alert(`🔔 JP College System Notifications:\n\n${notifText}`);
+        } catch (err) {
+          alert('No new notifications.');
+        }
       }
     });
   }
 }
 
-const navbar = new NavbarComponent();
-document.addEventListener('DOMContentLoaded', () => navbar.init());
+document.addEventListener('DOMContentLoaded', () => {
+  const nav = new NavbarComponent();
+  nav.init();
+});

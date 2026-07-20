@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JP College ERP - Subject Notes</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div id="navbar-container"></div>
+
+  <main class="main-content-wrapper">
+    <div class="page-header-title">
+      <h2><i class="fa-solid fa-file-pdf"></i> Subject Notes Repository</h2>
+      <div id="facultyUploadBtnContainer">
+        <button class="btn-primary" id="openUploadNoteModalBtn">
+          <i class="fa-solid fa-cloud-arrow-up"></i> Upload New Subject Notes
+        </button>
+      </div>
+    </div>
+
+    <!-- Filters Bar -->
+    <div class="card-glass" style="margin-bottom: 1.5rem; padding: 1.25rem;">
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+        <div style="flex: 1; min-width: 200px;">
+          <label class="form-label">Department</label>
+          <select id="filterDepartment" class="form-control">
+            <option value="All">All Departments</option>
+            <option value="AI & DS">AI & DS</option>
+            <option value="CSE">CSE</option>
+            <option value="ECE">ECE</option>
+            <option value="EEE">EEE</option>
+            <option value="Mechanical">Mechanical</option>
+            <option value="Civil">Civil</option>
+          </select>
+        </div>
+
+        <div style="flex: 1; min-width: 150px;">
+          <label class="form-label">Semester</label>
+          <select id="filterSemester" class="form-control">
+            <option value="All">All Semesters</option>
+            <option value="Semester I">Semester I</option>
+            <option value="Semester II">Semester II</option>
+            <option value="Semester III">Semester III</option>
+            <option value="Semester IV">Semester IV</option>
+            <option value="Semester V">Semester V</option>
+            <option value="Semester VI">Semester VI</option>
+            <option value="Semester VII">Semester VII</option>
+            <option value="Semester VIII">Semester VIII</option>
+          </select>
+        </div>
+
+        <div style="flex: 2; min-width: 250px;">
+          <label class="form-label">Search Subject / Title</label>
+          <input type="text" id="filterSearch" class="form-control" placeholder="Search by subject code, title or topic...">
+        </div>
+
+        <div style="margin-top: 1.5rem;">
+          <button class="btn-secondary" id="resetFiltersBtn">
+            <i class="fa-solid fa-rotate-right"></i> Reset
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notes Cards Grid -->
+    <div id="notesGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.25rem;">
+      <!-- Dynamic notes loaded here -->
+    </div>
+  </main>
+
+  <!-- Upload Modal -->
+  <div class="modal-overlay" id="uploadNoteModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-file-arrow-up" style="color: var(--primary);"></i> Upload Subject Notes</h3>
+        <button class="close-modal-btn" id="closeUploadNoteModalBtn">&times;</button>
+      </div>
+
+      <form id="uploadNoteForm">
+        <div class="form-group">
+          <label class="form-label">Title / Module Name</label>
+          <input type="text" id="noteTitle" class="form-control" placeholder="e.g. Deep Learning Module 1 - Neural Networks" required>
+        </div>
+
+        <div style="display: flex; gap: 1rem;">
+          <div class="form-group" style="flex: 1;">
+            <label class="form-label">Department</label>
+            <select id="noteDepartment" class="form-control" required>
+              <option value="AI & DS">AI & DS</option>
+              <option value="CSE">CSE</option>
+              <option value="ECE">ECE</option>
+              <option value="EEE">EEE</option>
+              <option value="Mechanical">Mechanical</option>
+              <option value="Civil">Civil</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="flex: 1;">
+            <label class="form-label">Semester</label>
+            <select id="noteSemester" class="form-control" required>
+              <option value="Semester V">Semester V</option>
+              <option value="Semester I">Semester I</option>
+              <option value="Semester II">Semester II</option>
+              <option value="Semester III">Semester III</option>
+              <option value="Semester IV">Semester IV</option>
+              <option value="Semester VI">Semester VI</option>
+              <option value="Semester VII">Semester VII</option>
+              <option value="Semester VIII">Semester VIII</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 1rem;">
+          <div class="form-group" style="flex: 1;">
+            <label class="form-label">Subject Code</label>
+            <input type="text" id="noteSubjectCode" class="form-control" placeholder="e.g. AD3501" required>
+          </div>
+
+          <div class="form-group" style="flex: 1;">
+            <label class="form-label">Section</label>
+            <select id="noteSection" class="form-control">
+              <option value="A">Section A</option>
+              <option value="B">Section B</option>
+              <option value="C">Section C</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Subject Name</label>
+          <input type="text" id="noteSubjectName" class="form-control" placeholder="e.g. Deep Learning" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Select File (PDF, PPT, DOCX, ZIP, Image)</label>
+          <input type="file" id="noteFileInput" class="form-control" accept=".pdf,.ppt,.pptx,.doc,.docx,.zip,.png,.jpg,.jpeg">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">OR External File URL</label>
+          <input type="url" id="noteFileUrl" class="form-control" placeholder="https://domain.com/notes.pdf">
+        </div>
+
+        <div id="noteAlertBox" style="display: none; padding: 0.75rem; border-radius: var(--radius-md); font-size: 0.825rem; margin-bottom: 1rem;"></div>
+
+        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">
+          <i class="fa-solid fa-cloud-arrow-up"></i> Upload & Publish Notes
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <footer>
+    &copy; 2026 J.P. College of Engineering. All rights reserved. Department Management ERP System.
+  </footer>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/navbar.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const modal = document.getElementById('uploadNoteModal');
+      const openBtn = document.getElementById('openUploadNoteModalBtn');
+      const closeBtn = document.getElementById('closeUploadNoteModalBtn');
+      const uploadContainer = document.getElementById('facultyUploadBtnContainer');
+
+      const user = JSON.parse(localStorage.getItem('jp_dms_user') || '{}');
+      if (user.role === 'student') {
+        uploadContainer.style.display = 'none'; // Students cannot upload notes
+      }
+
+      openBtn.addEventListener('click', () => modal.classList.add('active'));
+      closeBtn.addEventListener('click', () => modal.classList.remove('active'));
+
+      const loadNotes = async () => {
+        const dept = document.getElementById('filterDepartment').value;
+        const sem = document.getElementById('filterSemester').value;
+        const search = document.getElementById('filterSearch').value;
+
+        const grid = document.getElementById('notesGrid');
+        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-muted);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><p style="margin-top:0.5rem;">Loading subject notes...</p></div>';
+
+        try {
+          const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+          let url = `${baseUrl}/notes?department=${dept}&semester=${sem}&search=${encodeURIComponent(search)}`;
+          const res = await fetch(url);
+          const json = await res.json();
+          const notes = json.data || [];
+
+          if (notes.length === 0) {
+            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 3rem; background:#FFF; border-radius:12px; border:1px solid #E2E8F0;"><i class="fa-solid fa-folder-open fa-3x" style="color:var(--text-muted);"></i><h3 style="margin-top:1rem; color:#1E293B;">No Notes Found</h3><p style="color:var(--text-secondary); font-size:0.9rem;">No subject notes match your search filters.</p></div>';
+            return;
+          }
+
+          const getIcon = (type) => {
+            const t = (type || '').toLowerCase();
+            if (t.includes('pdf')) return { icon: 'fa-file-pdf', color: '#EF4444' };
+            if (t.includes('ppt')) return { icon: 'fa-file-powerpoint', color: '#F59E0B' };
+            if (t.includes('doc')) return { icon: 'fa-file-word', color: '#2563EB' };
+            if (t.includes('zip')) return { icon: 'fa-file-zipper', color: '#8B5CF6' };
+            return { icon: 'fa-file-image', color: '#10B981' };
+          };
+
+          grid.innerHTML = notes.map(n => {
+            const meta = getIcon(n.fileType);
+            const canDelete = user.role === 'admin' || user.email === n.uploaderEmail;
+
+            return `
+              <div class="card-glass" style="display:flex; flex-direction:column; justify-between;">
+                <div>
+                  <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem;">
+                    <div style="width:42px; height:42px; border-radius:10px; background:${meta.color}15; color:${meta.color}; display:flex; align-items:center; justify-content:center; font-size:1.2rem;">
+                      <i class="fa-solid ${meta.icon}"></i>
+                    </div>
+                    <span class="badge badge-primary">${n.department}</span>
+                  </div>
+
+                  <h3 style="font-size:1.05rem; font-weight:700; color:#1E293B; margin-bottom:0.4rem;">${n.title}</h3>
+                  <div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:0.75rem;">
+                    <strong>${n.subjectCode}</strong>: ${n.subjectName} (${n.semester})
+                  </div>
+
+                  <div style="font-size:0.75rem; color:var(--text-muted); display:flex; gap:1rem; margin-bottom:1rem;">
+                    <span><i class="fa-solid fa-user"></i> ${n.uploadedBy || 'Faculty'}</span>
+                    <span><i class="fa-solid fa-hard-drive"></i> ${n.fileSize || '1.5 MB'}</span>
+                  </div>
+                </div>
+
+                <div style="display:flex; gap:0.5rem; border-top:1px solid #F1F5F9; padding-top:0.75rem; margin-top:auto;">
+                  <a href="${n.fileUrl}" target="_blank" download class="btn-primary" style="flex:1; justify-content:center; padding:0.45rem; font-size:0.8rem;">
+                    <i class="fa-solid fa-download"></i> Download ${n.fileType ? n.fileType.toUpperCase() : 'PDF'}
+                  </a>
+                  ${canDelete ? `
+                    <button onclick="deleteNote('${n._id}')" class="btn-danger" style="padding:0.45rem 0.65rem;" title="Delete Note">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  ` : ''}
+                </div>
+              </div>
+            `;
+          }).join('');
+        } catch (err) {
+          grid.innerHTML = `<div style="grid-column:1/-1; color:var(--error); text-align:center; padding:2rem;">Failed to load subject notes.</div>`;
+        }
+      };
+
+      document.getElementById('filterDepartment').addEventListener('change', loadNotes);
+      document.getElementById('filterSemester').addEventListener('change', loadNotes);
+      document.getElementById('filterSearch').addEventListener('input', loadNotes);
+      document.getElementById('resetFiltersBtn').addEventListener('click', () => {
+        document.getElementById('filterDepartment').value = 'All';
+        document.getElementById('filterSemester').value = 'All';
+        document.getElementById('filterSearch').value = '';
+        loadNotes();
+      });
+
+      // Handle Upload Note Submit
+      document.getElementById('uploadNoteForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const alertBox = document.getElementById('noteAlertBox');
+        alertBox.style.display = 'none';
+
+        const fileInput = document.getElementById('noteFileInput');
+        const urlInput = document.getElementById('noteFileUrl').value;
+
+        const formData = new FormData();
+        formData.append('title', document.getElementById('noteTitle').value);
+        formData.append('department', document.getElementById('noteDepartment').value);
+        formData.append('semester', document.getElementById('noteSemester').value);
+        formData.append('section', document.getElementById('noteSection').value);
+        formData.append('subjectCode', document.getElementById('noteSubjectCode').value);
+        formData.append('subjectName', document.getElementById('noteSubjectName').value);
+        if (urlInput) formData.append('fileUrl', urlInput);
+        if (fileInput.files[0]) formData.append('file', fileInput.files[0]);
+
+        try {
+          const token = localStorage.getItem('jp_dms_token');
+          const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+
+          const res = await fetch(`${baseUrl}/notes/upload`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+            body: formData
+          });
+
+          const json = await res.json();
+          if (json.success) {
+            alertBox.style.display = 'block';
+            alertBox.style.background = 'var(--success-bg)';
+            alertBox.style.color = 'var(--success)';
+            alertBox.innerHTML = '<i class="fa-solid fa-circle-check"></i> Notes uploaded successfully!';
+
+            setTimeout(() => {
+              modal.classList.remove('active');
+              loadNotes();
+            }, 1200);
+          } else {
+            throw new Error(json.message);
+          }
+        } catch (err) {
+          alertBox.style.display = 'block';
+          alertBox.style.background = 'var(--error-bg)';
+          alertBox.style.color = 'var(--error)';
+          alertBox.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> ${err.message}`;
+        }
+      });
+
+      // Global delete helper
+      window.deleteNote = async (id) => {
+        if (!confirm('Are you sure you want to delete this subject note?')) return;
+        try {
+          const token = localStorage.getItem('jp_dms_token');
+          const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+          await fetch(`${baseUrl}/notes/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          loadNotes();
+        } catch (e) {
+          alert('Delete failed');
+        }
+      };
+
+      loadNotes();
+    });
+  </script>
+</body>
+</html>

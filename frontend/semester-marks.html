@@ -1,81 +1,49 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark-theme">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Semester Marks - J.P. College of Engineering - AI&DS Department Management System</title>
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>JP College ERP - Semester Marks</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+
   <div id="navbar-container"></div>
 
-  <main class="app-main-content">
-    <div class="glass-card">
-      <div class="card-header-flex">
-        <h2><i class="fa-solid fa-graduation-cap"></i> Semester Marks & Result Status</h2>
-        <div style="display:flex; gap:10px;">
-          <button class="btn-red" onclick="app.openAddSemesterMarkModal()"><i class="fa-solid fa-plus"></i> Add Semester Mark</button>
-          <button class="btn-gold" onclick="app.downloadMarksPDF()"><i class="fa-solid fa-file-pdf"></i> Export PDF</button>
-          <button class="btn-gold" onclick="exporter.exportToExcel('Semester_Marks', app.data.semesterMarks)"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
-        </div>
-      </div>
+  <main class="main-content-wrapper">
+    <div class="page-header-title">
+      <h2><i class="fa-solid fa-graduation-cap"></i> Semester Examinations Grade & Results</h2>
+    </div>
 
+    <!-- Data Table Card -->
+    <div class="card-glass">
       <div class="table-responsive">
         <table class="custom-table">
           <thead>
             <tr>
               <th>Register No</th>
               <th>Student Name</th>
-              <th>Department</th>
-              <th>Subject Code</th>
+              <th>Subject</th>
               <th>Grade</th>
               <th>CGPA</th>
-              <th>Arrears</th>
               <th>Result</th>
-              <th>Actions</th>
             </tr>
           </thead>
-          <tbody id="semesterMarksTbody"></tbody>
+          <tbody id="semesterMarksTableBody">
+            <!-- Dynamic semester marks -->
+          </tbody>
         </table>
       </div>
     </div>
   </main>
 
-  <div class="modal-overlay" id="universalModalOverlay">
-    <div class="modal-content-box">
-      <div class="modal-header">
-        <h3 id="modalTitleText"><i class="fa-solid fa-plus"></i> Add Semester Mark</h3>
-        <button class="modal-close-btn" onclick="app.closeModal()">&times;</button>
-      </div>
-      <form id="universalModalForm">
-        <div class="form-grid" id="modalFormGrid"></div>
-        <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:20px;">
-          <button type="button" class="btn-outline-gold" onclick="app.closeModal()">Cancel</button>
-          <button type="submit" class="btn-red" id="modalSubmitBtn">Save Record</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <button class="fab-add-btn" onclick="app.openAddSemesterMarkModal()" title="Add Mark">
-    <i class="fa-solid fa-plus"></i>
-  </button>
-
-  <div class="toast-container" id="toastContainer"></div>
+  <footer>
+    &copy; 2026 J.P. College of Engineering. All rights reserved. Department Management ERP System.
+  </footer>
 
   <script src="js/config.js"></script>
   <script src="js/api.js"></script>
-  <script src="js/export.js"></script>
   <script src="js/navbar.js"></script>
   <script src="js/app.js"></script>
 </body>

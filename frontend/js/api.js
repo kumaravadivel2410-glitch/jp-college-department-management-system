@@ -1,13 +1,13 @@
 /**
- * JP College DMS - Centralized REST API Service Client
- * Connects all CRUD operations directly to backend MongoDB REST endpoints
+ * JP College ERP - Centralized REST API Service Client
+ * Attaches JWT Bearer authentication headers to all backend API requests
  */
 class ApiService {
   constructor() {
     this.roleKey = 'jp_dms_role';
+    this.tokenKey = 'jp_dms_token';
   }
 
-  // Get current active API Base URL
   getBaseUrl() {
     if (window.APP_CONFIG && typeof window.APP_CONFIG.getApiBaseUrl === 'function') {
       return window.APP_CONFIG.getApiBaseUrl();
@@ -17,20 +17,22 @@ class ApiService {
       : 'https://jp-college-department-management-system-1.onrender.com/api';
   }
 
-  // Centralized Request Handler with robust error handling and duplicate path prevention
   async request(endpoint, method = 'GET', body = null) {
     const baseUrl = this.getBaseUrl();
-    // Strip leading slashes and leading "api/" to avoid /api/api duplication
     const cleanEndpoint = endpoint.replace(/^\/+/, '').replace(/^api\/+/, '');
     const fullUrl = `${baseUrl}/${cleanEndpoint}`;
+    const token = localStorage.getItem(this.tokenKey);
 
-    const options = {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-        'x-user-role': localStorage.getItem(this.roleKey) || 'Faculty/Admin'
-      }
+    const headers = {
+      'Content-Type': 'application/json',
+      'x-user-role': localStorage.getItem(this.roleKey) || 'admin'
     };
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const options = { method, headers };
     if (body) options.body = JSON.stringify(body);
 
     try {
@@ -42,7 +44,13 @@ class ApiService {
         json = await response.json();
       } else {
         await response.text();
-        throw new Error('Backend server is currently unavailable. Please try again.');
+        throw new Error('Backend server unavailable.');
+      }
+
+      if (response.status === 401 || response.status === 403) {
+        if (cleanEndpoint.startsWith('auth/login')) {
+          throw new Error(json?.message || 'Invalid credentials');
+        }
       }
 
       if (!response.ok || (json && json.success === false)) {
@@ -53,9 +61,8 @@ class ApiService {
       return json.data !== undefined ? json.data : json;
     } catch (err) {
       console.error(`API Request Error [${method} ${fullUrl}]:`, err.message);
-      
-      if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError') || err.message.includes('non-JSON response') || err.message.includes('HTTP 502') || err.message.includes('HTTP 503')) {
-        throw new Error('Server connection failed. Please check your internet connection.');
+      if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+        throw new Error('Server connection failed. Please check backend connection.');
       }
       throw err;
     }

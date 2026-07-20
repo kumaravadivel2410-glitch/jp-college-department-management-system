@@ -1,68 +1,120 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark-theme">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Settings - J.P. College of Engineering - AI&DS Department Management System</title>
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>JP College ERP - System Settings & Approvals</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+
   <div id="navbar-container"></div>
 
-  <main class="app-main-content">
-    <div class="glass-card" style="max-width:800px; margin:0 auto;">
-      <div class="card-header-flex">
-        <h2><i class="fa-solid fa-gear"></i> System Settings & Access Controls</h2>
+  <main class="main-content-wrapper">
+    <div class="page-header-title">
+      <h2><i class="fa-solid fa-gear"></i> System Settings & User Approvals</h2>
+    </div>
+
+    <!-- Approvals & Import Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem;">
+      
+      <!-- Pending Approvals Card -->
+      <div class="card-glass">
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: #1E293B; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+          <i class="fa-solid fa-user-check" style="color: var(--primary);"></i> Pending User Registrations (Faculty & Students)
+        </h3>
+        <div id="pendingApprovalsList">
+          <!-- Pending approvals list -->
+        </div>
       </div>
 
-      <div class="form-grid" style="grid-template-columns:1fr; gap:20px;">
-        <div class="form-group">
-          <label>Permission / Role Switcher</label>
-          <select id="settingRoleSelect" class="form-control">
-            <option value="Faculty/Admin">Faculty / Admin Mode (Full Edit & Delete Access)</option>
-            <option value="View Only">View Only Mode (Read Only)</option>
-          </select>
-        </div>
+      <!-- Import Data Card -->
+      <div class="card-glass">
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: #1E293B; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+          <i class="fa-solid fa-file-import" style="color: var(--primary);"></i> Bulk Import System (Excel / CSV / PDF)
+        </h3>
 
-        <div class="form-group">
-          <label>Theme Style</label>
-          <select id="settingThemeSelect" class="form-control">
-            <option value="dark-theme">Rich Dark & Golden Glassmorphism</option>
-            <option value="golden-theme">Warm Golden & Obsidian</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>Backend Server API URL (Render / Cloud Backend)</label>
-          <input type="text" id="settingBackendUrlInput" class="form-control" placeholder="https://jp-college-dms-backend.onrender.com">
-          <small style="color:var(--text-secondary); margin-top:4px; display:block;">Enter your deployed Render backend URL. Leave default for automatic detection.</small>
-        </div>
-
-        <div class="form-group">
-          <label>Database Backup & Restore</label>
-          <div style="display:flex; gap:12px; margin-top:6px; flex-wrap:wrap;">
-            <button class="btn-gold" onclick="app.downloadBackupJSON()"><i class="fa-solid fa-download"></i> Backup JSON Database</button>
-            <label class="btn-red" style="cursor:pointer; display:inline-flex; align-items:center;">
-              <i class="fa-solid fa-upload"></i> Restore JSON Database
-              <input type="file" id="restoreFileInput" accept=".json" style="display:none;" onchange="app.restoreBackupJSON(event)">
-            </label>
+        <form id="importDataForm">
+          <div class="form-group">
+            <label class="form-label">Import Target Collection</label>
+            <select id="importTarget" class="form-control">
+              <option value="students">Students List</option>
+              <option value="faculty">Faculty Directory</option>
+              <option value="departments">Departments</option>
+              <option value="subjects">Subjects</option>
+              <option value="classes">Classes</option>
+              <option value="attendance">Attendance Records</option>
+              <option value="internalMarks">Internal Marks</option>
+              <option value="semesterMarks">Semester Marks</option>
+            </select>
           </div>
-        </div>
+
+          <div class="form-group">
+            <label class="form-label">Select Excel (.xlsx, .xls) / CSV File</label>
+            <input type="file" id="importFileInput" class="form-control" accept=".xlsx,.xls,.csv">
+          </div>
+
+          <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Execute Bulk Import
+          </button>
+        </form>
       </div>
     </div>
   </main>
 
-  <div class="toast-container" id="toastContainer"></div>
+  <footer>
+    &copy; 2026 J.P. College of Engineering. All rights reserved. Department Management ERP System.
+  </footer>
 
   <script src="js/config.js"></script>
   <script src="js/api.js"></script>
   <script src="js/navbar.js"></script>
   <script src="js/app.js"></script>
+  <script>
+    document.getElementById('importDataForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fileInput = document.getElementById('importFileInput');
+      const target = document.getElementById('importTarget').value;
+
+      if (!fileInput.files[0]) {
+        alert('Please select an Excel or CSV file to import.');
+        return;
+      }
+
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+      reader.onload = async (evt) => {
+        try {
+          const data = new Uint8Array(evt.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheetName = workbook.SheetNames[0];
+          const records = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheetName]);
+
+          if (records.length === 0) {
+            alert('File is empty.');
+            return;
+          }
+
+          const token = localStorage.getItem('jp_dms_token');
+          const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+
+          const res = await fetch(`${baseUrl}/import`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ target, records })
+          });
+
+          const json = await res.json();
+          alert(json.message || `Successfully imported ${records.length} records into ${target}!`);
+          location.reload();
+        } catch (err) {
+          alert(`Import Error: ${err.message}`);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    });
+  </script>
 </body>
 </html>

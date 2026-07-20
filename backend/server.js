@@ -3,12 +3,19 @@ const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
 const connectDB = require('./config/db');
 const apiRoutes = require('./routes/apiRoutes');
 
 const app = express();
+
+// Ensure Uploads Folder Exists
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
 // Enable CORS for Netlify Production & Localhost Development
 const allowedOrigins = [
@@ -21,12 +28,10 @@ const allowedOrigins = [
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps, curl, server-to-server)
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin) || origin.endsWith('.netlify.app') || origin.includes('localhost') || origin.includes('127.0.0.1')) {
       return callback(null, true);
     }
-    // Fallback: allow all origins so Netlify frontend is never blocked
     return callback(null, true);
   },
   credentials: true,
@@ -37,6 +42,9 @@ app.use(cors({
 app.use(compression());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Static directory for uploaded files
+app.use('/uploads', express.static(uploadsDir));
 
 // Connect DB & Auto-Seed MongoDB Atlas if empty
 connectDB().then(() => {
@@ -53,7 +61,10 @@ app.use(express.static(frontendPath));
 
 // Clean URL Route Mappings for Multi-Page Navigation
 const pageRoutes = [
-  { path: '/', file: 'dashboard.html' },
+  { path: '/', file: 'login.html' },
+  { path: '/login', file: 'login.html' },
+  { path: '/register', file: 'register.html' },
+  { path: '/approvals', file: 'approvals.html' },
   { path: '/dashboard', file: 'dashboard.html' },
   { path: '/students', file: 'students.html' },
   { path: '/faculty', file: 'faculty.html' },
@@ -63,6 +74,7 @@ const pageRoutes = [
   { path: '/attendance', file: 'attendance.html' },
   { path: '/semester-marks', file: 'semester-marks.html' },
   { path: '/internal-marks', file: 'internal-marks.html' },
+  { path: '/subject-notes', file: 'subject-notes.html' },
   { path: '/reports', file: 'reports.html' },
   { path: '/downloads', file: 'downloads.html' },
   { path: '/history', file: 'history.html' },
@@ -81,7 +93,7 @@ app.get('*', (req, res) => {
   if (req.path.startsWith('/api')) {
     return res.status(404).json({ success: false, message: 'API Endpoint Not Found' });
   }
-  res.sendFile(path.join(frontendPath, 'dashboard.html'));
+  res.sendFile(path.join(frontendPath, 'login.html'));
 });
 
 // Error handling middleware
@@ -92,5 +104,5 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 JP College DMS Server running on port ${PORT}`);
+  console.log(`🚀 JP College ERP Server running on port ${PORT}`);
 });

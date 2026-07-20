@@ -1,61 +1,33 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark-theme">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reports & Analytics - JP College of Engineering DMS</title>
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>JP College ERP - Reports Generator</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+
   <div id="navbar-container"></div>
 
-  <main class="app-main-content">
-    <div class="glass-card">
-      <div class="card-header-flex">
-        <h2><i class="fa-solid fa-chart-line"></i> Custom Report Generator & Analytics</h2>
-        <div style="display:flex; gap:10px;">
-          <button class="btn-gold" id="btnGeneratePDFReport"><i class="fa-solid fa-file-pdf"></i> Download PDF</button>
-          <button class="btn-gold" id="btnGenerateExcelReport"><i class="fa-solid fa-file-excel"></i> Download Excel</button>
-          <button class="btn-outline-gold" id="btnPrintReport"><i class="fa-solid fa-print"></i> Print Report</button>
-        </div>
-      </div>
+  <main class="main-content-wrapper">
+    <div class="page-header-title">
+      <h2><i class="fa-solid fa-chart-line"></i> ERP Reports & Analytics Generator</h2>
+    </div>
 
-      <div class="filter-toolbar">
-        <select id="reportModuleSelect" class="filter-select">
-          <option value="students">Student Master Report</option>
-          <option value="faculty">Faculty Directory Report</option>
-          <option value="attendance">Attendance Ledger Report</option>
-          <option value="semesterMarks">Semester Marks & Results</option>
-          <option value="internalMarks">Internal Assessment Report</option>
-          <option value="departments">Departments Master Report</option>
-          <option value="subjects">Subject Directory Report</option>
-          <option value="classes">Class Modules Report</option>
-        </select>
-        <select id="reportDeptSelect" class="filter-select">
-          <option value="">All Departments</option>
-        </select>
-      </div>
-
-      <div class="table-responsive" id="reportPrintArea">
-        <table class="custom-table" id="reportPreviewTable">
-          <thead id="reportPreviewThead"></thead>
-          <tbody id="reportPreviewTbody"></tbody>
-        </table>
-      </div>
+    <!-- Reports Grid -->
+    <div id="reportsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.25rem;">
+      <!-- Dynamic Reports -->
     </div>
   </main>
 
-  <div class="toast-container" id="toastContainer"></div>
+  <footer>
+    &copy; 2026 J.P. College of Engineering. All rights reserved. Department Management ERP System.
+  </footer>
 
   <script src="js/config.js"></script>
   <script src="js/api.js"></script>

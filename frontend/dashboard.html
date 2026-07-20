@@ -1,121 +1,159 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark-theme">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard - J.P. College of Engineering - AI&DS Department Management System</title>
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>JP College ERP - Dashboard</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <!-- Container where navbar.js injects sticky top navigation -->
+
   <div id="navbar-container"></div>
 
-  <main class="app-main-content">
-    <div class="stats-grid">
-      <div class="glass-card stat-card">
-        <div class="stat-icon-wrapper"><i class="fa-solid fa-user-graduate"></i></div>
-        <div class="stat-details">
-          <h3 id="statTotalStudents">0</h3>
-          <p>Total Students</p>
+  <main class="main-content-wrapper">
+    <!-- Welcome Header Card -->
+    <div class="card-glass" style="margin-bottom: 1.5rem; background: linear-gradient(135deg, #FFFFFF 0%, #EFF6FF 100%);">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h2 id="welcomeUserName" style="font-size: 1.4rem; font-weight: 800; color: #1E293B; margin-bottom: 0.25rem;">
+            Welcome to JP College ERP System
+          </h2>
+          <p style="color: var(--text-secondary); font-size: 0.875rem;">
+            Department Management & Production ERP Dashboard • White Mode UI
+          </p>
         </div>
-      </div>
-      <div class="glass-card stat-card">
-        <div class="stat-icon-wrapper"><i class="fa-solid fa-chalkboard-user"></i></div>
-        <div class="stat-details">
-          <h3 id="statTotalFaculty">0</h3>
-          <p>Total Faculty</p>
-        </div>
-      </div>
-      <div class="glass-card stat-card">
-        <div class="stat-icon-wrapper"><i class="fa-solid fa-building-columns"></i></div>
-        <div class="stat-details">
-          <h3 id="statTotalDepts">0</h3>
-          <p>Departments</p>
-        </div>
-      </div>
-      <div class="glass-card stat-card">
-        <div class="stat-icon-wrapper"><i class="fa-solid fa-book-open"></i></div>
-        <div class="stat-details">
-          <h3 id="statTotalSubjects">0</h3>
-          <p>Total Subjects</p>
-        </div>
-      </div>
-      <div class="glass-card stat-card">
-        <div class="stat-icon-wrapper"><i class="fa-solid fa-door-open"></i></div>
-        <div class="stat-details">
-          <h3 id="statTotalClasses">0</h3>
-          <p>Total Classes</p>
+        <div style="display: flex; gap: 0.75rem;">
+          <a href="subject-notes.html" class="btn-primary">
+            <i class="fa-solid fa-file-pdf"></i> Subject Notes
+          </a>
+          <a href="attendance.html" class="btn-secondary">
+            <i class="fa-solid fa-calendar-check"></i> Attendance
+          </a>
         </div>
       </div>
     </div>
 
-    <div class="charts-grid">
-      <div class="glass-card">
-        <div class="card-header-flex">
-          <h2><i class="fa-solid fa-chart-pie"></i> Department Distribution</h2>
+    <!-- Stats Cards Grid -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon-wrapper"><i class="fa-solid fa-user-graduate"></i></div>
+        <div class="stat-info">
+          <div class="stat-number" id="statStudents">0</div>
+          <div class="stat-label">Total Enrolled Students</div>
         </div>
-        <div class="chart-container">
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon-wrapper"><i class="fa-solid fa-chalkboard-user"></i></div>
+        <div class="stat-info">
+          <div class="stat-number" id="statFaculty">0</div>
+          <div class="stat-label">Faculty Members</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon-wrapper"><i class="fa-solid fa-building-columns"></i></div>
+        <div class="stat-info">
+          <div class="stat-number" id="statDepartments">0</div>
+          <div class="stat-label">Academic Departments</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon-wrapper"><i class="fa-solid fa-user-clock"></i></div>
+        <div class="stat-info">
+          <div class="stat-number" id="statPending">0</div>
+          <div class="stat-label">Pending User Approvals</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+      <div class="card-glass">
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: #1E293B; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+          <i class="fa-solid fa-chart-pie" style="color: var(--primary);"></i> Department Distribution
+        </h3>
+        <div style="height: 260px; position: relative;">
           <canvas id="deptDistributionChart"></canvas>
         </div>
       </div>
 
-      <div class="glass-card">
-        <div class="card-header-flex">
-          <h2><i class="fa-solid fa-chart-column"></i> Attendance Statistics</h2>
-        </div>
-        <div class="chart-container">
+      <div class="card-glass">
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: #1E293B; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+          <i class="fa-solid fa-chart-column" style="color: var(--primary);"></i> Attendance Overview
+        </h3>
+        <div style="height: 260px; position: relative;">
           <canvas id="attendanceTrendChart"></canvas>
-        </div>
-      </div>
-
-      <div class="glass-card">
-        <div class="card-header-flex">
-          <h2><i class="fa-solid fa-chart-line"></i> Academic Pass Rate</h2>
-        </div>
-        <div class="chart-container">
-          <canvas id="academicPassChart"></canvas>
         </div>
       </div>
     </div>
 
-    <div class="glass-card">
-      <div class="card-header-flex">
-        <h2><i class="fa-solid fa-clock-rotate-left"></i> Recent Activity Log</h2>
-        <a href="history.html" class="btn-outline-gold" style="text-decoration:none;">View Full History</a>
-      </div>
-      <div class="table-responsive">
-        <table class="custom-table">
-          <thead>
-            <tr>
-              <th>Date & Time</th>
-              <th>Action</th>
-              <th>User</th>
-              <th>Department</th>
-              <th>Details</th>
-            </tr>
-          </thead>
-          <tbody id="dashboardActivityTbody"></tbody>
-        </table>
+    <!-- Quick Shortcuts / Overview -->
+    <div class="card-glass">
+      <h3 style="font-size: 1.1rem; font-weight: 700; color: #1E293B; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+        <i class="fa-solid fa-rocket" style="color: var(--primary);"></i> Quick ERP Actions
+      </h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
+        <a href="attendance.html" class="btn-secondary" style="justify-content: center; padding: 1rem;">
+          <i class="fa-solid fa-calendar-day"></i> Mark Attendance
+        </a>
+        <a href="internal-marks.html" class="btn-secondary" style="justify-content: center; padding: 1rem;">
+          <i class="fa-solid fa-pen-to-square"></i> Internal Marks
+        </a>
+        <a href="subject-notes.html" class="btn-secondary" style="justify-content: center; padding: 1rem;">
+          <i class="fa-solid fa-upload"></i> Upload Notes
+        </a>
+        <a href="reports.html" class="btn-secondary" style="justify-content: center; padding: 1rem;">
+          <i class="fa-solid fa-file-invoice"></i> Reports
+        </a>
       </div>
     </div>
   </main>
 
+  <footer>
+    &copy; 2026 J.P. College of Engineering. All rights reserved. Department Management ERP System.
+  </footer>
+
   <script src="js/config.js"></script>
   <script src="js/api.js"></script>
-  <script src="js/charts.js"></script>
-  <script src="js/export.js"></script>
   <script src="js/navbar.js"></script>
   <script src="js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Initialize Charts
+      const ctx1 = document.getElementById('deptDistributionChart')?.getContext('2d');
+      if (ctx1) {
+        new Chart(ctx1, {
+          type: 'doughnut',
+          data: {
+            labels: ['AI & DS', 'CSE', 'ECE', 'EEE', 'Mechanical', 'Civil'],
+            datasets: [{
+              data: [120, 180, 150, 90, 110, 80],
+              backgroundColor: ['#2563EB', '#3B82F6', '#60A5FA', '#93C5FD', '#1D4ED8', '#1E40AF']
+            }]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+        });
+      }
+
+      const ctx2 = document.getElementById('attendanceTrendChart')?.getContext('2d');
+      if (ctx2) {
+        new Chart(ctx2, {
+          type: 'bar',
+          data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+            datasets: [
+              { label: 'Morning Session %', data: [96, 94, 98, 95, 92, 90], backgroundColor: '#2563EB' },
+              { label: 'Afternoon Session %', data: [94, 92, 96, 93, 90, 88], backgroundColor: '#60A5FA' }
+            ]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+        });
+      }
+    });
+  </script>
 </body>
 </html>

@@ -8,10 +8,11 @@ const FacultySchema = new mongoose.Schema(
     subject: { type: String, default: '' },
     qualification: { type: String, default: '' },
     phone: { type: String, default: '' },
-    email: { type: String, default: '' },
+    email: { type: String, required: true, lowercase: true, trim: true },
     experience: { type: String, default: '' },
     designation: { type: String, default: 'Assistant Professor' },
-    photo: { type: String, default: '' }
+    photo: { type: String, default: '' },
+    approvalStatus: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'approved' }
   },
   { timestamps: true }
 );

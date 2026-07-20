@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JP College ERP - Account Registration</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .register-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      background: linear-gradient(135deg, #EFF6FF 0%, #F8FAFC 50%, #E0F2FE 100%);
+    }
+    .register-card {
+      width: 100%;
+      max-width: 680px;
+      background: #FFFFFF;
+      border-radius: var(--radius-md);
+      padding: 2.25rem;
+      box-shadow: 0 10px 30px rgba(37, 99, 235, 0.1);
+      border: 1px solid var(--border-subtle);
+    }
+  </style>
+</head>
+<body class="register-container">
+
+  <div class="register-card">
+    <div style="text-align: center; margin-bottom: 1.75rem;">
+      <div class="login-logo">JPC</div>
+      <h2 style="font-size: 1.4rem; font-weight: 800; color: #1E293B; font-family: 'Outfit', sans-serif;">
+        J.P. COLLEGE OF ENGINEERING
+      </h2>
+      <p style="color: var(--primary); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; margin-top: 0.25rem;">
+        New Account Registration Request
+      </p>
+    </div>
+
+    <!-- Role Selection Tabs -->
+    <div class="role-tab-group" id="regRoleTabGroup">
+      <button class="role-tab-btn active" data-role="student"><i class="fa-solid fa-user-graduate"></i> Student</button>
+      <button class="role-tab-btn" data-role="faculty"><i class="fa-solid fa-chalkboard-user"></i> Faculty</button>
+      <button class="role-tab-btn" data-role="admin"><i class="fa-solid fa-user-shield"></i> Admin Access</button>
+    </div>
+
+    <form id="standaloneRegisterForm">
+      <input type="hidden" id="selectedRegRole" value="student">
+
+      <!-- Common Fields Grid -->
+      <h4 style="color: #1E293B; font-size: 0.9rem; margin-bottom: 0.85rem; border-bottom: 1px solid #F1F5F9; padding-bottom: 0.4rem;">
+        <i class="fa-solid fa-user" style="color: var(--primary);"></i> Personal Details
+      </h4>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem;">
+        <div class="form-group">
+          <label class="form-label">Full Name *</label>
+          <input type="text" id="regName" class="form-control" placeholder="e.g. Aarav Kumar" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email Address *</label>
+          <input type="email" id="regEmail" class="form-control" placeholder="e.g. aarav.21ad@jpcoe.ac.in" required>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem;">
+        <div class="form-group">
+          <label class="form-label">Password *</label>
+          <input type="password" id="regPassword" class="form-control" placeholder="Create strong password" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Confirm Password *</label>
+          <input type="password" id="regConfirmPassword" class="form-control" placeholder="Re-enter password" required>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem;">
+        <div class="form-group">
+          <label class="form-label">Mobile Number</label>
+          <input type="tel" id="regMobile" class="form-control" placeholder="e.g. 9876543210">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Photo URL</label>
+          <input type="url" id="regPhoto" class="form-control" placeholder="https://example.com/photo.jpg">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Address</label>
+        <textarea id="regAddress" class="form-control" rows="2" placeholder="Residential address details..."></textarea>
+      </div>
+
+      <!-- STUDENT FIELDS SECTION -->
+      <div id="studentFieldsSection">
+        <h4 style="color: #1E293B; font-size: 0.9rem; margin: 1.25rem 0 0.85rem 0; border-bottom: 1px solid #F1F5F9; padding-bottom: 0.4rem;">
+          <i class="fa-solid fa-graduation-cap" style="color: var(--primary);"></i> Student Academic Details
+        </h4>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Register Number *</label>
+            <input type="text" id="regRegisterNo" class="form-control" placeholder="e.g. 953621104005">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Roll Number</label>
+            <input type="text" id="regRollNo" class="form-control" placeholder="e.g. 21AD05">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Department *</label>
+            <select id="regStudentDept" class="form-control">
+              <option value="AI & DS">Artificial Intelligence & Data Science (AI & DS)</option>
+              <option value="CSE">Computer Science & Engineering (CSE)</option>
+              <option value="ECE">Electronics & Communication (ECE)</option>
+              <option value="EEE">Electrical & Electronics (EEE)</option>
+              <option value="Mechanical">Mechanical Engineering</option>
+              <option value="Civil">Civil Engineering</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Year</label>
+            <select id="regYear" class="form-control">
+              <option value="I Year">I Year</option>
+              <option value="II Year">II Year</option>
+              <option value="III Year" selected>III Year</option>
+              <option value="IV Year">IV Year</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Semester</label>
+            <select id="regSemester" class="form-control">
+              <option value="Semester I">Semester I</option>
+              <option value="Semester II">Semester II</option>
+              <option value="Semester III">Semester III</option>
+              <option value="Semester IV">Semester IV</option>
+              <option value="Semester V" selected>Semester V</option>
+              <option value="Semester VI">Semester VI</option>
+              <option value="Semester VII">Semester VII</option>
+              <option value="Semester VIII">Semester VIII</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Section</label>
+            <select id="regSection" class="form-control">
+              <option value="A">Section A</option>
+              <option value="B">Section B</option>
+              <option value="C">Section C</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- FACULTY FIELDS SECTION -->
+      <div id="facultyFieldsSection" style="display: none;">
+        <h4 style="color: #1E293B; font-size: 0.9rem; margin: 1.25rem 0 0.85rem 0; border-bottom: 1px solid #F1F5F9; padding-bottom: 0.4rem;">
+          <i class="fa-solid fa-chalkboard-user" style="color: var(--primary);"></i> Faculty Professional Details
+        </h4>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Faculty ID *</label>
+            <input type="text" id="regFacultyId" class="form-control" placeholder="e.g. JPC-FAC-108">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Department *</label>
+            <select id="regFacultyDept" class="form-control">
+              <option value="AI & DS">Artificial Intelligence & Data Science</option>
+              <option value="CSE">Computer Science & Engineering</option>
+              <option value="ECE">Electronics & Communication</option>
+              <option value="EEE">Electrical & Electronics</option>
+              <option value="Mechanical">Mechanical Engineering</option>
+              <option value="Civil">Civil Engineering</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Designation</label>
+            <input type="text" id="regDesignation" class="form-control" placeholder="e.g. Assistant Professor">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Qualification</label>
+            <input type="text" id="regQualification" class="form-control" placeholder="e.g. M.E. / Ph.D.">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Subjects Assigned (Optional)</label>
+          <input type="text" id="regSubjectsAssigned" class="form-control" placeholder="e.g. Deep Learning, Data Structures">
+        </div>
+      </div>
+
+      <!-- ADMIN REQUEST FIELDS SECTION -->
+      <div id="adminFieldsSection" style="display: none;">
+        <h4 style="color: #1E293B; font-size: 0.9rem; margin: 1.25rem 0 0.85rem 0; border-bottom: 1px solid #F1F5F9; padding-bottom: 0.4rem;">
+          <i class="fa-solid fa-user-shield" style="color: var(--primary);"></i> Admin Access Request Details
+        </h4>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Employee ID *</label>
+            <input type="text" id="regEmployeeId" class="form-control" placeholder="e.g. JPC-EMP-501">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Department *</label>
+            <select id="regAdminDept" class="form-control">
+              <option value="General">General Administration</option>
+              <option value="AI & DS">AI & DS</option>
+              <option value="CSE">CSE</option>
+              <option value="ECE">ECE</option>
+              <option value="EEE">EEE</option>
+              <option value="Mechanical">Mechanical</option>
+              <option value="Civil">Civil</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Reason for Requesting Admin Access *</label>
+          <textarea id="regReasonForAdmin" class="form-control" rows="2" placeholder="Explain responsibilities requiring admin privileges..."></textarea>
+        </div>
+      </div>
+
+      <div id="regAlertBox" style="display: none; padding: 0.85rem; border-radius: var(--radius-md); font-size: 0.85rem; margin: 1rem 0;"></div>
+
+      <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; padding: 0.8rem; font-size: 0.95rem; margin-top: 0.5rem;">
+        <i class="fa-solid fa-paper-plane"></i> Submit Registration Request
+      </button>
+
+      <div style="text-align: center; margin-top: 1.25rem; font-size: 0.85rem; color: var(--text-secondary);">
+        Already registered? 
+        <a href="login.html" style="color: var(--primary); font-weight: 700; text-decoration: none;">Log in to your account</a>
+      </div>
+    </form>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script>
+    // Tab switching logic for Role selection
+    const roleBtns = document.querySelectorAll('.role-tab-btn');
+    const roleInput = document.getElementById('selectedRegRole');
+    const studentSec = document.getElementById('studentFieldsSection');
+    const facultySec = document.getElementById('facultyFieldsSection');
+    const adminSec = document.getElementById('adminFieldsSection');
+
+    roleBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        roleBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const role = btn.dataset.role;
+        roleInput.value = role;
+
+        studentSec.style.display = role === 'student' ? 'block' : 'none';
+        facultySec.style.display = role === 'faculty' ? 'block' : 'none';
+        adminSec.style.display = role === 'admin' ? 'block' : 'none';
+      });
+    });
+
+    // Registration Form Submit
+    document.getElementById('standaloneRegisterForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const alertBox = document.getElementById('regAlertBox');
+      alertBox.style.display = 'none';
+
+      const pass = document.getElementById('regPassword').value;
+      const confirmPass = document.getElementById('regConfirmPassword').value;
+
+      if (pass !== confirmPass) {
+        alertBox.style.display = 'block';
+        alertBox.style.background = 'var(--error-bg)';
+        alertBox.style.color = 'var(--error)';
+        alertBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Password and Confirm Password do not match.';
+        return;
+      }
+
+      const role = roleInput.value;
+      const department = role === 'student' 
+        ? document.getElementById('regStudentDept').value 
+        : (role === 'faculty' ? document.getElementById('regFacultyDept').value : document.getElementById('regAdminDept').value);
+
+      const payload = {
+        name: document.getElementById('regName').value,
+        email: document.getElementById('regEmail').value,
+        password: pass,
+        role: role,
+        department: department,
+        mobileNumber: document.getElementById('regMobile').value,
+        address: document.getElementById('regAddress').value,
+        photo: document.getElementById('regPhoto').value,
+        // Role specific fields
+        registerNo: document.getElementById('regRegisterNo').value,
+        rollNumber: document.getElementById('regRollNo').value,
+        year: document.getElementById('regYear').value,
+        semester: document.getElementById('regSemester').value,
+        section: document.getElementById('regSection').value,
+        facultyId: document.getElementById('regFacultyId').value,
+        designation: document.getElementById('regDesignation').value,
+        qualification: document.getElementById('regQualification').value,
+        subjectsAssigned: document.getElementById('regSubjectsAssigned').value,
+        employeeId: document.getElementById('regEmployeeId').value,
+        reasonForAdmin: document.getElementById('regReasonForAdmin').value
+      };
+
+      try {
+        const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+        const res = await fetch(`${baseUrl}/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          alertBox.style.display = 'block';
+          alertBox.style.background = 'var(--success-bg)';
+          alertBox.style.color = 'var(--success)';
+          alertBox.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${data.message}`;
+
+          setTimeout(() => {
+            window.location.href = 'login.html';
+          }, 3000);
+        } else {
+          alertBox.style.display = 'block';
+          alertBox.style.background = 'var(--error-bg)';
+          alertBox.style.color = 'var(--error)';
+          alertBox.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> ${data.message}`;
+        }
+      } catch (err) {
+        alertBox.style.display = 'block';
+        alertBox.style.background = 'var(--error-bg)';
+        alertBox.style.color = 'var(--error)';
+        alertBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Unable to connect to registration server.';
+      }
+    });
+  </script>
+</body>
+</html>
