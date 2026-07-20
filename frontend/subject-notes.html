@@ -19,26 +19,36 @@
       </button>
     </div>
 
-    <!-- Filter Bar -->
+    <!-- Filter Bar with Dynamic Year -> Semester Cascading -->
     <div class="card-glass" style="margin-bottom: 1.5rem;">
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem;">
         <div class="form-group" style="margin-bottom:0;">
           <label class="form-label">Department</label>
           <select id="noteDeptFilter" class="form-control">
             <option value="All">All Departments</option>
-            <option value="AI & DS">AI & DS</option>
+            <option value="AI & DS" selected>AI & DS</option>
             <option value="CSE">CSE</option>
             <option value="ECE">ECE</option>
             <option value="EEE">EEE</option>
+            <option value="MECH">Mechanical</option>
+            <option value="CIVIL">Civil</option>
           </select>
         </div>
 
         <div class="form-group" style="margin-bottom:0;">
-          <label class="form-label">Semester</label>
+          <label class="form-label">Academic Year</label>
+          <select id="noteYearFilter" class="form-control">
+            <option value="I Year">I Year</option>
+            <option value="II Year">II Year</option>
+            <option value="III Year" selected>III Year</option>
+            <option value="IV Year">IV Year</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Semester (Cascading)</label>
           <select id="noteSemFilter" class="form-control">
-            <option value="All">All Semesters</option>
-            <option value="Semester V">Semester V</option>
-            <option value="Semester VI">Semester VI</option>
+            <!-- Dynamic Cascading Options -->
           </select>
         </div>
       </div>
@@ -52,7 +62,7 @@
 
   <!-- Upload Modal -->
   <div class="modal-overlay" id="uploadNoteModal">
-    <div class="modal-box">
+    <div class="modal-box" style="max-width: 600px;">
       <div class="modal-header">
         <h3><i class="fa-solid fa-cloud-arrow-up" style="color: var(--primary);"></i> Upload Subject Notes</h3>
         <button class="close-modal-btn" id="closeUploadNoteModalBtn">&times;</button>
@@ -63,21 +73,33 @@
           <input type="text" id="noteTitle" class="form-control" placeholder="e.g. Deep Learning Module 1 - Neural Networks Overview" required>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
           <div class="form-group">
-            <label class="form-label">Department</label>
+            <label class="form-label">Department *</label>
             <select id="noteDept" class="form-control">
               <option value="AI & DS">AI & DS</option>
               <option value="CSE">CSE</option>
               <option value="ECE">ECE</option>
+              <option value="EEE">EEE</option>
+              <option value="MECH">Mechanical</option>
+              <option value="CIVIL">Civil</option>
             </select>
           </div>
 
           <div class="form-group">
-            <label class="form-label">Semester</label>
+            <label class="form-label">Year *</label>
+            <select id="noteYear" class="form-control">
+              <option value="I Year">I Year</option>
+              <option value="II Year">II Year</option>
+              <option value="III Year" selected>III Year</option>
+              <option value="IV Year">IV Year</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Semester *</label>
             <select id="noteSem" class="form-control">
-              <option value="Semester V">Semester V</option>
-              <option value="Semester VI">Semester VI</option>
+              <!-- Dynamic Cascading Options -->
             </select>
           </div>
         </div>
@@ -88,13 +110,13 @@
             <input type="text" id="noteSubjectCode" class="form-control" placeholder="e.g. AD3501">
           </div>
           <div class="form-group">
-            <label class="form-label">Subject Name</label>
-            <input type="text" id="noteSubjectName" class="form-control" placeholder="e.g. Deep Learning">
+            <label class="form-label">Subject Name *</label>
+            <input type="text" id="noteSubjectName" class="form-control" placeholder="e.g. Deep Learning" required>
           </div>
         </div>
 
         <div class="form-group">
-          <label class="form-label">Resource File URL (PDF, PPT, ZIP, DOCX) *</label>
+          <label class="form-label">Resource File URL (PDF, PPT, ZIP, DOCX, Video Link) *</label>
           <input type="url" id="noteFileUrl" class="form-control" placeholder="https://example.com/notes.pdf" required>
         </div>
 
@@ -112,8 +134,13 @@
   <script src="js/config.js"></script>
   <script src="js/api.js"></script>
   <script src="js/navbar.js"></script>
+  <script src="js/semester-cascader.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      // Bind Dynamic Year -> Semester Cascading
+      window.bindYearSemesterCascading(document.getElementById('noteYearFilter'), document.getElementById('noteSemFilter'), true);
+      window.bindYearSemesterCascading(document.getElementById('noteYear'), document.getElementById('noteSem'), false);
+
       const user = JSON.parse(localStorage.getItem('jp_dms_user')) || {};
       const isFacultyOrAdmin = user.role === 'faculty' || user.role === 'admin' || user.role === 'super_admin';
 
@@ -122,7 +149,11 @@
       }
 
       const modal = document.getElementById('uploadNoteModal');
-      document.getElementById('openUploadNoteModalBtn')?.addEventListener('click', () => modal.classList.add('active'));
+      document.getElementById('openUploadNoteModalBtn')?.addEventListener('click', () => {
+        document.getElementById('uploadNoteForm').reset();
+        window.bindYearSemesterCascading(document.getElementById('noteYear'), document.getElementById('noteSem'), false);
+        modal.classList.add('active');
+      });
       document.getElementById('closeUploadNoteModalBtn')?.addEventListener('click', () => modal.classList.remove('active'));
 
       const fetchNotes = async () => {
@@ -130,11 +161,12 @@
         grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:3rem; color:var(--text-muted);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><p style="margin-top:0.5rem;">Loading subject notes...</p></div>';
 
         const dept = document.getElementById('noteDeptFilter').value;
+        const year = document.getElementById('noteYearFilter').value;
         const sem = document.getElementById('noteSemFilter').value;
 
         try {
           const baseUrl = window.APP_CONFIG.getApiBaseUrl();
-          const query = `?department=${encodeURIComponent(dept)}&semester=${encodeURIComponent(sem)}`;
+          const query = `?department=${encodeURIComponent(dept)}&year=${encodeURIComponent(year)}&semester=${encodeURIComponent(sem)}`;
           const res = await fetch(`${baseUrl}/notes${query}`);
           const json = await res.json();
           const list = json.data || [];
@@ -154,7 +186,8 @@
                 <h3 style="font-size:1.05rem; font-weight:700; color:#1E3A8A; margin-bottom:0.4rem;">${item.title}</h3>
                 <div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:1rem;">
                   <div>Subject: <strong>${item.subjectName}</strong></div>
-                  <div>Faculty: <strong>${item.uploadedBy}</strong></div>
+                  <div>Year & Sem: <strong>${item.year || 'III Year'} (${item.semester})</strong></div>
+                  <div>Faculty: <strong>${item.uploadedBy || 'Faculty Member'}</strong></div>
                 </div>
               </div>
               <div style="display:flex; gap:0.5rem; border-top:1px solid var(--border-subtle); padding-top:0.75rem;">
@@ -169,13 +202,14 @@
         }
       };
 
-      document.querySelectorAll('#noteDeptFilter, #noteSemFilter').forEach(el => el.addEventListener('change', fetchNotes));
+      document.querySelectorAll('#noteDeptFilter, #noteYearFilter, #noteSemFilter').forEach(el => el.addEventListener('change', fetchNotes));
 
       document.getElementById('uploadNoteForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const payload = {
           title: document.getElementById('noteTitle').value,
           department: document.getElementById('noteDept').value,
+          year: document.getElementById('noteYear').value,
           semester: document.getElementById('noteSem').value,
           subjectCode: document.getElementById('noteSubjectCode').value,
           subjectName: document.getElementById('noteSubjectName').value,

@@ -13,15 +13,15 @@
 
   <main class="main-content-wrapper">
     <div class="page-header-title">
-      <h2><i class="fa-solid fa-calendar-days" style="color: var(--primary);"></i> Department Class Timetable</h2>
+      <h2><i class="fa-solid fa-calendar-days" style="color: var(--primary);"></i> Department Class Timetable Schedule</h2>
       <button id="saveTimetableBtn" class="btn-primary" style="display:none;">
         <i class="fa-solid fa-floppy-disk"></i> Update Timetable Schedule
       </button>
     </div>
 
-    <!-- Filters Bar -->
+    <!-- Filters Bar with Dynamic Year -> Semester Cascading -->
     <div class="card-glass" style="margin-bottom: 1.5rem;">
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem;">
         <div class="form-group" style="margin-bottom:0;">
           <label class="form-label">Department</label>
           <select id="ttDept" class="form-control">
@@ -35,7 +35,7 @@
         </div>
 
         <div class="form-group" style="margin-bottom:0;">
-          <label class="form-label">Year</label>
+          <label class="form-label">Academic Year</label>
           <select id="ttYear" class="form-control">
             <option value="I Year">I Year</option>
             <option value="II Year">II Year</option>
@@ -45,10 +45,9 @@
         </div>
 
         <div class="form-group" style="margin-bottom:0;">
-          <label class="form-label">Semester</label>
+          <label class="form-label">Semester (Cascading)</label>
           <select id="ttSem" class="form-control">
-            <option value="Semester V" selected>Semester V</option>
-            <option value="Semester VI">Semester VI</option>
+            <!-- Dynamic Cascading Options -->
           </select>
         </div>
 
@@ -90,8 +89,12 @@
   <script src="js/config.js"></script>
   <script src="js/api.js"></script>
   <script src="js/navbar.js"></script>
+  <script src="js/semester-cascader.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      // Bind Dynamic Year -> Semester Cascading
+      window.bindYearSemesterCascading(document.getElementById('ttYear'), document.getElementById('ttSem'), false);
+
       const user = JSON.parse(localStorage.getItem('jp_dms_user')) || {};
       const isFacultyOrAdmin = user.role === 'faculty' || user.role === 'admin' || user.role === 'super_admin';
 

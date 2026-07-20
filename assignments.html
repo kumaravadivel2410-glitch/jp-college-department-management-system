@@ -21,9 +21,9 @@
       </div>
     </div>
 
-    <!-- Filters Section -->
+    <!-- Filters Section with Dynamic Year -> Semester Cascading -->
     <div class="card-glass" style="margin-bottom: 1.5rem;">
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem;">
         <div class="form-group" style="margin-bottom:0;">
           <label class="form-label">Department</label>
           <select id="filterDept" class="form-control">
@@ -40,7 +40,6 @@
         <div class="form-group" style="margin-bottom:0;">
           <label class="form-label">Year</label>
           <select id="filterYear" class="form-control">
-            <option value="All">All Years</option>
             <option value="I Year">I Year</option>
             <option value="II Year">II Year</option>
             <option value="III Year" selected>III Year</option>
@@ -49,11 +48,9 @@
         </div>
 
         <div class="form-group" style="margin-bottom:0;">
-          <label class="form-label">Semester</label>
+          <label class="form-label">Semester (Cascading)</label>
           <select id="filterSem" class="form-control">
-            <option value="All">All Semesters</option>
-            <option value="Semester V" selected>Semester V</option>
-            <option value="Semester VI">Semester VI</option>
+            <!-- Dynamic Cascading Options -->
           </select>
         </div>
 
@@ -76,7 +73,7 @@
 
   <!-- Create Assignment Modal -->
   <div class="modal-overlay" id="assignmentModal">
-    <div class="modal-box">
+    <div class="modal-box" style="max-width: 600px;">
       <div class="modal-header">
         <h3><i class="fa-solid fa-file-circle-plus" style="color: var(--primary);"></i> Publish Course Assignment</h3>
         <button class="close-modal-btn" id="closeAssignmentModalBtn">&times;</button>
@@ -94,40 +91,41 @@
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
           <div class="form-group">
-            <label class="form-label">Department</label>
+            <label class="form-label">Department *</label>
             <select id="asgnDept" class="form-control">
               <option value="AI & DS">AI & DS</option>
               <option value="CSE">CSE</option>
               <option value="ECE">ECE</option>
               <option value="EEE">EEE</option>
+              <option value="MECH">Mechanical</option>
+              <option value="CIVIL">Civil</option>
             </select>
           </div>
 
           <div class="form-group">
-            <label class="form-label">Subject Name</label>
+            <label class="form-label">Subject Name *</label>
             <input type="text" id="asgnSubject" class="form-control" placeholder="e.g. Deep Learning" required>
           </div>
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem;">
           <div class="form-group">
-            <label class="form-label">Year</label>
+            <label class="form-label">Year *</label>
             <select id="asgnYear" class="form-control">
-              <option value="III Year">III Year</option>
               <option value="I Year">I Year</option>
               <option value="II Year">II Year</option>
+              <option value="III Year" selected>III Year</option>
               <option value="IV Year">IV Year</option>
             </select>
           </div>
           <div class="form-group">
-            <label class="form-label">Semester</label>
+            <label class="form-label">Semester *</label>
             <select id="asgnSem" class="form-control">
-              <option value="Semester V">Semester V</option>
-              <option value="Semester VI">Semester VI</option>
+              <!-- Dynamic Cascading Options -->
             </select>
           </div>
           <div class="form-group">
-            <label class="form-label">Section</label>
+            <label class="form-label">Section *</label>
             <select id="asgnSec" class="form-control">
               <option value="A">Section A</option>
               <option value="B">Section B</option>
@@ -181,8 +179,13 @@
   <script src="js/config.js"></script>
   <script src="js/api.js"></script>
   <script src="js/navbar.js"></script>
+  <script src="js/semester-cascader.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      // Bind Dynamic Year -> Semester Cascading
+      window.bindYearSemesterCascading(document.getElementById('filterYear'), document.getElementById('filterSem'), true);
+      window.bindYearSemesterCascading(document.getElementById('asgnYear'), document.getElementById('asgnSem'), false);
+
       const user = JSON.parse(localStorage.getItem('jp_dms_user')) || {};
       const isFacultyOrAdmin = user.role === 'faculty' || user.role === 'admin' || user.role === 'super_admin';
 
@@ -193,7 +196,11 @@
       const modal = document.getElementById('assignmentModal');
       const submitModal = document.getElementById('submitModal');
 
-      document.getElementById('openUploadAssignmentBtn')?.addEventListener('click', () => modal.classList.add('active'));
+      document.getElementById('openUploadAssignmentBtn')?.addEventListener('click', () => {
+        document.getElementById('createAssignmentForm').reset();
+        window.bindYearSemesterCascading(document.getElementById('asgnYear'), document.getElementById('asgnSem'), false);
+        modal.classList.add('active');
+      });
       document.getElementById('closeAssignmentModalBtn')?.addEventListener('click', () => modal.classList.remove('active'));
       document.getElementById('closeSubmitModalBtn')?.addEventListener('click', () => submitModal.classList.remove('active'));
 
@@ -238,7 +245,7 @@
                   <div style="font-size:0.8rem; color:var(--text-secondary); background:#F8FAFC; padding:0.75rem; border-radius:8px; border:1px solid var(--border-subtle); margin-bottom:1rem;">
                     <div><i class="fa-solid fa-user" style="color:var(--primary);"></i> Faculty: <strong>${item.uploadedBy || 'Faculty'}</strong></div>
                     <div><i class="fa-solid fa-calendar-day" style="color:var(--primary);"></i> Due Date: <strong style="color:var(--warning);">${item.dueDate}</strong></div>
-                    <div><i class="fa-solid fa-layer-group" style="color:var(--primary);"></i> Class: ${item.department} | ${item.year} | ${item.section}</div>
+                    <div><i class="fa-solid fa-layer-group" style="color:var(--primary);"></i> Class: ${item.department} | ${item.year} (${item.semester}) | Sec ${item.section}</div>
                   </div>
                 </div>
 
