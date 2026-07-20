@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JP College ERP - Faculty Directory</title>
+  <title>JP College ERP - Faculty Directory Management</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -13,35 +16,122 @@
 
   <main class="main-content-wrapper">
     <div class="page-header-title">
-      <h2><i class="fa-solid fa-chalkboard-user"></i> Faculty Directory</h2>
-      <div class="admin-only">
-        <button class="btn-primary" id="openAddFacultyModalBtn">
-          <i class="fa-solid fa-plus"></i> Add Faculty Member
-        </button>
+      <h2><i class="fa-solid fa-chalkboard-user" style="color: var(--primary);"></i> Faculty Members Directory</h2>
+      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <a href="import-export.html" class="btn-secondary"><i class="fa-solid fa-file-import"></i> Import Faculty</a>
+        <button id="exportFacultyBtn" class="btn-secondary"><i class="fa-solid fa-file-excel"></i> Export Faculty</button>
+        <button id="openAddFacultyModalBtn" class="btn-primary" style="display:none;"><i class="fa-solid fa-user-plus"></i> Add Faculty Member</button>
       </div>
     </div>
 
-    <!-- Data Table Card -->
-    <div class="card-glass">
-      <div class="table-responsive">
-        <table class="custom-table">
-          <thead>
-            <tr>
-              <th>Faculty ID</th>
-              <th>Faculty Name</th>
-              <th>Department</th>
-              <th>Subject Assigned</th>
-              <th>Designation</th>
-              <th>Email Address</th>
-            </tr>
-          </thead>
-          <tbody id="facultyTableBody">
-            <!-- Dynamic faculty records -->
-          </tbody>
-        </table>
+    <!-- Filter Bar -->
+    <div class="card-glass" style="margin-bottom: 1.5rem;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Department</label>
+          <select id="facDeptFilter" class="form-control">
+            <option value="All">All Departments</option>
+            <option value="AI & DS">AI & DS</option>
+            <option value="CSE">CSE</option>
+            <option value="ECE">ECE</option>
+            <option value="EEE">EEE</option>
+            <option value="Mechanical">Mechanical</option>
+            <option value="Civil">Civil</option>
+          </select>
+        </div>
       </div>
     </div>
+
+    <!-- Faculty Table -->
+    <div class="table-responsive">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Faculty ID</th>
+            <th>Faculty Name</th>
+            <th>Department</th>
+            <th>Designation</th>
+            <th>Assigned Subject</th>
+            <th>Qualification</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th style="width: 140px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="facultyTableBody">
+          <!-- Dynamic Faculty Rows -->
+        </tbody>
+      </table>
+    </div>
   </main>
+
+  <!-- Add/Edit Faculty Modal -->
+  <div class="modal-overlay" id="facultyModal">
+    <div class="modal-box" style="max-width: 700px;">
+      <div class="modal-header">
+        <h3 id="facModalTitle"><i class="fa-solid fa-user-plus" style="color: var(--primary);"></i> Add Faculty Record</h3>
+        <button class="close-modal-btn" id="closeFacModalBtn">&times;</button>
+      </div>
+      <form id="facultyForm">
+        <input type="hidden" id="editFacDbId">
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Faculty ID *</label>
+            <input type="text" id="facIdInput" class="form-control" placeholder="e.g. JPC-FAC-105" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Faculty Name *</label>
+            <input type="text" id="facNameInput" class="form-control" placeholder="e.g. Dr. M. Senthil Kumar" required>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Department *</label>
+            <select id="facDeptInput" class="form-control">
+              <option value="AI & DS">Artificial Intelligence & Data Science</option>
+              <option value="CSE">Computer Science & Engineering</option>
+              <option value="ECE">Electronics & Communication</option>
+              <option value="EEE">Electrical & Electronics</option>
+              <option value="Mechanical">Mechanical Engineering</option>
+              <option value="Civil">Civil Engineering</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Designation</label>
+            <input type="text" id="facDesigInput" class="form-control" placeholder="e.g. Professor & HOD">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Assigned Subject</label>
+            <input type="text" id="facSubjInput" class="form-control" placeholder="e.g. Deep Learning">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Qualification</label>
+            <input type="text" id="facQualInput" class="form-control" placeholder="e.g. Ph.D. in AI">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Email Address *</label>
+            <input type="email" id="facEmailInput" class="form-control" placeholder="senthil@jpcoe.ac.in" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone Number</label>
+            <input type="tel" id="facPhoneInput" class="form-control" placeholder="9876543210">
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 0.5rem;">
+          <i class="fa-solid fa-save"></i> Save Faculty Member
+        </button>
+      </form>
+    </div>
+  </div>
 
   <footer>
     &copy; 2026 J.P. College of Engineering. All rights reserved. Department Management ERP System.
@@ -50,6 +140,139 @@
   <script src="js/config.js"></script>
   <script src="js/api.js"></script>
   <script src="js/navbar.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/export.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const user = JSON.parse(localStorage.getItem('jp_dms_user')) || {};
+      const isFacultyOrAdmin = user.role === 'faculty' || user.role === 'admin' || user.role === 'super_admin';
+
+      if (isFacultyOrAdmin) {
+        document.getElementById('openAddFacultyModalBtn').style.display = 'inline-flex';
+      }
+
+      let facultyList = [];
+      const modal = document.getElementById('facultyModal');
+
+      document.getElementById('openAddFacultyModalBtn')?.addEventListener('click', () => {
+        document.getElementById('editFacDbId').value = '';
+        document.getElementById('facModalTitle').innerHTML = '<i class="fa-solid fa-user-plus" style="color: var(--primary);"></i> Add Faculty Record';
+        document.getElementById('facultyForm').reset();
+        modal.classList.add('active');
+      });
+
+      document.getElementById('closeFacModalBtn')?.addEventListener('click', () => modal.classList.remove('active'));
+
+      const fetchFaculty = async () => {
+        const tbody = document.getElementById('facultyTableBody');
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:2rem; color:var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> Loading faculty directory...</td></tr>';
+
+        const dept = document.getElementById('facDeptFilter').value;
+
+        try {
+          const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+          const query = dept !== 'All' ? `?department=${encodeURIComponent(dept)}` : '';
+          const res = await fetch(`${baseUrl}/faculty${query}`);
+          const json = await res.json();
+          facultyList = json.data || [];
+
+          if (facultyList.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:2rem; color:var(--text-secondary);">No faculty members found.</td></tr>';
+            return;
+          }
+
+          tbody.innerHTML = facultyList.map(f => `
+            <tr>
+              <td style="font-weight:700; color:var(--primary);">${f.facultyId}</td>
+              <td style="font-weight:700; color:#1E3A8A;">${f.facultyName}</td>
+              <td>${f.department}</td>
+              <td><span class="badge badge-primary">${f.designation || 'Faculty'}</span></td>
+              <td>${f.subject || '-'}</td>
+              <td>${f.qualification || '-'}</td>
+              <td>${f.phone || '-'}</td>
+              <td>${f.email}</td>
+              <td>
+                <div style="display:flex; gap:0.35rem;">
+                  ${isFacultyOrAdmin ? `<button onclick="editFaculty('${f._id}')" class="btn-secondary" style="padding:0.35rem 0.6rem; font-size:0.75rem;" title="Edit"><i class="fa-solid fa-pen"></i></button>` : ''}
+                  ${user.role === 'admin' || user.role === 'super_admin' ? `<button onclick="deleteFaculty('${f._id}')" class="btn-danger" style="padding:0.35rem 0.6rem; font-size:0.75rem;" title="Delete"><i class="fa-solid fa-trash"></i></button>` : ''}
+                </div>
+              </td>
+            </tr>
+          `).join('');
+
+        } catch (err) {
+          tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:var(--error);">Failed to load faculty members.</td></tr>';
+        }
+      };
+
+      document.getElementById('facDeptFilter').addEventListener('change', fetchFaculty);
+
+      document.getElementById('facultyForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('editFacDbId').value;
+        const payload = {
+          facultyId: document.getElementById('facIdInput').value,
+          facultyName: document.getElementById('facNameInput').value,
+          department: document.getElementById('facDeptInput').value,
+          designation: document.getElementById('facDesigInput').value,
+          subject: document.getElementById('facSubjInput').value,
+          qualification: document.getElementById('facQualInput').value,
+          email: document.getElementById('facEmailInput').value,
+          phone: document.getElementById('facPhoneInput').value
+        };
+
+        const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+        const token = localStorage.getItem('jp_dms_token');
+        const url = id ? `${baseUrl}/faculty/${id}` : `${baseUrl}/faculty`;
+        const method = id ? 'PUT' : 'POST';
+
+        const res = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        alert(data.message || 'Faculty record saved!');
+        modal.classList.remove('active');
+        fetchFaculty();
+      });
+
+      window.editFaculty = (id) => {
+        const f = facultyList.find(x => x._id === id);
+        if (!f) return;
+
+        document.getElementById('editFacDbId').value = f._id;
+        document.getElementById('facIdInput').value = f.facultyId;
+        document.getElementById('facNameInput').value = f.facultyName;
+        document.getElementById('facDeptInput').value = f.department;
+        document.getElementById('facDesigInput').value = f.designation || '';
+        document.getElementById('facSubjInput').value = f.subject || '';
+        document.getElementById('facQualInput').value = f.qualification || '';
+        document.getElementById('facEmailInput').value = f.email;
+        document.getElementById('facPhoneInput').value = f.phone || '';
+
+        document.getElementById('facModalTitle').innerHTML = '<i class="fa-solid fa-user-pen" style="color: var(--primary);"></i> Edit Faculty Record';
+        modal.classList.add('active');
+      };
+
+      window.deleteFaculty = async (id) => {
+        if (!confirm('Delete this faculty record?')) return;
+        const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+        const token = localStorage.getItem('jp_dms_token');
+        await fetch(`${baseUrl}/faculty/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        fetchFaculty();
+      };
+
+      document.getElementById('exportFacultyBtn').addEventListener('click', () => {
+        if (!facultyList.length) return alert('No faculty data to export.');
+        exporter.exportToExcel('JP_College_Faculty', facultyList);
+      });
+
+      fetchFaculty();
+    });
+  </script>
 </body>
 </html>

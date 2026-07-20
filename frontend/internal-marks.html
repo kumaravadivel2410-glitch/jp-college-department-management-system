@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JP College ERP - Internal Marks</title>
+  <title>JP College ERP - Internal Assessment Marks Management</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -13,31 +16,149 @@
 
   <main class="main-content-wrapper">
     <div class="page-header-title">
-      <h2><i class="fa-solid fa-file-signature"></i> Internal Assessment Marks</h2>
-    </div>
-
-    <!-- Data Table Card -->
-    <div class="card-glass">
-      <div class="table-responsive">
-        <table class="custom-table">
-          <thead>
-            <tr>
-              <th>Register No</th>
-              <th>Student Name</th>
-              <th>Subject</th>
-              <th>Internal 1</th>
-              <th>Internal 2</th>
-              <th>Model Exam</th>
-              <th>Total Internal</th>
-            </tr>
-          </thead>
-          <tbody id="internalMarksTableBody">
-            <!-- Dynamic internal marks -->
-          </tbody>
-        </table>
+      <h2><i class="fa-solid fa-file-signature" style="color: var(--primary);"></i> Internal Assessment Marks Management</h2>
+      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <a href="import-export.html" class="btn-secondary"><i class="fa-solid fa-file-import"></i> Bulk Import Marks</a>
+        <button id="exportInternalMarksBtn" class="btn-secondary"><i class="fa-solid fa-file-excel"></i> Export Marks</button>
+        <button id="openAddInternalModalBtn" class="btn-primary" style="display:none;"><i class="fa-solid fa-plus-circle"></i> Enter Internal Marks</button>
       </div>
     </div>
+
+    <!-- Filter Bar -->
+    <div class="card-glass" style="margin-bottom: 1.5rem;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Department</label>
+          <select id="intFilterDept" class="form-control">
+            <option value="All">All Departments</option>
+            <option value="AI & DS" selected>AI & DS</option>
+            <option value="CSE">CSE</option>
+            <option value="ECE">ECE</option>
+            <option value="EEE">EEE</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Year</label>
+          <select id="intFilterYear" class="form-control">
+            <option value="All">All Years</option>
+            <option value="III Year" selected>III Year</option>
+            <option value="I Year">I Year</option>
+            <option value="II Year">II Year</option>
+            <option value="IV Year">IV Year</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Semester</label>
+          <select id="intFilterSem" class="form-control">
+            <option value="All">All Semesters</option>
+            <option value="Semester V" selected>Semester V</option>
+            <option value="Semester VI">Semester VI</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Section</label>
+          <select id="intFilterSec" class="form-control">
+            <option value="All">All Sections</option>
+            <option value="A" selected>Section A</option>
+            <option value="B">Section B</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Marks Table -->
+    <div class="table-responsive">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Register No</th>
+            <th>Student Name</th>
+            <th>Subject</th>
+            <th>Int 1 (50)</th>
+            <th>Int 2 (50)</th>
+            <th>Int 3 (50)</th>
+            <th>Average</th>
+            <th>Model (100)</th>
+            <th>Assign (10)</th>
+            <th>Total Internal</th>
+            <th>Updated</th>
+            <th style="width: 120px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="internalMarksTableBody">
+          <!-- Dynamic Records -->
+        </tbody>
+      </table>
+    </div>
   </main>
+
+  <!-- Add/Edit Internal Marks Modal -->
+  <div class="modal-overlay" id="internalMarkModal">
+    <div class="modal-box" style="max-width: 650px;">
+      <div class="modal-header">
+        <h3 id="intModalTitle"><i class="fa-solid fa-file-signature" style="color: var(--primary);"></i> Enter Internal Marks</h3>
+        <button class="close-modal-btn" id="closeIntModalBtn">&times;</button>
+      </div>
+      <form id="internalMarkForm">
+        <input type="hidden" id="editIntDbId">
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Student Register No *</label>
+            <input type="text" id="intRegNo" class="form-control" placeholder="953621104001" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Student Name *</label>
+            <input type="text" id="intName" class="form-control" placeholder="Aarav Kumar" required>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Subject Code *</label>
+            <input type="text" id="intCode" class="form-control" placeholder="AD3501" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Subject Name *</label>
+            <input type="text" id="intSubjectName" class="form-control" placeholder="Deep Learning" required>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Internal 1 (Max 50)</label>
+            <input type="number" id="int1" class="form-control" min="0" max="50" value="48" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Internal 2 (Max 50)</label>
+            <input type="number" id="int2" class="form-control" min="0" max="50" value="46" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Internal 3 (Max 50)</label>
+            <input type="number" id="int3" class="form-control" min="0" max="50" value="49">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Model Exam (Max 100)</label>
+            <input type="number" id="intModel" class="form-control" min="0" max="100" value="92">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Assignment Mark (Max 10)</label>
+            <input type="number" id="intAssign" class="form-control" min="0" max="10" value="10">
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 0.5rem;">
+          <i class="fa-solid fa-save"></i> Save Internal Marks Record
+        </button>
+      </form>
+    </div>
+  </div>
 
   <footer>
     &copy; 2026 J.P. College of Engineering. All rights reserved. Department Management ERP System.
@@ -46,6 +167,163 @@
   <script src="js/config.js"></script>
   <script src="js/api.js"></script>
   <script src="js/navbar.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/export.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const user = JSON.parse(localStorage.getItem('jp_dms_user')) || {};
+      const isFacultyOrAdmin = user.role === 'faculty' || user.role === 'admin' || user.role === 'super_admin';
+
+      if (isFacultyOrAdmin) {
+        document.getElementById('openAddInternalModalBtn').style.display = 'inline-flex';
+      }
+
+      let internalMarksList = [];
+      const modal = document.getElementById('internalMarkModal');
+
+      document.getElementById('openAddInternalModalBtn')?.addEventListener('click', () => {
+        document.getElementById('editIntDbId').value = '';
+        document.getElementById('intModalTitle').innerHTML = '<i class="fa-solid fa-file-signature" style="color: var(--primary);"></i> Enter Internal Marks';
+        document.getElementById('internalMarkForm').reset();
+        modal.classList.add('active');
+      });
+
+      document.getElementById('closeIntModalBtn')?.addEventListener('click', () => modal.classList.remove('active'));
+
+      const fetchInternalMarks = async () => {
+        const tbody = document.getElementById('internalMarksTableBody');
+        tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding:2rem; color:var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> Loading internal marks...</td></tr>';
+
+        const dept = document.getElementById('intFilterDept').value;
+        const year = document.getElementById('intFilterYear').value;
+        const sem = document.getElementById('intFilterSem').value;
+        const sec = document.getElementById('intFilterSec').value;
+
+        try {
+          const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+          const query = `?department=${encodeURIComponent(dept)}&year=${encodeURIComponent(year)}&semester=${encodeURIComponent(sem)}&section=${encodeURIComponent(sec)}`;
+          const res = await fetch(`${baseUrl}/internal-marks${query}`);
+          const json = await res.json();
+          internalMarksList = json.data || [];
+
+          if (internalMarksList.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding:2rem; color:var(--text-secondary);">No internal mark records found.</td></tr>';
+            return;
+          }
+
+          tbody.innerHTML = internalMarksList.map(m => `
+            <tr>
+              <td style="font-weight:700; color:var(--primary);">${m.studentRegisterNo}</td>
+              <td style="font-weight:700; color:#1E3A8A;">${m.studentName || '-'}</td>
+              <td>${m.subjectName || m.subjectCode}</td>
+              <td>${m.internal1}</td>
+              <td>${m.internal2}</td>
+              <td>${m.internal3 || '-'}</td>
+              <td style="font-weight:700; color:var(--primary);">${m.average || 47.6}</td>
+              <td>${m.modelExam || 90}</td>
+              <td>${m.assignmentMark || 10}</td>
+              <td style="font-weight:800; color:#16A34A;">${m.totalInternal || 48}</td>
+              <td style="font-size:0.75rem;">${m.lastUpdated || '2026-07-20'}</td>
+              <td>
+                <div style="display:flex; gap:0.35rem;">
+                  ${isFacultyOrAdmin ? `<button onclick="editInternalMark('${m._id}')" class="btn-secondary" style="padding:0.35rem 0.6rem; font-size:0.75rem;" title="Edit"><i class="fa-solid fa-pen"></i></button>` : ''}
+                  ${isFacultyOrAdmin ? `<button onclick="deleteInternalMark('${m._id}')" class="btn-danger" style="padding:0.35rem 0.6rem; font-size:0.75rem;" title="Delete"><i class="fa-solid fa-trash"></i></button>` : ''}
+                </div>
+              </td>
+            </tr>
+          `).join('');
+
+        } catch (err) {
+          tbody.innerHTML = '<tr><td colspan="12" style="text-align:center; color:var(--error);">Failed to load internal marks.</td></tr>';
+        }
+      };
+
+      document.querySelectorAll('#intFilterDept, #intFilterYear, #intFilterSem, #intFilterSec').forEach(el => el.addEventListener('change', fetchInternalMarks));
+
+      document.getElementById('internalMarkForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const int1 = Number(document.getElementById('int1').value);
+        const int2 = Number(document.getElementById('int2').value);
+        const int3 = Number(document.getElementById('int3').value);
+        const model = Number(document.getElementById('intModel').value);
+        const assign = Number(document.getElementById('intAssign').value);
+
+        if (int1 > 50 || int2 > 50 || int3 > 50) return alert('Internal Assessment marks cannot exceed 50.');
+        if (model > 100) return alert('Model Exam mark cannot exceed 100.');
+        if (assign > 10) return alert('Assignment mark cannot exceed 10.');
+
+        const id = document.getElementById('editIntDbId').value;
+        const payload = {
+          studentRegisterNo: document.getElementById('intRegNo').value,
+          studentName: document.getElementById('intName').value,
+          subjectCode: document.getElementById('intCode').value,
+          subjectName: document.getElementById('intSubjectName').value,
+          department: document.getElementById('intFilterDept').value !== 'All' ? document.getElementById('intFilterDept').value : 'AI & DS',
+          year: document.getElementById('intFilterYear').value !== 'All' ? document.getElementById('intFilterYear').value : 'III Year',
+          semester: document.getElementById('intFilterSem').value !== 'All' ? document.getElementById('intFilterSem').value : 'Semester V',
+          section: document.getElementById('intFilterSec').value !== 'All' ? document.getElementById('intFilterSec').value : 'A',
+          internal1: int1,
+          internal2: int2,
+          internal3: int3,
+          modelExam: model,
+          assignmentMark: assign,
+          facultyName: user.name || 'Faculty Member'
+        };
+
+        const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+        const token = localStorage.getItem('jp_dms_token');
+        const url = id ? `${baseUrl}/internal-marks/${id}` : `${baseUrl}/internal-marks`;
+        const method = id ? 'PUT' : 'POST';
+
+        const res = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        alert(data.message || 'Internal marks saved!');
+        modal.classList.remove('active');
+        fetchInternalMarks();
+      });
+
+      window.editInternalMark = (id) => {
+        const m = internalMarksList.find(x => x._id === id);
+        if (!m) return;
+
+        document.getElementById('editIntDbId').value = m._id;
+        document.getElementById('intRegNo').value = m.studentRegisterNo;
+        document.getElementById('intName').value = m.studentName || '';
+        document.getElementById('intCode').value = m.subjectCode;
+        document.getElementById('intSubjectName').value = m.subjectName || '';
+        document.getElementById('int1').value = m.internal1;
+        document.getElementById('int2').value = m.internal2;
+        document.getElementById('int3').value = m.internal3 || 0;
+        document.getElementById('intModel').value = m.modelExam || 0;
+        document.getElementById('intAssign').value = m.assignmentMark || 0;
+
+        document.getElementById('intModalTitle').innerHTML = '<i class="fa-solid fa-user-pen" style="color: var(--primary);"></i> Edit Internal Marks';
+        modal.classList.add('active');
+      };
+
+      window.deleteInternalMark = async (id) => {
+        if (!confirm('Delete this internal mark record?')) return;
+        const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+        const token = localStorage.getItem('jp_dms_token');
+        await fetch(`${baseUrl}/internal-marks/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        fetchInternalMarks();
+      };
+
+      document.getElementById('exportInternalMarksBtn').addEventListener('click', () => {
+        if (!internalMarksList.length) return alert('No internal marks to export.');
+        exporter.exportToExcel('JP_College_InternalMarks', internalMarksList);
+      });
+
+      fetchInternalMarks();
+    });
+  </script>
 </body>
 </html>

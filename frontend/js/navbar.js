@@ -60,107 +60,77 @@ class NavbarComponent {
   }
 
   renderHeaderNav() {
-    const user = this.getUser();
-    const userRole = user.role || 'student';
     const activeUrl = this.getActivePage();
+    const user = this.getUser();
+    const roleKey = user.role || 'super_admin';
+    const roleTitle = (roleKey === 'super_admin' || roleKey === 'admin') ? 'Super Admin' : (roleKey === 'faculty' ? 'Faculty' : 'Student Portal');
 
-    const allowedPages = this.pages.filter(p => p.roles.includes(userRole));
-    const activePageObj = this.pages.find(p => p.url === activeUrl) || { name: 'ERP System', icon: 'fa-graduation-cap' };
+    const visiblePages = this.pages.filter(p => p.roles.includes(roleKey) || (p.roles.includes('admin') && roleKey === 'super_admin'));
 
-    const navbarContainer = document.getElementById('navbar-container');
-    if (!navbarContainer) return;
-
-    const navLinksHtml = allowedPages.map(page => `
-      <a href="${page.url}" class="sidebar-link ${activeUrl === page.url ? 'active' : ''}">
-        <i class="fa-solid ${page.icon}"></i>
-        <span>${page.name}</span>
-        ${page.badgeId ? `<span class="sidebar-badge" id="${page.badgeId}" style="display:none;">0</span>` : ''}
-      </a>
-    `).join('');
-
-    navbarContainer.innerHTML = `
-      <header class="app-header">
-        <div class="header-left">
-          <button class="sidebar-toggle-btn" id="sidebarToggleBtn" title="Toggle Navigation Menu">
-            <i class="fa-solid fa-bars"></i>
-          </button>
-          <div class="header-brand">
-            <div class="badge-blue-icon">JPC</div>
-            <div class="brand-title-group">
-              <span class="brand-name">J.P. COLLEGE OF ENGINEERING</span>
-              <span class="brand-subtext">Department Management ERP</span>
+    const headerHtml = `
+      <header class="top-navbar-wrapper">
+        <!-- Brand Header (White Navbar) -->
+        <div class="brand-header">
+          <a href="dashboard.html" class="brand-info" style="text-decoration:none;">
+            <div class="college-logo-badge">JPC</div>
+            <div class="college-title">
+              <h1>J.P. COLLEGE OF ENGINEERING</h1>
+              <p>College ERP System (${roleTitle})</p>
             </div>
+          </a>
+          
+          <!-- Global Search Bar -->
+          <div class="global-search-container">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="globalSearchInput" class="global-search-input" placeholder="Search Reg No, Roll No, Student, Faculty...">
           </div>
-        </div>
 
-        <div class="header-right">
-          <div class="global-search-wrapper">
-            <i class="fa-solid fa-magnifying-glass search-icon"></i>
-            <input type="text" id="globalSearchInput" class="global-search-input" placeholder="Search student reg no, faculty ID, dept...">
-          </div>
-
-          <div class="header-clock" id="headerLiveClock">00:00:00 AM</div>
-
-          <div class="notification-dropdown-wrapper">
-            <button class="icon-btn" id="notifBellBtn" title="Notifications">
+          <div class="header-right-controls">
+            <!-- Notifications Bell -->
+            <button class="notification-bell-btn" id="notificationsBtn" title="Notifications">
               <i class="fa-solid fa-bell"></i>
-              <span class="icon-badge" id="notifBadgeCount" style="display:none;">0</span>
+              <span class="notification-badge-dot"></span>
             </button>
-            <div class="dropdown-menu notif-dropdown" id="notifDropdown">
-              <div class="dropdown-header">
-                <strong>System Notifications</strong>
-                <a href="#" id="clearNotifsBtn" style="font-size:0.75rem; color:var(--primary);">Mark all read</a>
-              </div>
-              <div class="notif-list" id="notifListContainer">
-                <div class="notif-empty">No unread notifications</div>
-              </div>
-            </div>
-          </div>
 
-          <div class="user-profile-menu">
-            <img src="${user.photo || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80'}" alt="${user.name}" class="avatar-img">
-            <div class="user-info-text">
-              <span class="user-name">${user.name || 'User'}</span>
-              <span class="user-role-badge">${userRole.toUpperCase()}</span>
+            <!-- Role & Profile Badge -->
+            <div class="role-badge" title="${user.email}">
+              <i class="fa-solid ${(roleKey === 'super_admin' || roleKey === 'admin') ? 'fa-user-shield' : (roleKey === 'faculty' ? 'fa-chalkboard-user' : 'fa-user-graduate')}"></i>
+              <span>${user.name || roleTitle}</span>
             </div>
-            <button class="icon-btn" id="logoutHeaderBtn" title="Logout Account">
-              <i class="fa-solid fa-right-from-bracket" style="color:var(--error);"></i>
+
+            <!-- Live Clock -->
+            <div class="live-time-box" style="font-size:0.75rem; text-align:right; color:var(--text-secondary);">
+              <div id="liveClockTime" style="font-weight:700; color:var(--primary);">00:00:00 AM</div>
+              <div id="liveClockDate" style="font-size:0.65rem;">Loading...</div>
+            </div>
+
+            <!-- Logout Button -->
+            <button class="btn-secondary" id="logoutBtn" style="padding:0.4rem 0.75rem; font-size:0.8rem; color:var(--error); border-color:#FECACA;" title="Logout">
+              <i class="fa-solid fa-right-from-bracket"></i> Logout
             </button>
           </div>
         </div>
-      </header>
 
-      <aside class="app-sidebar" id="appSidebar">
-        <div class="sidebar-header">
-          <div style="font-size: 0.85rem; font-weight: 700; color: #FFFFFF; text-transform: uppercase; letter-spacing: 0.5px;">
-            <i class="fa-solid ${activePageObj.icon}" style="margin-right: 0.5rem; color: #60A5FA;"></i> ERP Navigation
-          </div>
-        </div>
-
-        <nav class="sidebar-nav">
-          ${navLinksHtml}
+        <!-- Role Navigation Menu Bar -->
+        <nav class="nav-menu-bar" id="navMenuBar">
+          ${visiblePages.map(p => `
+            <a href="${p.url}" class="nav-tab-btn ${p.url === activeUrl ? 'active' : ''}">
+              <i class="fa-solid ${p.icon}"></i> ${p.name}
+              ${p.badgeId ? `<span id="${p.badgeId}" class="badge badge-warning" style="display:none; margin-left:0.3rem; font-size:0.7rem;">0</span>` : ''}
+            </a>
+          `).join('')}
         </nav>
-
-        <div class="sidebar-footer">
-          <div style="font-size: 0.75rem; color: #93C5FD; text-align: center;">
-            JP College ERP v2.4 (White & Blue)
-          </div>
-        </div>
-      </aside>
-      <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+      </header>
     `;
 
-    document.getElementById('sidebarToggleBtn')?.addEventListener('click', () => {
-      document.getElementById('appSidebar')?.classList.toggle('open');
-      document.getElementById('sidebarBackdrop')?.classList.toggle('active');
-    });
+    const container = document.getElementById('navbar-container');
+    if (container) {
+      container.innerHTML = headerHtml;
+    } else {
+      document.body.insertAdjacentHTML('afterbegin', headerHtml);
+    }
 
-    document.getElementById('sidebarBackdrop')?.addEventListener('click', () => {
-      document.getElementById('appSidebar')?.classList.remove('open');
-      document.getElementById('sidebarBackdrop')?.classList.remove('active');
-    });
-
-    document.getElementById('logoutHeaderBtn')?.addEventListener('click', () => {
+    document.getElementById('logoutBtn')?.addEventListener('click', () => {
       if (confirm('Are you sure you want to log out of JP College ERP?')) {
         localStorage.removeItem('jp_dms_token');
         localStorage.removeItem('jp_dms_user');
@@ -170,66 +140,75 @@ class NavbarComponent {
     });
   }
 
+  async fetchPendingBadgeCount() {
+    const user = this.getUser();
+    if (user.role !== 'super_admin' && user.role !== 'admin') return;
+
+    try {
+      const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+      const token = localStorage.getItem('jp_dms_token');
+      const res = await fetch(`${baseUrl}/auth/pending-categorized`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      const json = await res.json();
+      if (json.success && json.counts && json.counts.total > 0) {
+        const badge = document.getElementById('navPendingCountBadge');
+        if (badge) {
+          badge.textContent = json.counts.total;
+          badge.style.display = 'inline-block';
+        }
+      }
+    } catch (e) {}
+  }
+
   setupClock() {
-    const clockEl = document.getElementById('headerLiveClock');
-    if (!clockEl) return;
     const update = () => {
       const now = new Date();
-      clockEl.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+
+      const timeEl = document.getElementById('liveClockTime');
+      const dateEl = document.getElementById('liveClockDate');
+      if (timeEl) timeEl.textContent = timeStr;
+      if (dateEl) dateEl.textContent = dateStr;
     };
     update();
     setInterval(update, 1000);
   }
 
   setupGlobalSearch() {
-    const input = document.getElementById('globalSearchInput');
-    if (!input) return;
-    input.addEventListener('keyup', (e) => {
-      const q = e.target.value.toLowerCase().trim();
-      const rows = document.querySelectorAll('tbody tr');
-      rows.forEach(r => {
-        const text = r.textContent.toLowerCase();
-        r.style.display = text.includes(q) ? '' : 'none';
-      });
+    document.addEventListener('input', (e) => {
+      if (e.target && e.target.id === 'globalSearchInput') {
+        const query = e.target.value.toLowerCase().trim();
+        const rows = document.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+          const text = row.textContent.toLowerCase();
+          row.style.display = text.includes(query) ? '' : 'none';
+        });
+      }
     });
   }
 
   setupNotifications() {
-    const btn = document.getElementById('notifBellBtn');
-    const menu = document.getElementById('notifDropdown');
-    if (!btn || !menu) return;
+    document.addEventListener('click', async (e) => {
+      if (e.target.closest('#notificationsBtn')) {
+        try {
+          const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+          const res = await fetch(`${baseUrl}/notifications`);
+          const json = await res.json();
+          const list = json.data || [];
+          
+          const notifText = list.length > 0 
+            ? list.slice(0, 5).map(n => `• [${n.type.toUpperCase()}] ${n.title}: ${n.message}`).join('\n\n')
+            : 'No new notifications.';
 
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      menu.classList.toggle('active');
-    });
-
-    document.addEventListener('click', (e) => {
-      if (!menu.contains(e.target) && !btn.contains(e.target)) {
-        menu.classList.remove('active');
-      }
-    });
-  }
-
-  async fetchPendingBadgeCount() {
-    const user = this.getUser();
-    if (user.role !== 'admin' && user.role !== 'super_admin') return;
-
-    try {
-      const baseUrl = window.APP_CONFIG ? window.APP_CONFIG.getApiBaseUrl() : 'http://localhost:5000/api';
-      const token = localStorage.getItem('jp_dms_token');
-      const res = await fetch(`${baseUrl}/auth/pending-categorized`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const json = await res.json();
-      if (json.success && json.counts && json.counts.total > 0) {
-        const badge = document.getElementById('navPendingCountBadge');
-        if (badge) {
-          badge.style.display = 'inline-flex';
-          badge.textContent = json.counts.total;
+          alert(`🔔 JP College ERP Notifications:\n\n${notifText}`);
+        } catch (err) {
+          alert('No new notifications.');
         }
       }
-    } catch (e) {}
+    });
   }
 }
 

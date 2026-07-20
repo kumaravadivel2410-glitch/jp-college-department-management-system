@@ -194,7 +194,7 @@ const autoSeedDatabase = async () => {
   }
 };
 
-// Generic CRUD helper generator with Dept -> Year -> Sem -> Sec filters
+// Generic CRUD helper generator with Dept -> Year -> Sem -> Sec filters, pagination & search
 const createCrudControllers = (Model, modelName) => ({
   getAll: async (req, res) => {
     try {
@@ -208,8 +208,35 @@ const createCrudControllers = (Model, modelName) => ({
       if (req.query.email) filter.email = req.query.email;
       if (req.query.subjectCode) filter.subjectCode = req.query.subjectCode;
 
-      const items = await Model.find(filter).sort({ createdAt: -1 });
-      res.json({ success: true, count: items.length, data: items });
+      if (req.query.search) {
+        const regex = new RegExp(req.query.search, 'i');
+        filter.$or = [
+          { studentName: regex },
+          { registerNo: regex },
+          { rollNumber: regex },
+          { facultyName: regex },
+          { facultyId: regex },
+          { subjectName: regex },
+          { subjectCode: regex }
+        ];
+      }
+
+      const page = parseInt(req.query.page, 10) || 1;
+      const limit = parseInt(req.query.limit, 10) || 1000;
+      const skip = (page - 1) * limit;
+
+      const [totalCount, items] = await Promise.all([
+        Model.countDocuments(filter),
+        Model.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean()
+      ]);
+
+      res.json({
+        success: true,
+        count: totalCount,
+        page,
+        totalPages: Math.ceil(totalCount / limit),
+        data: items
+      });
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });
     }
@@ -223,7 +250,7 @@ const createCrudControllers = (Model, modelName) => ({
         date: new Date().toISOString().split('T')[0],
         time: new Date().toLocaleTimeString(),
         action: `Create ${modelName}`,
-        user: req.user ? req.user.email : 'System',
+        user: req.user ? req.user.email : 'System User',
         department: req.body.department || 'General',
         details: `Created new ${modelName} record`
       });
@@ -242,7 +269,50 @@ const createCrudControllers = (Model, modelName) => ({
         return res.status(403).json({ success: false, message: 'Permanent Super Admin account cannot be modified or deleted.' });
       }
 
+      // Validation for Internal Marks
+      if (modelName === 'InternalMark') {
+        const int1 = Number(req.body.internal1 !== undefined ? req.body.internal1 : existing.internal1);
+        const int2 = Number(req.body.internal2 !== undefined ? req.body.internal2 : existing.internal2);
+        const int3 = Number(req.body.internal3 !== undefined ? req.body.internal3 : existing.internal3);
+        const modelExam = Number(req.body.modelExam !== undefined ? req.body.modelExam : existing.modelExam);
+        const assignment = Number(req.body.assignmentMark !== undefined ? req.body.assignmentMark : existing.assignmentMark);
+
+        if (int1 > 50 || int2 > 50 || int3 > 50) return res.status(400).json({ success: false, message: 'Internal Assessment marks cannot exceed 50.' });
+        if (modelExam > 100) return res.status(400).json({ success: false, message: 'Model Exam marks cannot exceed 100.' });
+        if (assignment > 10) return res.status(400).json({ success: false, message: 'Assignment mark cannot exceed 10.' });
+
+        req.body.average = Math.round(((int1 + int2 + int3) / 3) * 10) / 10;
+        req.body.totalInternal = Math.round((req.body.average / 50) * 40 + assignment);
+        req.body.lastUpdated = new Date().toISOString().split('T')[0];
+      }
+
+      // Validation for Semester Marks
+      if (modelName === 'SemesterMark') {
+        const marks = Number(req.body.marks !== undefined ? req.body.marks : existing.marks);
+        if (marks > 100) return res.status(400).json({ success: false, message: 'Semester marks cannot exceed 100.' });
+
+        req.body.result = marks >= 45 ? 'PASS' : 'FAIL';
+        if (marks >= 90) req.body.grade = 'O';
+        else if (marks >= 80) req.body.grade = 'A+';
+        else if (marks >= 70) req.body.grade = 'A';
+        else if (marks >= 60) req.body.grade = 'B+';
+        else if (marks >= 45) req.body.grade = 'B';
+        else req.body.grade = 'U';
+
+        req.body.gpa = Math.round((marks / 10) * 10) / 10;
+      }
+
       const item = await Model.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+
+      // Audit History Logging
+      await History.create({
+        date: new Date().toISOString().split('T')[0],
+        time: new Date().toLocaleTimeString(),
+        action: `Update ${modelName}`,
+        user: req.user ? req.user.email : 'System User',
+        department: existing.department || 'General',
+        details: `Updated ${modelName} ID: ${existing._id}`
+      });
 
       res.json({ success: true, message: `${modelName} updated successfully`, data: item });
     } catch (err) {
@@ -259,6 +329,15 @@ const createCrudControllers = (Model, modelName) => ({
       }
 
       await Model.findByIdAndDelete(req.params.id);
+
+      await History.create({
+        date: new Date().toISOString().split('T')[0],
+        time: new Date().toLocaleTimeString(),
+        action: `Delete ${modelName}`,
+        user: req.user ? req.user.email : 'System User',
+        department: existing.department || 'General',
+        details: `Deleted ${modelName} ID: ${existing._id}`
+      });
 
       res.json({ success: true, message: `${modelName} deleted successfully` });
     } catch (err) {
