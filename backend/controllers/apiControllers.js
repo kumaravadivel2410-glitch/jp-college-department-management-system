@@ -1040,6 +1040,60 @@ const departments = {
   }
 };
 
+// BATCH ATTENDANCE MARKING CONTROLLER
+const batchAttendance = async (req, res) => {
+  try {
+    const { records, date, department, year, semester, section, subject } = req.body;
+    if (!Array.isArray(records) || records.length === 0) {
+      return res.status(400).json({ success: false, message: 'No attendance records provided.' });
+    }
+
+    const markDate = date || new Date().toISOString().split('T')[0];
+    const facultyUser = req.user ? (req.user.name || req.user.email) : 'Faculty Member';
+
+    const bulkOperations = records.map(r => ({
+      updateOne: {
+        filter: {
+          studentRegisterNo: r.studentRegisterNo,
+          date: markDate,
+          subject: subject || r.subject || 'General'
+        },
+        update: {
+          $set: {
+            studentRegisterNo: r.studentRegisterNo,
+            studentName: r.studentName,
+            department: department || r.department || 'AI & DS',
+            year: year || r.year || 'III Year',
+            semester: semester || r.semester || 'Semester V',
+            section: section || r.section || 'A',
+            subject: subject || r.subject || 'General',
+            date: markDate,
+            session: r.session || 'Full Day',
+            morningStatus: r.status || 'Present',
+            afternoonStatus: r.status || 'Present',
+            status: r.status || 'Present',
+            markedBy: facultyUser,
+            percentage: r.status === 'Present' ? 100 : (r.status === 'Late' || r.status === 'Permission' ? 80 : 0)
+          }
+        },
+        upsert: true
+      }
+    }));
+
+    const Attendance = require('../models/Attendance');
+    await Attendance.bulkWrite(bulkOperations);
+
+    res.json({
+      success: true,
+      message: `Batch attendance marked successfully for ${records.length} students on ${markDate}!`,
+      count: records.length
+    });
+
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
 module.exports = {
   students: createCrudControllers(Student, 'Student'),
   faculty: createCrudControllers(Faculty, 'Faculty'),
@@ -1060,5 +1114,6 @@ module.exports = {
   notifications,
   importExport,
   getStats,
-  autoSeedDatabase
+  autoSeedDatabase,
+  batchAttendance
 };

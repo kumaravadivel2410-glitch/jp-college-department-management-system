@@ -3,9 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JP College ERP - Attendance Management</title>
+  <title>JP College ERP - Student Attendance Management</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    .status-btn-group {
+      display: inline-flex;
+      gap: 0.25rem;
+      background: #F1F5F9;
+      padding: 0.25rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+    }
+    .status-opt-btn {
+      padding: 0.3rem 0.65rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      color: var(--text-secondary);
+      transition: var(--transition-fast);
+    }
+    .status-opt-btn.active-present { background: #16A34A; color: white; }
+    .status-opt-btn.active-absent { background: #DC2626; color: white; }
+    .status-opt-btn.active-late { background: #F59E0B; color: white; }
+    .status-opt-btn.active-permission { background: #2563EB; color: white; }
+  </style>
 </head>
 <body>
 
@@ -13,138 +41,111 @@
 
   <main class="main-content-wrapper">
     <div class="page-header-title">
-      <h2><i class="fa-solid fa-calendar-check"></i> Attendance Management</h2>
-      <div style="display: flex; gap: 0.75rem;" class="faculty-only">
-        <button class="btn-primary" id="openMarkAttendanceBtn">
-          <i class="fa-solid fa-user-check"></i> Mark Daily Attendance
-        </button>
+      <h2><i class="fa-solid fa-calendar-check" style="color: var(--primary);"></i> Student Attendance Management</h2>
+      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <button id="markAllPresentBtn" class="btn-success"><i class="fa-solid fa-check-double"></i> Mark All Present</button>
+        <button id="markAllAbsentBtn" class="btn-danger"><i class="fa-solid fa-user-xmark"></i> Mark All Absent</button>
+        <button id="exportAttendanceBtn" class="btn-secondary"><i class="fa-solid fa-file-excel"></i> Export Sheet</button>
+        <button id="submitBatchAttendanceBtn" class="btn-primary"><i class="fa-solid fa-cloud-arrow-up"></i> Save Class Attendance</button>
       </div>
     </div>
 
-    <!-- Attendance Filters & Summary Bar -->
-    <div class="card-glass" style="margin-bottom: 1.5rem; padding: 1.25rem;">
-      <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
-        <div style="flex: 1; min-width: 180px;">
-          <label class="form-label">Date</label>
-          <input type="date" id="attFilterDate" class="form-control" value="2026-07-20">
-        </div>
-
-        <div style="flex: 1; min-width: 180px;">
+    <!-- Attendance Filters Card -->
+    <div class="card-glass" style="margin-bottom: 1.5rem;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem;">
+        <div class="form-group" style="margin-bottom:0;">
           <label class="form-label">Department</label>
-          <select id="attFilterDept" class="form-control">
-            <option value="All">All Departments</option>
-            <option value="AI & DS">AI & DS</option>
+          <select id="attDept" class="form-control">
+            <option value="AI & DS" selected>AI & DS</option>
             <option value="CSE">CSE</option>
             <option value="ECE">ECE</option>
             <option value="EEE">EEE</option>
-            <option value="Mechanical">Mechanical</option>
-            <option value="Civil">Civil</option>
+            <option value="MECH">Mechanical</option>
+            <option value="CIVIL">Civil</option>
           </select>
         </div>
 
-        <div style="flex: 1; min-width: 150px;">
-          <label class="form-label">Session Filter</label>
-          <select id="attFilterSession" class="form-control">
-            <option value="All">All Sessions</option>
-            <option value="Morning">Morning Session</option>
-            <option value="Afternoon">Afternoon Session</option>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Year</label>
+          <select id="attYear" class="form-control">
+            <option value="III Year" selected>III Year</option>
+            <option value="I Year">I Year</option>
+            <option value="II Year">II Year</option>
+            <option value="IV Year">IV Year</option>
           </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Semester</label>
+          <select id="attSem" class="form-control">
+            <option value="Semester V" selected>Semester V</option>
+            <option value="Semester VI">Semester VI</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Section</label>
+          <select id="attSec" class="form-control">
+            <option value="A" selected>Section A</option>
+            <option value="B">Section B</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Subject</label>
+          <select id="attSubject" class="form-control">
+            <option value="AD3501 - Deep Learning" selected>AD3501 - Deep Learning</option>
+            <option value="CW3551 - Data Mining">CW3551 - Data Mining</option>
+            <option value="CS3551 - Distributed Systems">CS3551 - Distributed Systems</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Date</label>
+          <input type="date" id="attDate" class="form-control">
         </div>
       </div>
     </div>
 
-    <!-- Table Card -->
-    <div class="card-glass">
-      <div class="table-responsive">
-        <table class="custom-table">
-          <thead>
-            <tr>
-              <th>Register No</th>
-              <th>Student Name</th>
-              <th>Department</th>
-              <th>Date</th>
-              <th>Morning Session</th>
-              <th>Afternoon Session</th>
-              <th>Attendance %</th>
-            </tr>
-          </thead>
-          <tbody id="attendanceTableBody">
-            <!-- Dynamic rows -->
-          </tbody>
-        </table>
+    <!-- Live Class Attendance Summary Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+      <div style="background:#FFFFFF; padding:1rem; border-radius:10px; border:1px solid var(--border-subtle); border-left:4px solid var(--primary); text-align:center;">
+        <div style="font-size:0.8rem; color:var(--text-secondary); font-weight:700;">Total Enrolled</div>
+        <div style="font-size:1.8rem; font-weight:800; color:#1E3A8A;" id="summaryTotal">0</div>
       </div>
+      <div style="background:#FFFFFF; padding:1rem; border-radius:10px; border:1px solid var(--border-subtle); border-left:4px solid #16A34A; text-align:center;">
+        <div style="font-size:0.8rem; color:var(--text-secondary); font-weight:700;">Present</div>
+        <div style="font-size:1.8rem; font-weight:800; color:#16A34A;" id="summaryPresent">0</div>
+      </div>
+      <div style="background:#FFFFFF; padding:1rem; border-radius:10px; border:1px solid var(--border-subtle); border-left:4px solid #DC2626; text-align:center;">
+        <div style="font-size:0.8rem; color:var(--text-secondary); font-weight:700;">Absent</div>
+        <div style="font-size:1.8rem; font-weight:800; color:#DC2626;" id="summaryAbsent">0</div>
+      </div>
+      <div style="background:#FFFFFF; padding:1rem; border-radius:10px; border:1px solid var(--border-subtle); border-left:4px solid #F59E0B; text-align:center;">
+        <div style="font-size:0.8rem; color:var(--text-secondary); font-weight:700;">Class Percentage</div>
+        <div style="font-size:1.8rem; font-weight:800; color:#B45309;" id="summaryPercent">0%</div>
+      </div>
+    </div>
+
+    <!-- Attendance Table -->
+    <div class="table-responsive">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Register Number</th>
+            <th>Roll No</th>
+            <th>Student Name</th>
+            <th>Department & Year</th>
+            <th>Attendance Status</th>
+            <th style="width: 100px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="attendanceTbody">
+          <!-- Dynamic Attendance Rows -->
+        </tbody>
+      </table>
     </div>
   </main>
-
-  <!-- Mark Attendance Modal -->
-  <div class="modal-overlay" id="markAttendanceModal">
-    <div class="modal-box" style="max-width: 650px;">
-      <div class="modal-header">
-        <h3><i class="fa-solid fa-clipboard-user" style="color: var(--primary);"></i> Mark Morning / Afternoon Attendance</h3>
-        <button class="close-modal-btn" id="closeMarkAttModalBtn">&times;</button>
-      </div>
-
-      <form id="markAttendanceForm">
-        <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-          <div class="form-group" style="flex: 1;">
-            <label class="form-label">Department</label>
-            <select id="markDept" class="form-control">
-              <option value="AI & DS">AI & DS</option>
-              <option value="CSE">CSE</option>
-            </select>
-          </div>
-          <div class="form-group" style="flex: 1;">
-            <label class="form-label">Session</label>
-            <select id="markSession" class="form-control">
-              <option value="Morning">Morning Session</option>
-              <option value="Afternoon">Afternoon Session</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="table-responsive" style="margin-bottom: 1.25rem; max-height: 250px;">
-          <table class="custom-table">
-            <thead>
-              <tr>
-                <th>Register No</th>
-                <th>Student Name</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>953621104001</td>
-                <td>Aarav Kumar</td>
-                <td>
-                  <select class="form-control att-status-select" data-reg="953621104001">
-                    <option value="Present">Present</option>
-                    <option value="Absent">Absent</option>
-                    <option value="Leave">Leave</option>
-                    <option value="OD">OD</option>
-                  </select>
-                </td>
-              </tr>
-              <tr>
-                <td>953621104002</td>
-                <td>Bhavna Sharma</td>
-                <td>
-                  <select class="form-control att-status-select" data-reg="953621104002">
-                    <option value="Present">Present</option>
-                    <option value="Absent">Absent</option>
-                    <option value="Leave">Leave</option>
-                  </select>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">
-          <i class="fa-solid fa-floppy-disk"></i> Save Attendance Records
-        </button>
-      </form>
-    </div>
-  </div>
 
   <footer>
     &copy; 2026 J.P. College of Engineering. All rights reserved. Department Management ERP System.
@@ -153,22 +154,198 @@
   <script src="js/config.js"></script>
   <script src="js/api.js"></script>
   <script src="js/navbar.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/export.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const modal = document.getElementById('markAttendanceModal');
-      const openBtn = document.getElementById('openMarkAttendanceBtn');
-      const closeBtn = document.getElementById('closeMarkAttModalBtn');
+      document.getElementById('attDate').value = new Date().toISOString().split('T')[0];
 
-      if (openBtn) openBtn.addEventListener('click', () => modal.classList.add('active'));
-      if (closeBtn) closeBtn.addEventListener('click', () => modal.classList.remove('active'));
+      let classStudents = [];
+      let currentAttendanceMap = {};
 
-      document.getElementById('markAttendanceForm')?.addEventListener('submit', (e) => {
-        e.preventDefault();
-        alert('Attendance marked and saved successfully!');
-        modal.classList.remove('active');
-        location.reload();
+      const fetchClassRoster = async () => {
+        const tbody = document.getElementById('attendanceTbody');
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> Loading class roster...</td></tr>';
+
+        const dept = document.getElementById('attDept').value;
+        const year = document.getElementById('attYear').value;
+        const sem = document.getElementById('attSem').value;
+        const sec = document.getElementById('attSec').value;
+        const date = document.getElementById('attDate').value;
+        const subject = document.getElementById('attSubject').value;
+
+        try {
+          const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+          
+          // Fetch student roster & existing attendance records
+          const [stuRes, attRes] = await Promise.all([
+            fetch(`${baseUrl}/students?department=${encodeURIComponent(dept)}&year=${encodeURIComponent(year)}&semester=${encodeURIComponent(sem)}&section=${encodeURIComponent(sec)}`),
+            fetch(`${baseUrl}/attendance?department=${encodeURIComponent(dept)}&year=${encodeURIComponent(year)}&semester=${encodeURIComponent(sem)}&section=${encodeURIComponent(sec)}&subject=${encodeURIComponent(subject)}`)
+          ]);
+
+          const stuJson = await stuRes.json();
+          const attJson = await attRes.json();
+
+          classStudents = stuJson.data || [];
+          const existingAtt = attJson.data || [];
+
+          currentAttendanceMap = {};
+          existingAtt.forEach(a => {
+            if (a.date === date) {
+              currentAttendanceMap[a.studentRegisterNo] = { id: a._id, status: a.status };
+            }
+          });
+
+          if (classStudents.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--text-secondary);">No enrolled students found for selected class filters.</td></tr>';
+            updateSummary();
+            return;
+          }
+
+          tbody.innerHTML = classStudents.map(s => {
+            const existing = currentAttendanceMap[s.registerNo];
+            const currentStatus = existing ? existing.status : 'Present';
+
+            return `
+              <tr id="row-${s.registerNo}">
+                <td style="font-weight:700; color:var(--primary);">${s.registerNo}</td>
+                <td>${s.rollNumber || '-'}</td>
+                <td style="font-weight:700; color:#1E3A8A;">${s.studentName}</td>
+                <td>${s.department} (${s.year})</td>
+                <td>
+                  <div class="status-btn-group" data-reg="${s.registerNo}">
+                    <button type="button" onclick="setStudentStatus('${s.registerNo}', 'Present')" class="status-opt-btn ${currentStatus === 'Present' ? 'active-present' : ''}">P</button>
+                    <button type="button" onclick="setStudentStatus('${s.registerNo}', 'Absent')" class="status-opt-btn ${currentStatus === 'Absent' ? 'active-absent' : ''}">A</button>
+                    <button type="button" onclick="setStudentStatus('${s.registerNo}', 'Late')" class="status-opt-btn ${currentStatus === 'Late' ? 'active-late' : ''}">L</button>
+                    <button type="button" onclick="setStudentStatus('${s.registerNo}', 'Permission')" class="status-opt-btn ${currentStatus === 'Permission' ? 'active-permission' : ''}">PERM</button>
+                  </div>
+                </td>
+                <td>
+                  ${existing ? `<button onclick="deleteAttendanceRecord('${existing.id}')" class="btn-danger" style="padding:0.35rem 0.6rem; font-size:0.75rem;" title="Delete Record"><i class="fa-solid fa-trash"></i></button>` : `<span class="badge badge-primary">New</span>`}
+                </td>
+              </tr>
+            `;
+          }).join('');
+
+          updateSummary();
+
+        } catch (err) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--error);">Failed to load attendance roster.</td></tr>';
+        }
+      };
+
+      window.setStudentStatus = (regNo, status) => {
+        if (!currentAttendanceMap[regNo]) currentAttendanceMap[regNo] = {};
+        currentAttendanceMap[regNo].status = status;
+
+        const group = document.querySelector(`.status-btn-group[data-reg="${regNo}"]`);
+        if (group) {
+          const btns = group.querySelectorAll('.status-opt-btn');
+          btns[0].className = `status-opt-btn ${status === 'Present' ? 'active-present' : ''}`;
+          btns[1].className = `status-opt-btn ${status === 'Absent' ? 'active-absent' : ''}`;
+          btns[2].className = `status-opt-btn ${status === 'Late' ? 'active-late' : ''}`;
+          btns[3].className = `status-opt-btn ${status === 'Permission' ? 'active-permission' : ''}`;
+        }
+
+        updateSummary();
+      };
+
+      const updateSummary = () => {
+        const total = classStudents.length;
+        let present = 0;
+        let absent = 0;
+
+        classStudents.forEach(s => {
+          const st = (currentAttendanceMap[s.registerNo] && currentAttendanceMap[s.registerNo].status) || 'Present';
+          if (st === 'Present' || st === 'Permission' || st === 'Late') present++;
+          else absent++;
+        });
+
+        const pct = total > 0 ? ((present / total) * 100).toFixed(1) : 0;
+        document.getElementById('summaryTotal').textContent = total;
+        document.getElementById('summaryPresent').textContent = present;
+        document.getElementById('summaryAbsent').textContent = absent;
+        document.getElementById('summaryPercent').textContent = `${pct}%`;
+      };
+
+      document.getElementById('markAllPresentBtn').addEventListener('click', () => {
+        classStudents.forEach(s => window.setStudentStatus(s.registerNo, 'Present'));
       });
+
+      document.getElementById('markAllAbsentBtn').addEventListener('click', () => {
+        classStudents.forEach(s => window.setStudentStatus(s.registerNo, 'Absent'));
+      });
+
+      document.getElementById('submitBatchAttendanceBtn').addEventListener('click', async () => {
+        if (!classStudents.length) return alert('No students to submit attendance for.');
+
+        const btn = document.getElementById('submitBatchAttendanceBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+
+        try {
+          const records = classStudents.map(s => ({
+            studentRegisterNo: s.registerNo,
+            studentName: s.studentName,
+            status: (currentAttendanceMap[s.registerNo] && currentAttendanceMap[s.registerNo].status) || 'Present'
+          }));
+
+          const payload = {
+            date: document.getElementById('attDate').value,
+            department: document.getElementById('attDept').value,
+            year: document.getElementById('attYear').value,
+            semester: document.getElementById('attSem').value,
+            section: document.getElementById('attSec').value,
+            subject: document.getElementById('attSubject').value,
+            records
+          };
+
+          const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+          const token = localStorage.getItem('jp_dms_token');
+
+          const res = await fetch(`${baseUrl}/attendance/batch`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify(payload)
+          });
+
+          const data = await res.json();
+          alert(data.message || 'Batch attendance saved!');
+          fetchClassRoster();
+
+        } catch (err) {
+          alert(`Failed to save attendance: ${err.message}`);
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Save Class Attendance';
+        }
+      });
+
+      window.deleteAttendanceRecord = async (id) => {
+        if (!confirm('Delete this attendance record?')) return;
+        const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+        const token = localStorage.getItem('jp_dms_token');
+        await fetch(`${baseUrl}/attendance/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        fetchClassRoster();
+      };
+
+      document.querySelectorAll('#attDept, #attYear, #attSem, #attSec, #attSubject, #attDate').forEach(el => el.addEventListener('change', fetchClassRoster));
+
+      document.getElementById('exportAttendanceBtn').addEventListener('click', () => {
+        const rows = classStudents.map(s => ({
+          RegisterNo: s.registerNo,
+          StudentName: s.studentName,
+          Department: s.department,
+          Year: s.year,
+          Section: s.section,
+          Status: (currentAttendanceMap[s.registerNo] && currentAttendanceMap[s.registerNo].status) || 'Present'
+        }));
+        exporter.exportToExcel(`JP_College_Attendance_${document.getElementById('attDate').value}`, rows);
+      });
+
+      fetchClassRoster();
     });
   </script>
 </body>
