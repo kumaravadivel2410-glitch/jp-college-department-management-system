@@ -13,9 +13,9 @@
 
   <main class="main-content-wrapper">
     <div class="page-header-title">
-      <h2><i class="fa-solid fa-tasks" style="color: var(--gold-primary);"></i> Course Assignments</h2>
+      <h2><i class="fa-solid fa-tasks" style="color: var(--primary);"></i> Course Assignments</h2>
       <div id="assignmentActionBtnGroup">
-        <button id="openUploadAssignmentBtn" class="btn-gold" style="display:none;">
+        <button id="openUploadAssignmentBtn" class="btn-primary" style="display:none;">
           <i class="fa-solid fa-plus-circle"></i> Create New Assignment
         </button>
       </div>
@@ -78,7 +78,7 @@
   <div class="modal-overlay" id="assignmentModal">
     <div class="modal-box">
       <div class="modal-header">
-        <h3><i class="fa-solid fa-file-circle-plus" style="color: var(--gold-primary);"></i> Publish Course Assignment</h3>
+        <h3><i class="fa-solid fa-file-circle-plus" style="color: var(--primary);"></i> Publish Course Assignment</h3>
         <button class="close-modal-btn" id="closeAssignmentModalBtn">&times;</button>
       </div>
       <form id="createAssignmentForm">
@@ -147,7 +147,7 @@
           </div>
         </div>
 
-        <button type="submit" class="btn-gold" style="width: 100%; justify-content: center; margin-top: 0.5rem;">
+        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 0.5rem;">
           <i class="fa-solid fa-paper-plane"></i> Publish Assignment
         </button>
       </form>
@@ -158,7 +158,7 @@
   <div class="modal-overlay" id="submitModal">
     <div class="modal-box">
       <div class="modal-header">
-        <h3><i class="fa-solid fa-cloud-arrow-up" style="color: var(--gold-primary);"></i> Submit Assignment</h3>
+        <h3><i class="fa-solid fa-cloud-arrow-up" style="color: var(--primary);"></i> Submit Assignment</h3>
         <button class="close-modal-btn" id="closeSubmitModalBtn">&times;</button>
       </div>
       <form id="submitAssignmentForm">
@@ -167,7 +167,7 @@
           <label class="form-label">Submission File URL / Repository Link *</label>
           <input type="url" id="submissionUrlInput" class="form-control" placeholder="https://github.com/username/project-repo" required>
         </div>
-        <button type="submit" class="btn-gold" style="width: 100%; justify-content: center;">
+        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">
           <i class="fa-solid fa-check"></i> Turn In Assignment
         </button>
       </form>
@@ -197,7 +197,6 @@
       document.getElementById('closeAssignmentModalBtn')?.addEventListener('click', () => modal.classList.remove('active'));
       document.getElementById('closeSubmitModalBtn')?.addEventListener('click', () => submitModal.classList.remove('active'));
 
-      // Fetch Assignments
       const fetchAssignments = async () => {
         const grid = document.getElementById('assignmentsGrid');
         grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:3rem; color:var(--text-muted);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><p style="margin-top:0.5rem;">Loading assignments...</p></div>';
@@ -215,7 +214,7 @@
           const list = json.data || [];
 
           if (list.length === 0) {
-            grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:3rem; background:var(--bg-card); border-radius:12px; border:1px solid var(--border-gold);"><i class="fa-solid fa-tasks fa-3x" style="color:var(--gold-primary);"></i><h3 style="margin-top:1rem; color:var(--gold-primary);">No Assignments Found</h3><p style="color:var(--text-secondary);">No course assignments published for selected criteria.</p></div>';
+            grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:3rem; background:#FFF; border-radius:12px; border:1px solid var(--border-subtle);"><i class="fa-solid fa-tasks fa-3x" style="color:var(--primary);"></i><h3 style="margin-top:1rem; color:#1E3A8A;">No Assignments Found</h3><p style="color:var(--text-secondary);">No course assignments published for selected criteria.</p></div>';
             return;
           }
 
@@ -226,26 +225,26 @@
             const statusText = mySubmission ? `Submitted (${mySubmission.grade || 'A+'})` : 'Pending Submission';
 
             return `
-              <div class="card-glass" style="display:flex; flex-direction:column; justify-content:space-between;">
+              <div class="card-glass" style="display:flex; flex-direction:column; justify-content:space-between; border-top: 3px solid var(--primary);">
                 <div>
                   <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem;">
-                    <span class="badge badge-gold">${item.subjectName || 'Course'}</span>
+                    <span class="badge badge-primary">${item.subjectName || 'Course'}</span>
                     <span class="badge ${statusClass}">${statusText}</span>
                   </div>
 
-                  <h3 style="font-size:1.1rem; font-weight:700; color:var(--gold-primary); margin-bottom:0.4rem;">${item.title}</h3>
+                  <h3 style="font-size:1.1rem; font-weight:700; color:#1E3A8A; margin-bottom:0.4rem;">${item.title}</h3>
                   <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:1rem; line-height:1.4;">${item.description || 'No detailed instructions provided.'}</p>
 
-                  <div style="font-size:0.8rem; color:var(--text-muted); background:rgba(0,0,0,0.4); padding:0.75rem; border-radius:8px; border:1px solid var(--border-subtle); margin-bottom:1rem;">
-                    <div><i class="fa-solid fa-user" style="color:var(--gold-primary);"></i> Faculty: <strong>${item.uploadedBy || 'Faculty'}</strong></div>
-                    <div><i class="fa-solid fa-calendar-day" style="color:var(--gold-primary);"></i> Due Date: <strong style="color:var(--warning);">${item.dueDate}</strong></div>
-                    <div><i class="fa-solid fa-layer-group" style="color:var(--gold-primary);"></i> Class: ${item.department} | ${item.year} | ${item.section}</div>
+                  <div style="font-size:0.8rem; color:var(--text-secondary); background:#F8FAFC; padding:0.75rem; border-radius:8px; border:1px solid var(--border-subtle); margin-bottom:1rem;">
+                    <div><i class="fa-solid fa-user" style="color:var(--primary);"></i> Faculty: <strong>${item.uploadedBy || 'Faculty'}</strong></div>
+                    <div><i class="fa-solid fa-calendar-day" style="color:var(--primary);"></i> Due Date: <strong style="color:var(--warning);">${item.dueDate}</strong></div>
+                    <div><i class="fa-solid fa-layer-group" style="color:var(--primary);"></i> Class: ${item.department} | ${item.year} | ${item.section}</div>
                   </div>
                 </div>
 
                 <div style="display:flex; gap:0.5rem; border-top:1px solid var(--border-subtle); padding-top:0.85rem;">
                   ${item.fileUrl ? `<a href="${item.fileUrl}" target="_blank" class="btn-secondary" style="flex:1; justify-content:center;"><i class="fa-solid fa-download"></i> Resource File</a>` : ''}
-                  ${user.role === 'student' ? `<button onclick="openSubmitModal('${item._id}')" class="btn-gold" style="flex:1; justify-content:center;"><i class="fa-solid fa-upload"></i> ${mySubmission ? 'Resubmit' : 'Turn In'}</button>` : ''}
+                  ${user.role === 'student' ? `<button onclick="openSubmitModal('${item._id}')" class="btn-primary" style="flex:1; justify-content:center;"><i class="fa-solid fa-upload"></i> ${mySubmission ? 'Resubmit' : 'Turn In'}</button>` : ''}
                   ${isFacultyOrAdmin ? `<button onclick="deleteAssignment('${item._id}')" class="btn-danger" title="Delete Assignment"><i class="fa-solid fa-trash"></i></button>` : ''}
                 </div>
               </div>
@@ -261,7 +260,6 @@
         el.addEventListener('change', fetchAssignments);
       });
 
-      // Submit Form
       document.getElementById('createAssignmentForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const payload = {

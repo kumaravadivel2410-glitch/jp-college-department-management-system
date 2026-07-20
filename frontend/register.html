@@ -6,32 +6,13 @@
   <title>JP College ERP - Account Registration</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/style.css">
-  <style>
-    .register-container {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem 1rem;
-      background: linear-gradient(135deg, #EFF6FF 0%, #F8FAFC 50%, #E0F2FE 100%);
-    }
-    .register-card {
-      width: 100%;
-      max-width: 680px;
-      background: #FFFFFF;
-      border-radius: var(--radius-md);
-      padding: 2.25rem;
-      box-shadow: 0 10px 30px rgba(37, 99, 235, 0.1);
-      border: 1px solid var(--border-subtle);
-    }
-  </style>
 </head>
 <body class="register-container">
 
   <div class="register-card">
     <div style="text-align: center; margin-bottom: 1.75rem;">
       <div class="login-logo">JPC</div>
-      <h2 style="font-size: 1.4rem; font-weight: 800; color: #1E293B; font-family: 'Outfit', sans-serif;">
+      <h2 style="font-size: 1.4rem; font-weight: 800; color: #1E3A8A; font-family: 'Outfit', sans-serif;">
         J.P. COLLEGE OF ENGINEERING
       </h2>
       <p style="color: var(--primary); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; margin-top: 0.25rem;">
@@ -50,7 +31,7 @@
       <input type="hidden" id="selectedRegRole" value="student">
 
       <!-- Common Fields Grid -->
-      <h4 style="color: #1E293B; font-size: 0.9rem; margin-bottom: 0.85rem; border-bottom: 1px solid #F1F5F9; padding-bottom: 0.4rem;">
+      <h4 style="color: #1E3A8A; font-size: 0.9rem; margin-bottom: 0.85rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.4rem;">
         <i class="fa-solid fa-user" style="color: var(--primary);"></i> Personal Details
       </h4>
 
@@ -97,7 +78,7 @@
 
       <!-- STUDENT FIELDS SECTION -->
       <div id="studentFieldsSection">
-        <h4 style="color: #1E293B; font-size: 0.9rem; margin: 1.25rem 0 0.85rem 0; border-bottom: 1px solid #F1F5F9; padding-bottom: 0.4rem;">
+        <h4 style="color: #1E3A8A; font-size: 0.9rem; margin: 1.25rem 0 0.85rem 0; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.4rem;">
           <i class="fa-solid fa-graduation-cap" style="color: var(--primary);"></i> Student Academic Details
         </h4>
 
@@ -163,7 +144,7 @@
 
       <!-- FACULTY FIELDS SECTION -->
       <div id="facultyFieldsSection" style="display: none;">
-        <h4 style="color: #1E293B; font-size: 0.9rem; margin: 1.25rem 0 0.85rem 0; border-bottom: 1px solid #F1F5F9; padding-bottom: 0.4rem;">
+        <h4 style="color: #1E3A8A; font-size: 0.9rem; margin: 1.25rem 0 0.85rem 0; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.4rem;">
           <i class="fa-solid fa-chalkboard-user" style="color: var(--primary);"></i> Faculty Professional Details
         </h4>
 
@@ -206,7 +187,7 @@
 
       <!-- ADMIN REQUEST FIELDS SECTION -->
       <div id="adminFieldsSection" style="display: none;">
-        <h4 style="color: #1E293B; font-size: 0.9rem; margin: 1.25rem 0 0.85rem 0; border-bottom: 1px solid #F1F5F9; padding-bottom: 0.4rem;">
+        <h4 style="color: #1E3A8A; font-size: 0.9rem; margin: 1.25rem 0 0.85rem 0; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.4rem;">
           <i class="fa-solid fa-user-shield" style="color: var(--primary);"></i> Admin Access Request Details
         </h4>
 
@@ -251,7 +232,6 @@
 
   <script src="js/config.js"></script>
   <script>
-    // Tab switching logic for Role selection
     const roleBtns = document.querySelectorAll('.role-tab-btn');
     const roleInput = document.getElementById('selectedRegRole');
     const studentSec = document.getElementById('studentFieldsSection');
@@ -273,7 +253,6 @@
       });
     });
 
-    // Registration Form Submit
     document.getElementById('standaloneRegisterForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const alertBox = document.getElementById('regAlertBox');
@@ -304,7 +283,6 @@
         mobileNumber: document.getElementById('regMobile').value,
         address: document.getElementById('regAddress').value,
         photo: document.getElementById('regPhoto').value,
-        // Role specific fields
         registerNo: document.getElementById('regRegisterNo').value,
         rollNumber: document.getElementById('regRollNo').value,
         year: document.getElementById('regYear').value,

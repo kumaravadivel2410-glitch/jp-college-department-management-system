@@ -14,26 +14,26 @@
 
   <main class="main-content-wrapper">
 
-    <!-- STUDENT PORTAL DASHBOARD (Rendered dynamically when user.role === 'student') -->
+    <!-- STUDENT PORTAL DASHBOARD -->
     <div id="studentPortalContainer" style="display: none;">
       
       <!-- Student Profile Hero Card -->
-      <div class="card-glass" style="margin-bottom: 1.5rem; background: linear-gradient(135deg, rgba(22,22,30,0.95) 0%, rgba(35,35,50,0.9) 100%);">
+      <div class="card-glass" style="margin-bottom: 1.5rem; background: #FFFFFF; border-top: 4px solid var(--primary);">
         <div style="display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap;">
-          <img id="stuProfilePhoto" src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80" alt="Student Photo" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid var(--gold-primary); box-shadow: var(--shadow-gold);">
+          <img id="stuProfilePhoto" src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80" alt="Student Photo" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary); box-shadow: 0 4px 12px rgba(37,99,235,0.2);">
           
           <div style="flex: 1; min-width: 280px;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
               <div>
-                <h2 id="stuProfileName" style="font-size: 1.6rem; font-weight: 800; color: var(--gold-primary); font-family: 'Outfit', sans-serif;">Aarav Kumar</h2>
+                <h2 id="stuProfileName" style="font-size: 1.6rem; font-weight: 800; color: #1E3A8A; font-family: 'Outfit', sans-serif;">Aarav Kumar</h2>
                 <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">
-                  Register No: <strong id="stuRegNo" style="color: var(--gold-primary);">953621104001</strong> | Roll No: <span id="stuRollNo">21AD01</span>
+                  Register No: <strong id="stuRegNo" style="color: var(--primary);">953621104001</strong> | Roll No: <span id="stuRollNo">21AD01</span>
                 </div>
               </div>
-              <span class="badge badge-gold" id="stuDeptBadge" style="font-size: 0.85rem; padding: 0.4rem 0.85rem; margin-top: 0.25rem;">Artificial Intelligence & Data Science</span>
+              <span class="badge badge-primary" id="stuDeptBadge" style="font-size: 0.85rem; padding: 0.4rem 0.85rem; margin-top: 0.25rem;">Artificial Intelligence & Data Science</span>
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; margin-top: 1rem; background: rgba(0,0,0,0.4); padding: 0.85rem; border-radius: 8px; border: 1px solid var(--border-subtle); font-size: 0.8rem;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; margin-top: 1rem; background: #F8FAFC; padding: 0.85rem; border-radius: 8px; border: 1px solid var(--border-subtle); font-size: 0.8rem;">
               <div>Year: <strong id="stuYear">III Year</strong></div>
               <div>Semester: <strong id="stuSem">Semester V</strong></div>
               <div>Section: <strong id="stuSec">Section A</strong></div>
@@ -45,7 +45,7 @@
         </div>
       </div>
 
-      <!-- Student Stats Overview Cards -->
+      <!-- Student Stats Cards -->
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-icon-wrapper"><i class="fa-solid fa-chart-pie"></i></div>
@@ -83,25 +83,25 @@
       <!-- Attendance & Internal Marks Grid -->
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
         
-        <!-- Attendance Gauge & Chart Card -->
+        <!-- Attendance Gauge Chart -->
         <div class="card-glass">
-          <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--gold-primary); margin-bottom: 1rem;">
-            <i class="fa-solid fa-calendar-check"></i> Attendance Record & Analytics
+          <h3 style="font-size: 1.1rem; font-weight: 700; color: #1E3A8A; margin-bottom: 1rem;">
+            <i class="fa-solid fa-calendar-check" style="color: var(--primary);"></i> Attendance Analytics
           </h3>
           <div style="height: 220px; position: relative;">
             <canvas id="studentAttendanceChart"></canvas>
           </div>
-          <div style="display: flex; justify-content: space-around; font-size: 0.85rem; margin-top: 1rem; background: rgba(0,0,0,0.3); padding: 0.75rem; border-radius: 8px;">
-            <div>Total Classes: <strong style="color:var(--gold-primary);">60</strong></div>
+          <div style="display: flex; justify-content: space-around; font-size: 0.85rem; margin-top: 1rem; background: #F8FAFC; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border-subtle);">
+            <div>Total Classes: <strong style="color:var(--primary);">60</strong></div>
             <div>Present: <strong style="color:var(--success);">58</strong></div>
             <div>Absent: <strong style="color:var(--error);">2</strong></div>
           </div>
         </div>
 
-        <!-- Internal Marks Table Card -->
+        <!-- Internal Marks Table -->
         <div class="card-glass">
-          <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--gold-primary); margin-bottom: 1rem;">
-            <i class="fa-solid fa-file-signature"></i> Internal Assessment Marks
+          <h3 style="font-size: 1.1rem; font-weight: 700; color: #1E3A8A; margin-bottom: 1rem;">
+            <i class="fa-solid fa-file-signature" style="color: var(--primary);"></i> Internal Assessment Marks
           </h3>
           <div class="table-responsive">
             <table class="custom-table">
@@ -124,20 +124,19 @@
 
       </div>
 
-      <!-- Semester Marks & Subject Notes Grid -->
+      <!-- Semester Marks & Notes Grid -->
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
         
-        <!-- Semester Marks Card -->
         <div class="card-glass">
-          <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--gold-primary); margin-bottom: 1rem;">
-            <i class="fa-solid fa-graduation-cap"></i> Semester Examinations Grade Sheet
+          <h3 style="font-size: 1.1rem; font-weight: 700; color: #1E3A8A; margin-bottom: 1rem;">
+            <i class="fa-solid fa-graduation-cap" style="color: var(--primary);"></i> Semester Grade Sheet
           </h3>
           <div class="table-responsive">
             <table class="custom-table">
               <thead>
                 <tr>
-                  <th>Subject Code</th>
-                  <th>Subject Name</th>
+                  <th>Code</th>
+                  <th>Subject</th>
                   <th>Grade</th>
                   <th>Marks</th>
                   <th>Credits</th>
@@ -151,16 +150,15 @@
           </div>
         </div>
 
-        <!-- Subject Notes Downloads Card -->
         <div class="card-glass">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-            <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--gold-primary);">
-              <i class="fa-solid fa-file-pdf"></i> Subject Notes Repository
+            <h3 style="font-size: 1.1rem; font-weight: 700; color: #1E3A8A;">
+              <i class="fa-solid fa-file-pdf" style="color: var(--primary);"></i> Subject Notes Repository
             </h3>
             <a href="subject-notes.html" class="btn-secondary" style="font-size: 0.75rem; padding: 0.35rem 0.75rem;">View All</a>
           </div>
           <div id="stuNotesList" style="display: flex; flex-direction: column; gap: 0.75rem;">
-            <!-- Dynamic Notes List -->
+            <!-- Dynamic Notes -->
           </div>
         </div>
 
@@ -169,16 +167,16 @@
     </div>
 
 
-    <!-- FACULTY & ADMIN DASHBOARD (Rendered dynamically when user.role !== 'student') -->
+    <!-- FACULTY & ADMIN DASHBOARD -->
     <div id="adminFacultyPortalContainer">
       <div class="page-header-title">
-        <h2><i class="fa-solid fa-chart-pie" style="color: var(--gold-primary);"></i> ERP Executive Overview</h2>
-        <a href="approvals.html" class="btn-gold" id="pendingApprovalsBannerBtn" style="display: none;">
+        <h2><i class="fa-solid fa-chart-pie" style="color: var(--primary);"></i> ERP Executive Overview</h2>
+        <a href="approvals.html" class="btn-primary" id="pendingApprovalsBannerBtn" style="display: none;">
           <i class="fa-solid fa-user-clock"></i> <span id="dashPendingCount">0</span> Pending Approvals
         </a>
       </div>
 
-      <!-- General Overview Stats Grid -->
+      <!-- General Stats Grid -->
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-icon-wrapper"><i class="fa-solid fa-user-graduate"></i></div>
@@ -213,25 +211,25 @@
         </div>
       </div>
 
-      <!-- Quick Operational Action Shortcuts -->
+      <!-- Quick Executive Actions -->
       <div class="card-glass" style="margin-bottom: 1.5rem;">
-        <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--gold-primary); margin-bottom: 1rem;">
-          <i class="fa-solid fa-bolt"></i> Quick Executive Actions
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: #1E3A8A; margin-bottom: 1rem;">
+          <i class="fa-solid fa-bolt" style="color: var(--primary);"></i> Quick Operations
         </h3>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-          <a href="attendance.html" class="btn-secondary" style="justify-content: center; padding: 0.85rem;"><i class="fa-solid fa-calendar-check" style="color:var(--gold-primary);"></i> Mark Attendance</a>
-          <a href="internal-marks.html" class="btn-secondary" style="justify-content: center; padding: 0.85rem;"><i class="fa-solid fa-file-signature" style="color:var(--gold-primary);"></i> Enter Internal Marks</a>
-          <a href="assignments.html" class="btn-secondary" style="justify-content: center; padding: 0.85rem;"><i class="fa-solid fa-tasks" style="color:var(--gold-primary);"></i> Publish Assignment</a>
-          <a href="subject-notes.html" class="btn-secondary" style="justify-content: center; padding: 0.85rem;"><i class="fa-solid fa-file-arrow-up" style="color:var(--gold-primary);"></i> Upload Notes</a>
-          <a href="settings.html" class="btn-secondary" style="justify-content: center; padding: 0.85rem;"><i class="fa-solid fa-file-excel" style="color:var(--gold-primary);"></i> Bulk Excel Import</a>
+          <a href="attendance.html" class="btn-secondary" style="justify-content: center; padding: 0.85rem;"><i class="fa-solid fa-calendar-check"></i> Mark Attendance</a>
+          <a href="internal-marks.html" class="btn-secondary" style="justify-content: center; padding: 0.85rem;"><i class="fa-solid fa-file-signature"></i> Enter Internal Marks</a>
+          <a href="assignments.html" class="btn-secondary" style="justify-content: center; padding: 0.85rem;"><i class="fa-solid fa-tasks"></i> Publish Assignment</a>
+          <a href="subject-notes.html" class="btn-secondary" style="justify-content: center; padding: 0.85rem;"><i class="fa-solid fa-file-arrow-up"></i> Upload Notes</a>
+          <a href="settings.html" class="btn-secondary" style="justify-content: center; padding: 0.85rem;"><i class="fa-solid fa-file-excel"></i> Bulk Excel Import</a>
         </div>
       </div>
 
-      <!-- Charts Row -->
+      <!-- Executive Charts Row -->
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.5rem;">
         <div class="card-glass">
-          <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--gold-primary); margin-bottom: 1rem;">
-            <i class="fa-solid fa-chart-column"></i> Department Student Distribution
+          <h3 style="font-size: 1.1rem; font-weight: 700; color: #1E3A8A; margin-bottom: 1rem;">
+            <i class="fa-solid fa-chart-column" style="color: var(--primary);"></i> Department Student Distribution
           </h3>
           <div style="height: 250px;">
             <canvas id="deptDistributionChart"></canvas>
@@ -239,8 +237,8 @@
         </div>
 
         <div class="card-glass">
-          <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--gold-primary); margin-bottom: 1rem;">
-            <i class="fa-solid fa-chart-line"></i> Overall Attendance Ratio
+          <h3 style="font-size: 1.1rem; font-weight: 700; color: #1E3A8A; margin-bottom: 1rem;">
+            <i class="fa-solid fa-chart-line" style="color: var(--primary);"></i> Overall Attendance Ratio
           </h3>
           <div style="height: 250px;">
             <canvas id="attendanceRatioChart"></canvas>
@@ -265,11 +263,9 @@
       const role = user.role || 'super_admin';
 
       if (role === 'student') {
-        // Show Student Portal
         document.getElementById('studentPortalContainer').style.display = 'block';
         document.getElementById('adminFacultyPortalContainer').style.display = 'none';
 
-        // Load Student Specific Data
         document.getElementById('stuProfileName').textContent = user.name || 'Aarav Kumar';
         document.getElementById('stuRegNo').textContent = user.registerNo || '953621104001';
         document.getElementById('stuRollNo').textContent = user.rollNumber || '21AD01';
@@ -280,7 +276,6 @@
         document.getElementById('stuEmail').textContent = user.email || 'aarav.21ad@jpcoe.ac.in';
         if (user.photo) document.getElementById('stuProfilePhoto').src = user.photo;
 
-        // Render Student Attendance Chart
         const attCtx = document.getElementById('studentAttendanceChart').getContext('2d');
         new Chart(attCtx, {
           type: 'doughnut',
@@ -288,15 +283,14 @@
             labels: ['Present (96%)', 'Absent (4%)'],
             datasets: [{
               data: [96, 4],
-              backgroundColor: ['#FFD700', 'rgba(239, 68, 68, 0.6)'],
-              borderColor: '#121218',
+              backgroundColor: ['#2563EB', '#DC2626'],
+              borderColor: '#FFFFFF',
               borderWidth: 3
             }]
           },
-          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#F4F4F6' } } } }
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#1F2937' } } } }
         });
 
-        // Load Student Internal Marks
         try {
           const baseUrl = window.APP_CONFIG.getApiBaseUrl();
           const regNo = user.registerNo || '953621104001';
@@ -306,17 +300,16 @@
           
           document.getElementById('stuInternalTbody').innerHTML = list.map(m => `
             <tr>
-              <td style="font-weight:700; color:var(--gold-primary);">${m.subjectName}</td>
+              <td style="font-weight:700; color:var(--primary);">${m.subjectName}</td>
               <td>${m.internal1}</td>
               <td>${m.internal2}</td>
               <td>${m.internal3 || 49}</td>
-              <td style="font-weight:700; color:var(--gold-primary);">${m.average || 47.6}</td>
+              <td style="font-weight:700; color:var(--primary);">${m.average || 47.6}</td>
               <td>${m.facultyName || 'Dr. M. Senthil Kumar'}</td>
             </tr>
           `).join('');
         } catch(e){}
 
-        // Load Student Semester Marks
         try {
           const baseUrl = window.APP_CONFIG.getApiBaseUrl();
           const regNo = user.registerNo || '953621104001';
@@ -327,8 +320,8 @@
           document.getElementById('stuSemesterTbody').innerHTML = list.map(m => `
             <tr>
               <td>${m.subjectCode}</td>
-              <td style="font-weight:700; color:var(--gold-primary);">${m.subjectName}</td>
-              <td><span class="badge badge-gold">${m.grade}</span></td>
+              <td style="font-weight:700; color:var(--primary);">${m.subjectName}</td>
+              <td><span class="badge badge-primary">${m.grade}</span></td>
               <td>${m.marks || 95}</td>
               <td>${m.credits || 4}</td>
               <td><span class="badge badge-success">${m.result}</span></td>
@@ -336,7 +329,6 @@
           `).join('');
         } catch(e){}
 
-        // Load Student Notes List
         try {
           const baseUrl = window.APP_CONFIG.getApiBaseUrl();
           const res = await fetch(`${baseUrl}/notes`);
@@ -344,22 +336,20 @@
           const list = json.data || [];
 
           document.getElementById('stuNotesList').innerHTML = list.slice(0, 3).map(n => `
-            <div style="background:rgba(0,0,0,0.4); padding:0.85rem; border-radius:8px; border:1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center;">
+            <div style="background:#F8FAFC; padding:0.85rem; border-radius:8px; border:1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center;">
               <div>
-                <div style="font-weight:700; color:var(--gold-primary); font-size:0.9rem;">${n.title}</div>
+                <div style="font-weight:700; color:#1E3A8A; font-size:0.9rem;">${n.title}</div>
                 <div style="font-size:0.75rem; color:var(--text-secondary);">${n.subjectName} | ${n.uploadedBy}</div>
               </div>
-              <a href="${n.fileUrl}" target="_blank" class="btn-gold" style="padding:0.4rem 0.75rem; font-size:0.75rem;"><i class="fa-solid fa-download"></i> Download</a>
+              <a href="${n.fileUrl}" target="_blank" class="btn-primary" style="padding:0.4rem 0.75rem; font-size:0.75rem;"><i class="fa-solid fa-download"></i> Download</a>
             </div>
           `).join('');
         } catch(e){}
 
       } else {
-        // Show Faculty / Admin Executive Portal
         document.getElementById('studentPortalContainer').style.display = 'none';
         document.getElementById('adminFacultyPortalContainer').style.display = 'block';
 
-        // Load Stats & Charts
         try {
           const baseUrl = window.APP_CONFIG.getApiBaseUrl();
           const res = await fetch(`${baseUrl}/stats`);
@@ -377,7 +367,6 @@
           }
         } catch(e){}
 
-        // Department Distribution Chart
         const deptCtx = document.getElementById('deptDistributionChart').getContext('2d');
         new Chart(deptCtx, {
           type: 'bar',
@@ -386,14 +375,13 @@
             datasets: [{
               label: 'Students Count',
               data: [120, 180, 150, 90, 110, 85],
-              backgroundColor: '#FFD700',
+              backgroundColor: '#2563EB',
               borderRadius: 6
             }]
           },
-          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#F4F4F6' } } } }
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#1F2937' } } } }
         });
 
-        // Attendance Ratio Chart
         const attRatioCtx = document.getElementById('attendanceRatioChart').getContext('2d');
         new Chart(attRatioCtx, {
           type: 'line',
@@ -402,13 +390,13 @@
             datasets: [{
               label: 'Daily Attendance %',
               data: [95, 96, 94, 98, 97, 95],
-              borderColor: '#FFD700',
-              backgroundColor: 'rgba(255, 215, 0, 0.15)',
+              borderColor: '#2563EB',
+              backgroundColor: 'rgba(37, 99, 235, 0.12)',
               fill: true,
               tension: 0.4
             }]
           },
-          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#F4F4F6' } } } }
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#1F2937' } } } }
         });
       }
     });

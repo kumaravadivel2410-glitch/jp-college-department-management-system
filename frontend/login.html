@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JP College ERP - Login</title>
+  <title>JP College ERP - Professional System Login</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -12,40 +12,42 @@
   <div class="login-card">
     <div class="login-brand-header">
       <div class="login-logo">JPC</div>
-      <h2>J.P. COLLEGE OF ENGINEERING</h2>
-      <p>Department Management ERP</p>
+      <h2 style="color: #1E3A8A; font-weight: 800;">J.P. COLLEGE OF ENGINEERING</h2>
+      <p style="color: var(--primary); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; margin-top: 0.25rem;">
+        Department Management ERP Portal
+      </p>
     </div>
 
     <!-- Role Selection Tabs -->
-    <div class="role-tab-group" id="roleTabGroup">
-      <button class="role-tab-btn active" data-role="admin">Super Admin</button>
-      <button class="role-tab-btn" data-role="faculty">Faculty</button>
-      <button class="role-tab-btn" data-role="student">Student</button>
+    <div class="role-tab-group" id="loginRoleTabGroup">
+      <button class="role-tab-btn active" data-role="admin"><i class="fa-solid fa-user-shield"></i> Admin</button>
+      <button class="role-tab-btn" data-role="faculty"><i class="fa-solid fa-chalkboard-user"></i> Faculty</button>
+      <button class="role-tab-btn" data-role="student"><i class="fa-solid fa-user-graduate"></i> Student</button>
     </div>
 
     <form id="loginForm">
       <input type="hidden" id="selectedRoleInput" value="admin">
 
       <div class="form-group">
-        <label class="form-label" for="loginEmail"><i class="fa-solid fa-envelope"></i> Email Address</label>
-        <input type="email" id="loginEmail" class="form-control" placeholder="Adminjpcoe@gmail.com" required>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="loginPassword"><i class="fa-solid fa-lock"></i> Password</label>
+        <label class="form-label">Email Address *</label>
         <div style="position: relative;">
-          <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required>
-          <button type="button" id="togglePasswordBtn" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer;">
-            <i class="fa-solid fa-eye"></i>
-          </button>
+          <input type="email" id="loginEmail" class="form-control" style="padding-left: 2.3rem;" placeholder="name@jpcoe.ac.in" required>
+          <i class="fa-solid fa-envelope" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--primary);"></i>
         </div>
       </div>
 
-      <div class="form-group" style="display: flex; justify-content: space-between; align-items: center; font-size: 0.825rem;">
-        <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; color: var(--text-secondary);">
-          <input type="checkbox" id="rememberMeCheckbox" checked> Remember Me
-        </label>
-        <a href="#" id="forgotPasswordLink" style="color: var(--primary); text-decoration: none; font-weight: 600;">Forgot Password?</a>
+      <div class="form-group">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+          <label class="form-label" style="margin-bottom: 0;">Password *</label>
+          <a href="#" style="font-size: 0.8rem; color: var(--primary); font-weight: 600; text-decoration: none;">Forgot Password?</a>
+        </div>
+        <div style="position: relative;">
+          <input type="password" id="loginPassword" class="form-control" style="padding-left: 2.3rem; padding-right: 2.5rem;" placeholder="Enter your password" required>
+          <i class="fa-solid fa-lock" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--primary);"></i>
+          <button type="button" id="togglePasswordBtn" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer;">
+            <i class="fa-solid fa-eye"></i>
+          </button>
+        </div>
       </div>
 
       <div id="loginAlertBox" style="display: none; padding: 0.75rem; border-radius: var(--radius-md); font-size: 0.825rem; margin-bottom: 1rem;"></div>
@@ -63,7 +65,6 @@
 
   <script src="js/config.js"></script>
   <script>
-    // Tab switching logic
     let activeRole = 'admin';
     const roleBtns = document.querySelectorAll('.role-tab-btn');
     const roleInput = document.getElementById('selectedRoleInput');
@@ -97,7 +98,6 @@
       passInput.type = type;
     });
 
-    // Login Form Submit Handler
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const alertBox = document.getElementById('loginAlertBox');
@@ -133,7 +133,7 @@
           alertBox.style.display = 'block';
           if (data.status === 'Pending') {
             alertBox.style.background = 'var(--warning-bg)';
-            alertBox.style.color = 'var(--warning)';
+            alertBox.style.color = '#B45309';
             alertBox.innerHTML = `<i class="fa-solid fa-clock"></i> Your account is waiting for Super Admin approval.`;
           } else if (data.status === 'Rejected') {
             alertBox.style.background = 'var(--error-bg)';
@@ -151,77 +151,6 @@
         alertBox.style.color = 'var(--error)';
         alertBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Unable to connect to server. Please check backend API.';
       }
-    });
-
-    // Register Modal Logic
-    const regModal = document.getElementById('registerModal');
-    const openRegBtn = document.getElementById('openRegisterModalLink');
-    const closeRegBtn = document.getElementById('closeRegisterModalBtn');
-    const regRoleSelect = document.getElementById('regRole');
-
-    openRegBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      regModal.classList.add('active');
-    });
-    closeRegBtn.addEventListener('click', () => regModal.classList.remove('active'));
-
-    regRoleSelect.addEventListener('change', () => {
-      const val = regRoleSelect.value;
-      document.getElementById('regFacultyIdGroup').style.display = val === 'faculty' ? 'block' : 'none';
-      document.getElementById('regStudentRegGroup').style.display = val === 'student' ? 'block' : 'none';
-    });
-
-    document.getElementById('registerForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const alertBox = document.getElementById('regAlertBox');
-      alertBox.style.display = 'none';
-
-      const payload = {
-        role: regRoleSelect.value,
-        name: document.getElementById('regName').value,
-        email: document.getElementById('regEmail').value,
-        password: document.getElementById('regPassword').value,
-        department: document.getElementById('regDepartment').value,
-        facultyId: document.getElementById('regFacultyId').value,
-        registerNo: document.getElementById('regRegisterNo').value
-      };
-
-      try {
-        const baseUrl = window.APP_CONFIG.getApiBaseUrl();
-        const res = await fetch(`${baseUrl}/auth/register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-
-        const data = await res.json();
-        if (data.success) {
-          alertBox.style.display = 'block';
-          alertBox.style.background = 'var(--success-bg)';
-          alertBox.style.color = 'var(--success)';
-          alertBox.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${data.message}`;
-
-          setTimeout(() => {
-            regModal.classList.remove('active');
-          }, 1800);
-        } else {
-          alertBox.style.display = 'block';
-          alertBox.style.background = 'var(--error-bg)';
-          alertBox.style.color = 'var(--error)';
-          alertBox.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> ${data.message}`;
-        }
-      } catch (err) {
-        alertBox.style.display = 'block';
-        alertBox.style.background = 'var(--error-bg)';
-        alertBox.style.color = 'var(--error)';
-        alertBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Error registering user.';
-      }
-    });
-
-    // Forgot Password Link trigger
-    document.getElementById('forgotPasswordLink').addEventListener('click', (e) => {
-      e.preventDefault();
-      alert('Password reset instructions have been sent to your administrator. Default demo passwords: admin123, faculty123, student123.');
     });
   </script>
 </body>

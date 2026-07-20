@@ -1,5 +1,5 @@
 /**
- * JP College ERP - Shared Navigation Header, Black & Gold System & Role Access Guard
+ * JP College ERP - Modern White & Blue Navigation Header & Dark Blue Sidebar Component
  */
 class NavbarComponent {
   constructor() {
@@ -68,7 +68,7 @@ class NavbarComponent {
 
     const headerHtml = `
       <header class="top-navbar-wrapper">
-        <!-- Brand Header -->
+        <!-- Brand Header (White Navbar) -->
         <div class="brand-header">
           <a href="dashboard.html" class="brand-info" style="text-decoration:none;">
             <div class="college-logo-badge">JPC</div>
@@ -99,18 +99,18 @@ class NavbarComponent {
 
             <!-- Live Clock -->
             <div class="live-time-box" style="font-size:0.75rem; text-align:right; color:var(--text-secondary);">
-              <div id="liveClockTime" style="font-weight:700; color:var(--gold-primary);">00:00:00 AM</div>
+              <div id="liveClockTime" style="font-weight:700; color:var(--primary);">00:00:00 AM</div>
               <div id="liveClockDate" style="font-size:0.65rem;">Loading...</div>
             </div>
 
             <!-- Logout Button -->
-            <button class="btn-secondary" id="logoutBtn" style="padding:0.4rem 0.75rem; font-size:0.8rem; color:var(--error);" title="Logout">
+            <button class="btn-secondary" id="logoutBtn" style="padding:0.4rem 0.75rem; font-size:0.8rem; color:var(--error); border-color:#FECACA;" title="Logout">
               <i class="fa-solid fa-right-from-bracket"></i> Logout
             </button>
           </div>
         </div>
 
-        <!-- Role Navigation Menu -->
+        <!-- Role Navigation Menu Bar -->
         <nav class="nav-menu-bar" id="navMenuBar">
           ${visiblePages.map(p => `
             <a href="${p.url}" class="nav-tab-btn ${p.url === activeUrl ? 'active' : ''}">
