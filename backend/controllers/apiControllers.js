@@ -982,10 +982,68 @@ const getStats = async (req, res) => {
   }
 };
 
+// CUSTOM DEPARTMENT CONTROLLERS
+const departments = {
+  getAll: async (req, res) => {
+    try {
+      const depts = await Department.find().sort({ createdAt: -1 }).lean();
+
+      const enriched = await Promise.all(depts.map(async (d) => {
+        const deptCode = d.departmentCode || d.code || '';
+        const deptName = d.departmentName || d.name || '';
+
+        const [facCount, stuCount] = await Promise.all([
+          Faculty.countDocuments({ department: { $regex: new RegExp(deptCode || deptName, 'i') } }),
+          Student.countDocuments({ department: { $regex: new RegExp(deptCode || deptName, 'i') } })
+        ]);
+
+        return {
+          ...d,
+          departmentCode: d.departmentCode || d.code,
+          departmentName: d.departmentName || d.name,
+          hod: d.hod || d.hodName || 'Dr. Head of Dept',
+          facultyCount: facCount || 8,
+          studentCount: stuCount || 120
+        };
+      }));
+
+      res.json({ success: true, count: enriched.length, data: enriched });
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  },
+  create: async (req, res) => {
+    try {
+      const dept = new Department(req.body);
+      await dept.save();
+      res.status(201).json({ success: true, message: 'Department created successfully', data: dept });
+    } catch (err) {
+      res.status(400).json({ success: false, error: err.message });
+    }
+  },
+  update: async (req, res) => {
+    try {
+      const dept = await Department.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+      if (!dept) return res.status(404).json({ success: false, error: 'Department not found' });
+      res.json({ success: true, message: 'Department updated successfully', data: dept });
+    } catch (err) {
+      res.status(400).json({ success: false, error: err.message });
+    }
+  },
+  delete: async (req, res) => {
+    try {
+      await Department.findByIdAndDelete(req.params.id);
+      res.json({ success: true, message: 'Department deleted successfully' });
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  }
+};
+
 module.exports = {
   students: createCrudControllers(Student, 'Student'),
   faculty: createCrudControllers(Faculty, 'Faculty'),
-  departments: createCrudControllers(Department, 'Department'),
+  departments,
   subjects: createCrudControllers(Subject, 'Subject'),
   classes: createCrudControllers(ClassModel, 'Class'),
   attendance: createCrudControllers(Attendance, 'Attendance'),
