@@ -75,6 +75,8 @@ const pageRoutes = [
   { path: '/semester-marks', file: 'semester-marks.html' },
   { path: '/internal-marks', file: 'internal-marks.html' },
   { path: '/subject-notes', file: 'subject-notes.html' },
+  { path: '/assignments', file: 'assignments.html' },
+  { path: '/timetable', file: 'timetable.html' },
   { path: '/reports', file: 'reports.html' },
   { path: '/downloads', file: 'downloads.html' },
   { path: '/history', file: 'history.html' },

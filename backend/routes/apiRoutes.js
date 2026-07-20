@@ -49,6 +49,16 @@ mountCrud('users', controllers.users);
 mountCrud('history', controllers.history);
 mountCrud('settings', controllers.settings);
 
+// Assignments Routes
+router.get('/assignments', controllers.assignments.getAll);
+router.post('/assignments', verifyToken, controllers.assignments.create);
+router.post('/assignments/:id/submit', verifyToken, controllers.assignments.submitAssignment);
+router.delete('/assignments/:id', verifyToken, controllers.assignments.delete);
+
+// Timetables Routes
+router.get('/timetables', controllers.timetables.getAll);
+router.post('/timetables', verifyToken, controllers.timetables.saveTimetable);
+
 // Subject Notes Routes
 router.get('/notes', controllers.notes.getAll);
 router.post('/notes/upload', verifyToken, upload.single('file'), controllers.notes.upload);

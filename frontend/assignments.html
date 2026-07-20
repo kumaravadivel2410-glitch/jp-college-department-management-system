@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JP College ERP - Course Assignments</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div id="navbar-container"></div>
+
+  <main class="main-content-wrapper">
+    <div class="page-header-title">
+      <h2><i class="fa-solid fa-tasks" style="color: var(--gold-primary);"></i> Course Assignments</h2>
+      <div id="assignmentActionBtnGroup">
+        <button id="openUploadAssignmentBtn" class="btn-gold" style="display:none;">
+          <i class="fa-solid fa-plus-circle"></i> Create New Assignment
+        </button>
+      </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="card-glass" style="margin-bottom: 1.5rem;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Department</label>
+          <select id="filterDept" class="form-control">
+            <option value="All">All Departments</option>
+            <option value="AI & DS" selected>AI & DS</option>
+            <option value="CSE">CSE</option>
+            <option value="ECE">ECE</option>
+            <option value="EEE">EEE</option>
+            <option value="MECH">Mechanical</option>
+            <option value="CIVIL">Civil</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Year</label>
+          <select id="filterYear" class="form-control">
+            <option value="All">All Years</option>
+            <option value="I Year">I Year</option>
+            <option value="II Year">II Year</option>
+            <option value="III Year" selected>III Year</option>
+            <option value="IV Year">IV Year</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Semester</label>
+          <select id="filterSem" class="form-control">
+            <option value="All">All Semesters</option>
+            <option value="Semester V" selected>Semester V</option>
+            <option value="Semester VI">Semester VI</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Section</label>
+          <select id="filterSec" class="form-control">
+            <option value="All">All Sections</option>
+            <option value="A" selected>Section A</option>
+            <option value="B">Section B</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assignments Cards Container -->
+    <div id="assignmentsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 1.25rem;">
+      <!-- Dynamic Assignments -->
+    </div>
+  </main>
+
+  <!-- Create Assignment Modal -->
+  <div class="modal-overlay" id="assignmentModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-file-circle-plus" style="color: var(--gold-primary);"></i> Publish Course Assignment</h3>
+        <button class="close-modal-btn" id="closeAssignmentModalBtn">&times;</button>
+      </div>
+      <form id="createAssignmentForm">
+        <div class="form-group">
+          <label class="form-label">Assignment Title *</label>
+          <input type="text" id="asgnTitle" class="form-control" placeholder="e.g. Assignment 1: ResNet Architecture" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Description / Instructions</label>
+          <textarea id="asgnDesc" class="form-control" rows="3" placeholder="Provide problem statement, guidelines, submission format..."></textarea>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Department</label>
+            <select id="asgnDept" class="form-control">
+              <option value="AI & DS">AI & DS</option>
+              <option value="CSE">CSE</option>
+              <option value="ECE">ECE</option>
+              <option value="EEE">EEE</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Subject Name</label>
+            <input type="text" id="asgnSubject" class="form-control" placeholder="e.g. Deep Learning" required>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem;">
+          <div class="form-group">
+            <label class="form-label">Year</label>
+            <select id="asgnYear" class="form-control">
+              <option value="III Year">III Year</option>
+              <option value="I Year">I Year</option>
+              <option value="II Year">II Year</option>
+              <option value="IV Year">IV Year</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Semester</label>
+            <select id="asgnSem" class="form-control">
+              <option value="Semester V">Semester V</option>
+              <option value="Semester VI">Semester VI</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Section</label>
+            <select id="asgnSec" class="form-control">
+              <option value="A">Section A</option>
+              <option value="B">Section B</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Due Date *</label>
+            <input type="date" id="asgnDueDate" class="form-control" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Resource File URL</label>
+            <input type="url" id="asgnFileUrl" class="form-control" placeholder="https://example.com/assignment.pdf">
+          </div>
+        </div>
+
+        <button type="submit" class="btn-gold" style="width: 100%; justify-content: center; margin-top: 0.5rem;">
+          <i class="fa-solid fa-paper-plane"></i> Publish Assignment
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Submit Assignment Modal for Student -->
+  <div class="modal-overlay" id="submitModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-cloud-arrow-up" style="color: var(--gold-primary);"></i> Submit Assignment</h3>
+        <button class="close-modal-btn" id="closeSubmitModalBtn">&times;</button>
+      </div>
+      <form id="submitAssignmentForm">
+        <input type="hidden" id="submitAsgnId">
+        <div class="form-group">
+          <label class="form-label">Submission File URL / Repository Link *</label>
+          <input type="url" id="submissionUrlInput" class="form-control" placeholder="https://github.com/username/project-repo" required>
+        </div>
+        <button type="submit" class="btn-gold" style="width: 100%; justify-content: center;">
+          <i class="fa-solid fa-check"></i> Turn In Assignment
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <footer>
+    &copy; 2026 J.P. College of Engineering. All rights reserved. Department Management ERP System.
+  </footer>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/navbar.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const user = JSON.parse(localStorage.getItem('jp_dms_user')) || {};
+      const isFacultyOrAdmin = user.role === 'faculty' || user.role === 'admin' || user.role === 'super_admin';
+
+      if (isFacultyOrAdmin) {
+        document.getElementById('openUploadAssignmentBtn').style.display = 'inline-flex';
+      }
+
+      const modal = document.getElementById('assignmentModal');
+      const submitModal = document.getElementById('submitModal');
+
+      document.getElementById('openUploadAssignmentBtn')?.addEventListener('click', () => modal.classList.add('active'));
+      document.getElementById('closeAssignmentModalBtn')?.addEventListener('click', () => modal.classList.remove('active'));
+      document.getElementById('closeSubmitModalBtn')?.addEventListener('click', () => submitModal.classList.remove('active'));
+
+      // Fetch Assignments
+      const fetchAssignments = async () => {
+        const grid = document.getElementById('assignmentsGrid');
+        grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:3rem; color:var(--text-muted);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><p style="margin-top:0.5rem;">Loading assignments...</p></div>';
+
+        const dept = document.getElementById('filterDept').value;
+        const year = document.getElementById('filterYear').value;
+        const sem = document.getElementById('filterSem').value;
+        const sec = document.getElementById('filterSec').value;
+
+        try {
+          const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+          const query = `?department=${encodeURIComponent(dept)}&year=${encodeURIComponent(year)}&semester=${encodeURIComponent(sem)}&section=${encodeURIComponent(sec)}`;
+          const res = await fetch(`${baseUrl}/assignments${query}`);
+          const json = await res.json();
+          const list = json.data || [];
+
+          if (list.length === 0) {
+            grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:3rem; background:var(--bg-card); border-radius:12px; border:1px solid var(--border-gold);"><i class="fa-solid fa-tasks fa-3x" style="color:var(--gold-primary);"></i><h3 style="margin-top:1rem; color:var(--gold-primary);">No Assignments Found</h3><p style="color:var(--text-secondary);">No course assignments published for selected criteria.</p></div>';
+            return;
+          }
+
+          grid.innerHTML = list.map(item => {
+            const studentRegNo = user.registerNo || '';
+            const mySubmission = item.submissions?.find(s => s.studentRegisterNo === studentRegNo);
+            const statusClass = mySubmission ? 'badge-success' : 'badge-warning';
+            const statusText = mySubmission ? `Submitted (${mySubmission.grade || 'A+'})` : 'Pending Submission';
+
+            return `
+              <div class="card-glass" style="display:flex; flex-direction:column; justify-content:space-between;">
+                <div>
+                  <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem;">
+                    <span class="badge badge-gold">${item.subjectName || 'Course'}</span>
+                    <span class="badge ${statusClass}">${statusText}</span>
+                  </div>
+
+                  <h3 style="font-size:1.1rem; font-weight:700; color:var(--gold-primary); margin-bottom:0.4rem;">${item.title}</h3>
+                  <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:1rem; line-height:1.4;">${item.description || 'No detailed instructions provided.'}</p>
+
+                  <div style="font-size:0.8rem; color:var(--text-muted); background:rgba(0,0,0,0.4); padding:0.75rem; border-radius:8px; border:1px solid var(--border-subtle); margin-bottom:1rem;">
+                    <div><i class="fa-solid fa-user" style="color:var(--gold-primary);"></i> Faculty: <strong>${item.uploadedBy || 'Faculty'}</strong></div>
+                    <div><i class="fa-solid fa-calendar-day" style="color:var(--gold-primary);"></i> Due Date: <strong style="color:var(--warning);">${item.dueDate}</strong></div>
+                    <div><i class="fa-solid fa-layer-group" style="color:var(--gold-primary);"></i> Class: ${item.department} | ${item.year} | ${item.section}</div>
+                  </div>
+                </div>
+
+                <div style="display:flex; gap:0.5rem; border-top:1px solid var(--border-subtle); padding-top:0.85rem;">
+                  ${item.fileUrl ? `<a href="${item.fileUrl}" target="_blank" class="btn-secondary" style="flex:1; justify-content:center;"><i class="fa-solid fa-download"></i> Resource File</a>` : ''}
+                  ${user.role === 'student' ? `<button onclick="openSubmitModal('${item._id}')" class="btn-gold" style="flex:1; justify-content:center;"><i class="fa-solid fa-upload"></i> ${mySubmission ? 'Resubmit' : 'Turn In'}</button>` : ''}
+                  ${isFacultyOrAdmin ? `<button onclick="deleteAssignment('${item._id}')" class="btn-danger" title="Delete Assignment"><i class="fa-solid fa-trash"></i></button>` : ''}
+                </div>
+              </div>
+            `;
+          }).join('');
+
+        } catch (err) {
+          grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:var(--error);">Unable to load assignments.</div>';
+        }
+      };
+
+      document.querySelectorAll('#filterDept, #filterYear, #filterSem, #filterSec').forEach(el => {
+        el.addEventListener('change', fetchAssignments);
+      });
+
+      // Submit Form
+      document.getElementById('createAssignmentForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const payload = {
+          title: document.getElementById('asgnTitle').value,
+          description: document.getElementById('asgnDesc').value,
+          department: document.getElementById('asgnDept').value,
+          subjectName: document.getElementById('asgnSubject').value,
+          year: document.getElementById('asgnYear').value,
+          semester: document.getElementById('asgnSem').value,
+          section: document.getElementById('asgnSec').value,
+          dueDate: document.getElementById('asgnDueDate').value,
+          fileUrl: document.getElementById('asgnFileUrl').value,
+          uploadedBy: user.name || 'Faculty Member'
+        };
+
+        const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+        const token = localStorage.getItem('jp_dms_token');
+        const res = await fetch(`${baseUrl}/assignments`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        alert(data.message || 'Assignment published!');
+        modal.classList.remove('active');
+        fetchAssignments();
+      });
+
+      window.openSubmitModal = (id) => {
+        document.getElementById('submitAsgnId').value = id;
+        submitModal.classList.add('active');
+      };
+
+      document.getElementById('submitAssignmentForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('submitAsgnId').value;
+        const submissionUrl = document.getElementById('submissionUrlInput').value;
+
+        const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+        const token = localStorage.getItem('jp_dms_token');
+        const res = await fetch(`${baseUrl}/assignments/${id}/submit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({
+            studentRegisterNo: user.registerNo || '953621104001',
+            studentName: user.name || 'Student',
+            submissionUrl
+          })
+        });
+
+        const data = await res.json();
+        alert(data.message || 'Assignment submitted successfully!');
+        submitModal.classList.remove('active');
+        fetchAssignments();
+      });
+
+      window.deleteAssignment = async (id) => {
+        if (!confirm('Delete this assignment?')) return;
+        const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+        const token = localStorage.getItem('jp_dms_token');
+        await fetch(`${baseUrl}/assignments/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        fetchAssignments();
+      };
+
+      fetchAssignments();
+    });
+  </script>
+</body>
+</html>

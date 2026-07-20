@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JP College ERP - Class Timetable</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div id="navbar-container"></div>
+
+  <main class="main-content-wrapper">
+    <div class="page-header-title">
+      <h2><i class="fa-solid fa-calendar-days" style="color: var(--gold-primary);"></i> Department Class Timetable</h2>
+      <button id="saveTimetableBtn" class="btn-gold" style="display:none;">
+        <i class="fa-solid fa-floppy-disk"></i> Update Timetable Schedule
+      </button>
+    </div>
+
+    <!-- Filters Bar -->
+    <div class="card-glass" style="margin-bottom: 1.5rem;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Department</label>
+          <select id="ttDept" class="form-control">
+            <option value="AI & DS" selected>AI & DS</option>
+            <option value="CSE">CSE</option>
+            <option value="ECE">ECE</option>
+            <option value="EEE">EEE</option>
+            <option value="MECH">Mechanical</option>
+            <option value="CIVIL">Civil</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Year</label>
+          <select id="ttYear" class="form-control">
+            <option value="I Year">I Year</option>
+            <option value="II Year">II Year</option>
+            <option value="III Year" selected>III Year</option>
+            <option value="IV Year">IV Year</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Semester</label>
+          <select id="ttSem" class="form-control">
+            <option value="Semester V" selected>Semester V</option>
+            <option value="Semester VI">Semester VI</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Section</label>
+          <select id="ttSec" class="form-control">
+            <option value="A" selected>Section A</option>
+            <option value="B">Section B</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timetable Grid Table -->
+    <div class="table-responsive">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th style="width: 120px;">Day / Time</th>
+            <th>09:00 - 10:00 AM</th>
+            <th>10:00 - 11:00 AM</th>
+            <th>11:15 - 12:15 PM</th>
+            <th>01:15 - 02:15 PM</th>
+            <th>02:15 - 03:15 PM</th>
+            <th>03:15 - 04:15 PM</th>
+          </tr>
+        </thead>
+        <tbody id="timetableTbody">
+          <!-- Dynamic Schedule Rows -->
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <footer>
+    &copy; 2026 J.P. College of Engineering. All rights reserved. Department Management ERP System.
+  </footer>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/navbar.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const user = JSON.parse(localStorage.getItem('jp_dms_user')) || {};
+      const isFacultyOrAdmin = user.role === 'faculty' || user.role === 'admin' || user.role === 'super_admin';
+
+      if (isFacultyOrAdmin) {
+        document.getElementById('saveTimetableBtn').style.display = 'inline-flex';
+      }
+
+      const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+      const periods = ['09:00 - 10:00 AM', '10:00 - 11:00 AM', '11:15 - 12:15 PM', '01:15 - 02:15 PM', '02:15 - 03:15 PM', '03:15 - 04:15 PM'];
+
+      const fetchTimetable = async () => {
+        const tbody = document.getElementById('timetableTbody');
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:2rem; color:var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> Loading schedule...</td></tr>';
+
+        const dept = document.getElementById('ttDept').value;
+        const year = document.getElementById('ttYear').value;
+        const sem = document.getElementById('ttSem').value;
+        const sec = document.getElementById('ttSec').value;
+
+        try {
+          const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+          const res = await fetch(`${baseUrl}/timetables?department=${encodeURIComponent(dept)}&year=${encodeURIComponent(year)}&semester=${encodeURIComponent(sem)}&section=${encodeURIComponent(sec)}`);
+          const json = await res.json();
+          const list = json.data || [];
+
+          tbody.innerHTML = days.map(day => {
+            const dayRecord = list.find(d => d.day === day) || { schedule: [] };
+
+            const periodCells = periods.map(p => {
+              const slot = dayRecord.schedule?.find(s => s.period === p) || { subjectName: 'Free Period', facultyName: '-', roomNo: 'LH-301' };
+              const isFree = slot.subjectName === 'Free Period';
+
+              return `
+                <td style="${isFree ? 'opacity:0.5;' : ''}">
+                  <div style="font-weight:700; color:var(--gold-primary);">${slot.subjectName}</div>
+                  <div style="font-size:0.75rem; color:var(--text-secondary);">${slot.facultyName}</div>
+                  <span class="badge badge-gold" style="font-size:0.65rem; margin-top:0.25rem;">${slot.roomNo || 'LH-301'}</span>
+                </td>
+              `;
+            }).join('');
+
+            return `
+              <tr>
+                <td style="font-weight:800; color:var(--gold-primary); background:#14141E;">${day}</td>
+                ${periodCells}
+              </tr>
+            `;
+          }).join('');
+
+        } catch (err) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--error);">Failed to load timetable.</td></tr>';
+        }
+      };
+
+      document.querySelectorAll('#ttDept, #ttYear, #ttSem, #ttSec').forEach(el => el.addEventListener('change', fetchTimetable));
+      fetchTimetable();
+    });
+  </script>
+</body>
+</html>

@@ -14,6 +14,8 @@ const User = require('../models/User');
 const Note = require('../models/Note');
 const Notification = require('../models/Notification');
 const Report = require('../models/Report');
+const Assignment = require('../models/Assignment');
+const Timetable = require('../models/Timetable');
 const { JWT_SECRET } = require('../middleware/authMiddleware');
 
 // Initial MongoDB Atlas Seed Data
@@ -43,14 +45,16 @@ const SEED_DATA = {
     { className: 'III CSE B', department: 'CSE', year: 'III Year', semester: 'Semester V', section: 'B', classAdvisor: 'Prof. Anitha Raj' }
   ],
   attendance: [
-    { studentRegisterNo: '953621104001', studentName: 'Aarav Kumar', department: 'AI & DS', semester: 'Semester V', section: 'A', date: new Date().toISOString().split('T')[0], session: 'Full Day', morningStatus: 'Present', afternoonStatus: 'Present', status: 'Present', percentage: 96, remarks: 'On Time' },
-    { studentRegisterNo: '953621104002', studentName: 'Bhavna Sharma', department: 'AI & DS', semester: 'Semester V', section: 'A', date: new Date().toISOString().split('T')[0], session: 'Full Day', morningStatus: 'Present', afternoonStatus: 'Present', status: 'Present', percentage: 98, remarks: 'On Time' }
+    { studentRegisterNo: '953621104001', studentName: 'Aarav Kumar', department: 'AI & DS', year: 'III Year', semester: 'Semester V', section: 'A', date: new Date().toISOString().split('T')[0], session: 'Full Day', morningStatus: 'Present', afternoonStatus: 'Present', status: 'Present', percentage: 96, remarks: 'On Time' },
+    { studentRegisterNo: '953621104002', studentName: 'Bhavna Sharma', department: 'AI & DS', year: 'III Year', semester: 'Semester V', section: 'A', date: new Date().toISOString().split('T')[0], session: 'Full Day', morningStatus: 'Present', afternoonStatus: 'Present', status: 'Present', percentage: 98, remarks: 'On Time' }
   ],
   semesterMarks: [
-    { studentRegisterNo: '953621104001', studentName: 'Aarav Kumar', department: 'AI & DS', semester: 'Semester V', subjectCode: 'AD3501', subjectName: 'Deep Learning', grade: 'O', cgpa: 9.2, arrears: 0, result: 'PASS' }
+    { studentRegisterNo: '953621104001', studentName: 'Aarav Kumar', department: 'AI & DS', year: 'III Year', semester: 'Semester V', section: 'A', subjectCode: 'AD3501', subjectName: 'Deep Learning', grade: 'O', marks: 95, credits: 4, gpa: 9.5, cgpa: 9.2, arrears: 0, result: 'PASS' },
+    { studentRegisterNo: '953621104002', studentName: 'Bhavna Sharma', department: 'AI & DS', year: 'III Year', semester: 'Semester V', section: 'A', subjectCode: 'AD3501', subjectName: 'Deep Learning', grade: 'A+', marks: 89, credits: 4, gpa: 8.9, cgpa: 8.8, arrears: 0, result: 'PASS' }
   ],
   internalMarks: [
-    { studentRegisterNo: '953621104001', studentName: 'Aarav Kumar', department: 'AI & DS', semester: 'Semester V', subjectCode: 'AD3501', subjectName: 'Deep Learning', internal1: 48, internal2: 46, modelExam: 92, assignment: 10, totalInternal: 98 }
+    { studentRegisterNo: '953621104001', studentName: 'Aarav Kumar', department: 'AI & DS', year: 'III Year', semester: 'Semester V', section: 'A', subjectCode: 'AD3501', subjectName: 'Deep Learning', facultyName: 'Dr. M. Senthil Kumar', internal1: 48, internal2: 46, internal3: 49, average: 47.6, modelExam: 92, assignmentMark: 10, totalInternal: 98, lastUpdated: '2026-07-20' },
+    { studentRegisterNo: '953621104002', studentName: 'Bhavna Sharma', department: 'AI & DS', year: 'III Year', semester: 'Semester V', section: 'A', subjectCode: 'AD3501', subjectName: 'Deep Learning', facultyName: 'Dr. M. Senthil Kumar', internal1: 45, internal2: 47, internal3: 46, average: 46.0, modelExam: 89, assignmentMark: 10, totalInternal: 94, lastUpdated: '2026-07-20' }
   ],
   notes: [
     {
@@ -68,8 +72,41 @@ const SEED_DATA = {
       uploaderEmail: 'senthil@jpcoe.ac.in'
     }
   ],
+  assignments: [
+    {
+      title: 'Assignment 1: Convolutional Neural Networks (CNN) Architecture',
+      description: 'Implement a ResNet model for image classification using PyTorch/TensorFlow.',
+      department: 'AI & DS',
+      year: 'III Year',
+      semester: 'Semester V',
+      section: 'A',
+      subjectCode: 'AD3501',
+      subjectName: 'Deep Learning',
+      fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+      dueDate: '2026-07-28',
+      uploadedBy: 'Dr. M. Senthil Kumar',
+      uploaderEmail: 'senthil@jpcoe.ac.in',
+      submissions: [
+        { studentRegisterNo: '953621104001', studentName: 'Aarav Kumar', submissionUrl: 'https://github.com/example/cnn-assignment', submittedAt: new Date(), grade: 'A+', status: 'Graded' }
+      ]
+    }
+  ],
+  timetables: [
+    {
+      department: 'AI & DS',
+      year: 'III Year',
+      semester: 'Semester V',
+      section: 'A',
+      day: 'Monday',
+      schedule: [
+        { period: '09:00 - 10:00 AM', subjectCode: 'AD3501', subjectName: 'Deep Learning', facultyName: 'Dr. M. Senthil Kumar', roomNo: 'LH-301' },
+        { period: '10:00 - 11:00 AM', subjectCode: 'AD3502', subjectName: 'Big Data Analytics', facultyName: 'Prof. Anitha Raj', roomNo: 'LH-301' },
+        { period: '11:15 - 12:15 PM', subjectCode: 'AD3503', subjectName: 'Computer Vision', facultyName: 'Dr. R. Meenakshi', roomNo: 'AI Lab' }
+      ]
+    }
+  ],
   notifications: [
-    { title: 'Welcome to JP College ERP', message: 'System updated with White Mode UI and Super Admin Registration Approval System.', type: 'system', recipientRole: 'all' }
+    { title: 'Welcome to JP College ERP', message: 'System updated with Black & Gold Theme and Multi-Portal ERP System.', type: 'system', recipientRole: 'all' }
   ]
 };
 
@@ -125,8 +162,8 @@ const autoSeedDatabase = async () => {
     const initialUsers = [
       { email: 'senthil@jpcoe.ac.in', password: facultyPass, role: 'faculty', name: 'Dr. M. Senthil Kumar', status: 'Approved', isApproved: true, isActive: true, department: 'AI & DS', facultyId: 'JPC-FAC-101' },
       { email: 'anitha@jpcoe.ac.in', password: facultyPass, role: 'faculty', name: 'Prof. Anitha Raj', status: 'Approved', isApproved: true, isActive: true, department: 'CSE', facultyId: 'JPC-FAC-102' },
-      { email: 'aarav.21ad@jpcoe.ac.in', password: studentPass, role: 'student', name: 'Aarav Kumar', status: 'Approved', isApproved: true, isActive: true, department: 'AI & DS', registerNo: '953621104001', rollNumber: '21AD01' },
-      { email: 'bhavna.21ad@jpcoe.ac.in', password: studentPass, role: 'student', name: 'Bhavna Sharma', status: 'Approved', isApproved: true, isActive: true, department: 'AI & DS', registerNo: '953621104002', rollNumber: '21AD02' }
+      { email: 'aarav.21ad@jpcoe.ac.in', password: studentPass, role: 'student', name: 'Aarav Kumar', status: 'Approved', isApproved: true, isActive: true, department: 'AI & DS', registerNo: '953621104001', rollNumber: '21AD01', year: 'III Year', semester: 'Semester V', section: 'A' },
+      { email: 'bhavna.21ad@jpcoe.ac.in', password: studentPass, role: 'student', name: 'Bhavna Sharma', status: 'Approved', isApproved: true, isActive: true, department: 'AI & DS', registerNo: '953621104002', rollNumber: '21AD02', year: 'III Year', semester: 'Semester V', section: 'A' }
     ];
 
     for (const u of initialUsers) {
@@ -147,24 +184,29 @@ const autoSeedDatabase = async () => {
       await SemesterMark.insertMany(SEED_DATA.semesterMarks);
       await InternalMark.insertMany(SEED_DATA.internalMarks);
       await Note.insertMany(SEED_DATA.notes);
+      await Assignment.insertMany(SEED_DATA.assignments);
+      await Timetable.insertMany(SEED_DATA.timetables);
       await Notification.insertMany(SEED_DATA.notifications);
-      console.log('✅ Initial Collections Seeded Successfully!');
+      console.log('✅ Initial Multi-Portal Collections Seeded Successfully!');
     }
   } catch (err) {
     console.error('Error auto-seeding database:', err);
   }
 };
 
-// Generic CRUD helper generator
+// Generic CRUD helper generator with Dept -> Year -> Sem -> Sec filters
 const createCrudControllers = (Model, modelName) => ({
   getAll: async (req, res) => {
     try {
       let filter = {};
-      if (req.query.department) filter.department = req.query.department;
-      if (req.query.semester) filter.semester = req.query.semester;
-      if (req.query.section) filter.section = req.query.section;
+      if (req.query.department && req.query.department !== 'All') filter.department = req.query.department;
+      if (req.query.year && req.query.year !== 'All') filter.year = req.query.year;
+      if (req.query.semester && req.query.semester !== 'All') filter.semester = req.query.semester;
+      if (req.query.section && req.query.section !== 'All') filter.section = req.query.section;
       if (req.query.registerNo) filter.registerNo = req.query.registerNo;
+      if (req.query.studentRegisterNo) filter.studentRegisterNo = req.query.studentRegisterNo;
       if (req.query.email) filter.email = req.query.email;
+      if (req.query.subjectCode) filter.subjectCode = req.query.subjectCode;
 
       const items = await Model.find(filter).sort({ createdAt: -1 });
       res.json({ success: true, count: items.length, data: items });
@@ -202,15 +244,6 @@ const createCrudControllers = (Model, modelName) => ({
 
       const item = await Model.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
 
-      await History.create({
-        date: new Date().toISOString().split('T')[0],
-        time: new Date().toLocaleTimeString(),
-        action: `Update ${modelName}`,
-        user: req.user ? req.user.email : 'System',
-        department: item.department || 'General',
-        details: `Updated ${modelName} record (ID: ${req.params.id})`
-      });
-
       res.json({ success: true, message: `${modelName} updated successfully`, data: item });
     } catch (err) {
       res.status(400).json({ success: false, error: err.message });
@@ -226,15 +259,6 @@ const createCrudControllers = (Model, modelName) => ({
       }
 
       await Model.findByIdAndDelete(req.params.id);
-
-      await History.create({
-        date: new Date().toISOString().split('T')[0],
-        time: new Date().toLocaleTimeString(),
-        action: `Delete ${modelName}`,
-        user: req.user ? req.user.email : 'System',
-        department: existing.department || 'General',
-        details: `Deleted ${modelName} record (ID: ${req.params.id})`
-      });
 
       res.json({ success: true, message: `${modelName} deleted successfully` });
     } catch (err) {
@@ -263,7 +287,6 @@ const auth = {
         return res.status(401).json({ success: false, message: 'Invalid email or password' });
       }
 
-      // LOGIN RULES FOR PENDING AND REJECTED STATUSES
       if (user.status === 'Pending' || (!user.isApproved && user.role !== 'super_admin')) {
         return res.status(403).json({
           success: false,
@@ -287,6 +310,9 @@ const auth = {
         role: user.role,
         status: user.status,
         department: user.department,
+        year: user.year,
+        semester: user.semester,
+        section: user.section,
         facultyId: user.facultyId,
         registerNo: user.registerNo,
         rollNumber: user.rollNumber,
@@ -320,25 +346,22 @@ const auth = {
 
       const cleanEmail = email.toLowerCase().trim();
       
-      // 1. Email uniqueness validation
       const existingUser = await User.findOne({ email: cleanEmail });
       if (existingUser) {
-        return res.status(400).json({ success: false, message: 'Email address is already registered. Please use another email.' });
+        return res.status(400).json({ success: false, message: 'Email address is already registered.' });
       }
 
-      // 2. Register Number uniqueness validation for Student
       if (role === 'student' && registerNo) {
         const existingRegNo = await User.findOne({ registerNo: registerNo.trim() });
         if (existingRegNo) {
-          return res.status(400).json({ success: false, message: 'Register Number already exists in system. Please check your Register Number.' });
+          return res.status(400).json({ success: false, message: 'Register Number already exists.' });
         }
       }
 
-      // 3. Faculty ID uniqueness validation for Faculty
       if (role === 'faculty' && facultyId) {
         const existingFacId = await User.findOne({ facultyId: facultyId.trim() });
         if (existingFacId) {
-          return res.status(400).json({ success: false, message: 'Faculty ID already exists in system. Please check your Faculty ID.' });
+          return res.status(400).json({ success: false, message: 'Faculty ID already exists.' });
         }
       }
 
@@ -360,9 +383,9 @@ const auth = {
         reasonForAdmin: reasonForAdmin || '',
         registerNo: registerNo || '',
         rollNumber: rollNumber || '',
-        year: year || '',
-        semester: semester || '',
-        section: section || '',
+        year: year || 'III Year',
+        semester: semester || 'Semester V',
+        section: section || 'A',
         facultyId: facultyId || '',
         designation: designation || '',
         subjectsAssigned: subjectsAssigned || '',
@@ -370,14 +393,6 @@ const auth = {
       });
 
       await user.save();
-
-      // Create Admin notification for Pending approval
-      await Notification.create({
-        title: `New ${targetRole.toUpperCase()} Registration: ${name}`,
-        message: `${name} (${cleanEmail}) submitted registration for ${department || 'General'}. Status: Pending Approval.`,
-        type: 'approval',
-        recipientRole: 'super_admin'
-      });
 
       res.status(201).json({
         success: true,
@@ -393,22 +408,18 @@ const auth = {
     try {
       const pendingUsers = await User.find({ status: 'Pending' }).select('-password').sort({ createdAt: -1 });
       
-      const students = pendingUsers.filter(u => u.role === 'student');
-      const faculty = pendingUsers.filter(u => u.role === 'faculty');
-      const adminRequests = pendingUsers.filter(u => u.role === 'admin');
-
       res.json({
         success: true,
         counts: {
           total: pendingUsers.length,
-          students: students.length,
-          faculty: faculty.length,
-          adminRequests: adminRequests.length
+          students: pendingUsers.filter(u => u.role === 'student').length,
+          faculty: pendingUsers.filter(u => u.role === 'faculty').length,
+          adminRequests: pendingUsers.filter(u => u.role === 'admin').length
         },
         data: {
-          students,
-          faculty,
-          adminRequests
+          students: pendingUsers.filter(u => u.role === 'student'),
+          faculty: pendingUsers.filter(u => u.role === 'faculty'),
+          adminRequests: pendingUsers.filter(u => u.role === 'admin')
         }
       });
     } catch (err) {
@@ -428,7 +439,6 @@ const auth = {
       user.approvedAt = new Date();
       await user.save();
 
-      // Create linked record in Student or Faculty collection
       if (user.role === 'faculty' && user.facultyId) {
         await Faculty.findOneAndUpdate(
           { email: user.email },
@@ -467,13 +477,6 @@ const auth = {
         );
       }
 
-      await Notification.create({
-        title: 'Account Registration Approved',
-        message: `Your JP College ERP account (${user.email}) has been approved by Super Admin. You can log in now!`,
-        type: 'approval',
-        recipientEmail: user.email
-      });
-
       res.json({ success: true, message: `Account for ${user.name} approved successfully!` });
     } catch (err) {
       res.status(500).json({ success: false, message: err.message });
@@ -496,16 +499,110 @@ const auth = {
       user.approvedAt = new Date();
       await user.save();
 
-      await Notification.create({
-        title: 'Account Registration Rejected',
-        message: `Your JP College ERP registration request (${user.email}) was rejected. Please contact administrator.`,
-        type: 'approval',
-        recipientEmail: user.email
-      });
-
       res.json({ success: true, message: `Registration for ${user.name} has been rejected.` });
     } catch (err) {
       res.status(500).json({ success: false, message: err.message });
+    }
+  }
+};
+
+// ASSIGNMENT CONTROLLERS
+const assignments = {
+  getAll: async (req, res) => {
+    try {
+      const filter = {};
+      if (req.query.department && req.query.department !== 'All') filter.department = req.query.department;
+      if (req.query.year && req.query.year !== 'All') filter.year = req.query.year;
+      if (req.query.semester && req.query.semester !== 'All') filter.semester = req.query.semester;
+      if (req.query.section && req.query.section !== 'All') filter.section = req.query.section;
+      if (req.query.subjectCode) filter.subjectCode = req.query.subjectCode;
+
+      const list = await Assignment.find(filter).sort({ createdAt: -1 });
+      res.json({ success: true, count: list.length, data: list });
+    } catch (err) {
+      res.status(500).json({ success: false, message: err.message });
+    }
+  },
+
+  create: async (req, res) => {
+    try {
+      const item = new Assignment(req.body);
+      await item.save();
+      res.status(201).json({ success: true, message: 'Assignment published successfully', data: item });
+    } catch (err) {
+      res.status(400).json({ success: false, message: err.message });
+    }
+  },
+
+  submitAssignment: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { studentRegisterNo, studentName, submissionUrl } = req.body;
+
+      const assignment = await Assignment.findById(id);
+      if (!assignment) return res.status(404).json({ success: false, message: 'Assignment not found.' });
+
+      // Update existing or add new submission
+      const existingIdx = assignment.submissions.findIndex(s => s.studentRegisterNo === studentRegisterNo);
+      if (existingIdx > -1) {
+        assignment.submissions[existingIdx].submissionUrl = submissionUrl;
+        assignment.submissions[existingIdx].submittedAt = new Date();
+      } else {
+        assignment.submissions.push({
+          studentRegisterNo,
+          studentName: studentName || 'Student',
+          submissionUrl,
+          submittedAt: new Date(),
+          status: 'Submitted'
+        });
+      }
+
+      await assignment.save();
+      res.json({ success: true, message: 'Assignment submitted successfully!', data: assignment });
+    } catch (err) {
+      res.status(400).json({ success: false, message: err.message });
+    }
+  },
+
+  delete: async (req, res) => {
+    try {
+      await Assignment.findByIdAndDelete(req.params.id);
+      res.json({ success: true, message: 'Assignment deleted.' });
+    } catch (err) {
+      res.status(500).json({ success: false, message: err.message });
+    }
+  }
+};
+
+// TIMETABLE CONTROLLERS
+const timetables = {
+  getAll: async (req, res) => {
+    try {
+      const filter = {};
+      if (req.query.department && req.query.department !== 'All') filter.department = req.query.department;
+      if (req.query.year && req.query.year !== 'All') filter.year = req.query.year;
+      if (req.query.semester && req.query.semester !== 'All') filter.semester = req.query.semester;
+      if (req.query.section && req.query.section !== 'All') filter.section = req.query.section;
+      if (req.query.day && req.query.day !== 'All') filter.day = req.query.day;
+
+      const list = await Timetable.find(filter);
+      res.json({ success: true, count: list.length, data: list });
+    } catch (err) {
+      res.status(500).json({ success: false, message: err.message });
+    }
+  },
+
+  saveTimetable: async (req, res) => {
+    try {
+      const { department, year, semester, section, day, schedule } = req.body;
+      const item = await Timetable.findOneAndUpdate(
+        { department, year, semester, section, day },
+        { department, year, semester, section, day, schedule },
+        { upsert: true, new: true }
+      );
+      res.json({ success: true, message: 'Timetable saved successfully!', data: item });
+    } catch (err) {
+      res.status(400).json({ success: false, message: err.message });
     }
   }
 };
@@ -518,13 +615,6 @@ const notes = {
       if (req.query.department && req.query.department !== 'All') filter.department = req.query.department;
       if (req.query.semester && req.query.semester !== 'All') filter.semester = req.query.semester;
       if (req.query.subjectCode) filter.subjectCode = req.query.subjectCode;
-      if (req.query.search) {
-        filter.$or = [
-          { title: { $regex: req.query.search, $options: 'i' } },
-          { subjectName: { $regex: req.query.search, $options: 'i' } },
-          { subjectCode: { $regex: req.query.search, $options: 'i' } }
-        ];
-      }
 
       const list = await Note.find(filter).sort({ createdAt: -1 });
       res.json({ success: true, count: list.length, data: list });
@@ -553,14 +643,6 @@ const notes = {
       });
 
       await newNote.save();
-
-      await Notification.create({
-        title: 'New Subject Note Uploaded',
-        message: `${newNote.uploadedBy} uploaded notes for ${newNote.subjectName} (${newNote.department}).`,
-        type: 'notes',
-        recipientRole: 'all'
-      });
-
       res.status(201).json({ success: true, message: 'Notes uploaded successfully!', data: newNote });
     } catch (err) {
       res.status(400).json({ success: false, message: err.message });
@@ -570,7 +652,7 @@ const notes = {
   delete: async (req, res) => {
     try {
       await Note.findByIdAndDelete(req.params.id);
-      res.json({ success: true, message: 'Note deleted successfully.' });
+      res.json({ success: true, message: 'Note deleted.' });
     } catch (err) {
       res.status(500).json({ success: false, message: err.message });
     }
@@ -668,13 +750,6 @@ const importExport = {
         return res.status(400).json({ success: false, message: `Invalid import target: ${target}` });
       }
 
-      await Notification.create({
-        title: `Data Import Completed`,
-        message: `Successfully imported ${insertedCount} ${target} records into system.`,
-        type: 'import',
-        recipientRole: 'super_admin'
-      });
-
       res.json({ success: true, message: `Imported ${insertedCount} records into ${target} successfully!` });
     } catch (err) {
       res.status(500).json({ success: false, message: err.message });
@@ -740,6 +815,8 @@ module.exports = {
   history: createCrudControllers(History, 'History'),
   settings: createCrudControllers(Setting, 'Setting'),
   users: createCrudControllers(User, 'User'),
+  assignments,
+  timetables,
   auth,
   notes,
   reports,

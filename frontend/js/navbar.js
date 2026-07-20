@@ -1,5 +1,5 @@
 /**
- * JP College ERP - Shared Navigation Header, Role Security Guard & Global Controls
+ * JP College ERP - Shared Navigation Header, Black & Gold System & Role Access Guard
  */
 class NavbarComponent {
   constructor() {
@@ -15,6 +15,8 @@ class NavbarComponent {
       { name: 'Internal Marks', url: 'internal-marks.html', path: '/internal-marks', icon: 'fa-file-signature', roles: ['super_admin', 'admin', 'faculty', 'student'] },
       { name: 'Semester Marks', url: 'semester-marks.html', path: '/semester-marks', icon: 'fa-graduation-cap', roles: ['super_admin', 'admin', 'faculty', 'student'] },
       { name: 'Subject Notes', url: 'subject-notes.html', path: '/subject-notes', icon: 'fa-file-pdf', roles: ['super_admin', 'admin', 'faculty', 'student'] },
+      { name: 'Assignments', url: 'assignments.html', path: '/assignments', icon: 'fa-tasks', roles: ['super_admin', 'admin', 'faculty', 'student'] },
+      { name: 'Timetable', url: 'timetable.html', path: '/timetable', icon: 'fa-calendar-days', roles: ['super_admin', 'admin', 'faculty', 'student'] },
       { name: 'Reports', url: 'reports.html', path: '/reports', icon: 'fa-chart-line', roles: ['super_admin', 'admin', 'faculty'] },
       { name: 'Downloads', url: 'downloads.html', path: '/downloads', icon: 'fa-download', roles: ['super_admin', 'admin', 'faculty', 'student'] },
       { name: 'History', url: 'history.html', path: '/history', icon: 'fa-clock-rotate-left', roles: ['super_admin', 'admin'] },
@@ -60,9 +62,9 @@ class NavbarComponent {
     const activeUrl = this.getActivePage();
     const user = this.getUser();
     const roleKey = user.role || 'super_admin';
-    const roleTitle = (roleKey === 'super_admin' || roleKey === 'admin') ? 'Super Admin' : (roleKey === 'faculty' ? 'Faculty' : 'Student');
+    const roleTitle = (roleKey === 'super_admin' || roleKey === 'admin') ? 'Super Admin' : (roleKey === 'faculty' ? 'Faculty' : 'Student Portal');
 
-    const visiblePages = this.pages.filter(p => p.roles.includes(roleKey) || p.roles.includes('admin'));
+    const visiblePages = this.pages.filter(p => p.roles.includes(roleKey) || (p.roles.includes('admin') && roleKey === 'super_admin'));
 
     const headerHtml = `
       <header class="top-navbar-wrapper">
@@ -79,7 +81,7 @@ class NavbarComponent {
           <!-- Global Search Bar -->
           <div class="global-search-container">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="globalSearchInput" class="global-search-input" placeholder="Search student, faculty, reg no, dept...">
+            <input type="text" id="globalSearchInput" class="global-search-input" placeholder="Search Reg No, Roll No, Student, Faculty...">
           </div>
 
           <div class="header-right-controls">
@@ -97,8 +99,8 @@ class NavbarComponent {
 
             <!-- Live Clock -->
             <div class="live-time-box" style="font-size:0.75rem; text-align:right; color:var(--text-secondary);">
-              <div id="liveClockTime" style="font-weight:700; color:var(--primary);">00:00:00 AM</div>
-              <div id="liveClockDate" style="font-size:0.65rem;">Loading date...</div>
+              <div id="liveClockTime" style="font-weight:700; color:var(--gold-primary);">00:00:00 AM</div>
+              <div id="liveClockDate" style="font-size:0.65rem;">Loading...</div>
             </div>
 
             <!-- Logout Button -->
@@ -200,7 +202,7 @@ class NavbarComponent {
             ? list.slice(0, 5).map(n => `• [${n.type.toUpperCase()}] ${n.title}: ${n.message}`).join('\n\n')
             : 'No new notifications.';
 
-          alert(`🔔 JP College System Notifications:\n\n${notifText}`);
+          alert(`🔔 JP College ERP Notifications:\n\n${notifText}`);
         } catch (err) {
           alert('No new notifications.');
         }
