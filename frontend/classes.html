@@ -23,7 +23,7 @@
       </div>
     </div>
 
-    <!-- Filter Bar -->
+    <!-- Filter Bar with Dynamic Year -> Semester Cascading -->
     <div class="card-glass" style="margin-bottom: 1.5rem;">
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem;">
         <div class="form-group" style="margin-bottom:0;">
@@ -42,7 +42,6 @@
         <div class="form-group" style="margin-bottom:0;">
           <label class="form-label">Year Filter</label>
           <select id="clsFilterYear" class="form-control">
-            <option value="All">All Years</option>
             <option value="I Year">I Year</option>
             <option value="II Year">II Year</option>
             <option value="III Year" selected>III Year</option>
@@ -51,11 +50,9 @@
         </div>
 
         <div class="form-group" style="margin-bottom:0;">
-          <label class="form-label">Semester</label>
+          <label class="form-label">Semester (Cascading)</label>
           <select id="clsFilterSem" class="form-control">
-            <option value="All">All Semesters</option>
-            <option value="Semester V" selected>Semester V</option>
-            <option value="Semester VI">Semester VI</option>
+            <!-- Dynamic Cascading Options -->
           </select>
         </div>
       </div>
@@ -108,8 +105,7 @@
           <div class="form-group">
             <label class="form-label">Semester *</label>
             <select id="clsSemInput" class="form-control">
-              <option value="Semester V" selected>Semester V</option>
-              <option value="Semester VI">Semester VI</option>
+              <!-- Dynamic Cascading Options -->
             </select>
           </div>
           <div class="form-group">
@@ -148,8 +144,13 @@
   <script src="js/api.js"></script>
   <script src="js/navbar.js"></script>
   <script src="js/export.js"></script>
+  <script src="js/semester-cascader.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      // Bind Dynamic Year -> Semester Cascading
+      window.bindYearSemesterCascading(document.getElementById('clsFilterYear'), document.getElementById('clsFilterSem'), true);
+      window.bindYearSemesterCascading(document.getElementById('clsYearInput'), document.getElementById('clsSemInput'), false);
+
       const user = JSON.parse(localStorage.getItem('jp_dms_user')) || {};
       const isFacultyOrAdmin = user.role === 'faculty' || user.role === 'admin' || user.role === 'super_admin';
 
@@ -164,6 +165,7 @@
         document.getElementById('editClassDbId').value = '';
         document.getElementById('classModalTitle').innerHTML = '<i class="fa-solid fa-door-open" style="color: var(--primary);"></i> Create New Class';
         document.getElementById('classForm').reset();
+        window.bindYearSemesterCascading(document.getElementById('clsYearInput'), document.getElementById('clsSemInput'), false);
         modal.classList.add('active');
       });
 
@@ -261,7 +263,10 @@
         document.getElementById('clsNameInput').value = c.className;
         document.getElementById('clsDeptInput').value = c.department;
         document.getElementById('clsYearInput').value = c.year;
+        
+        window.bindYearSemesterCascading(document.getElementById('clsYearInput'), document.getElementById('clsSemInput'), false);
         document.getElementById('clsSemInput').value = c.semester;
+
         document.getElementById('clsSecInput').value = c.section || 'A';
         document.getElementById('clsAdvisorInput').value = c.classAdvisor || '';
         document.getElementById('clsRoomInput').value = c.roomNumber || '';

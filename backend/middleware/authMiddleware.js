@@ -46,8 +46,57 @@ const authorizeRoles = (...roles) => {
   };
 };
 
+// Enforcement Middleware for Student Academic Scope
+const enforceStudentAcademicScope = (req, res, next) => {
+  if (!req.user || req.user.role !== 'student') {
+    return next(); // Admins and Faculty bypass student scope restrictions
+  }
+
+  // Reject write operations for Students
+  if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
+    // Exception: Student submitting their own QR attendance scan
+    if (req.path.includes('/attendance/qr/scan') || req.path.includes('/assignments/submit')) {
+      return next();
+    }
+    return res.status(403).json({
+      success: false,
+      message: 'Access denied. Student accounts are restricted to read-only access.'
+    });
+  }
+
+  // Enforce Year & Semester constraints based on Student Year
+  const yearSemMap = {
+    'I Year': ['Semester 1', 'Semester 2'],
+    'II Year': ['Semester 3', 'Semester 4'],
+    'III Year': ['Semester 5', 'Semester 6'],
+    'IV Year': ['Semester 7', 'Semester 8']
+  };
+
+  const studentYear = req.user.year || 'III Year';
+  const allowedSemesters = yearSemMap[studentYear] || ['Semester 5', 'Semester 6'];
+
+  // Inject strict query filters into request query for student
+  req.query.department = req.user.department || 'AI & DS';
+  req.query.year = studentYear;
+
+  // If query specifies a semester outside student's year, override or reject
+  if (req.query.semester && req.query.semester !== 'All' && !allowedSemesters.includes(req.query.semester)) {
+    return res.status(403).json({
+      success: false,
+      message: `Access denied. Students in ${studentYear} can only access ${allowedSemesters.join(' and ')}.`
+    });
+  }
+
+  if (req.user.registerNo) {
+    req.query.studentRegisterNo = req.user.registerNo;
+  }
+
+  next();
+};
+
 module.exports = {
   verifyToken,
   authorizeRoles,
+  enforceStudentAcademicScope,
   JWT_SECRET
 };

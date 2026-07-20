@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JP College ERP - Course Subjects & Syllabus</title>
+  <title>JP College ERP - Engineering Course Subjects</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -16,7 +16,7 @@
 
   <main class="main-content-wrapper">
     <div class="page-header-title">
-      <h2><i class="fa-solid fa-book-open" style="color: var(--primary);"></i> Engineering Course Subjects Directory</h2>
+      <h2><i class="fa-solid fa-book-open" style="color: var(--primary);"></i> Engineering Course Subjects Catalog</h2>
       <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
         <a href="import-export.html" class="btn-secondary"><i class="fa-solid fa-file-import"></i> Bulk Import Subjects</a>
         <button id="exportSubjectsBtn" class="btn-secondary"><i class="fa-solid fa-file-excel"></i> Export Catalog</button>
@@ -24,9 +24,9 @@
       </div>
     </div>
 
-    <!-- Filter Bar -->
+    <!-- Filter Bar with Cascading Year -> Semester -->
     <div class="card-glass" style="margin-bottom: 1.5rem;">
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
         <div class="form-group" style="margin-bottom:0;">
           <label class="form-label">Department</label>
           <select id="subjFilterDept" class="form-control">
@@ -41,9 +41,17 @@
         </div>
 
         <div class="form-group" style="margin-bottom:0;">
-          <label class="form-label">Year</label>
+          <label class="form-label">Regulation</label>
+          <select id="subjFilterReg" class="form-control">
+            <option value="All">All Regulations</option>
+            <option value="2021" selected>2021 Regulation</option>
+            <option value="2023">2023 Regulation</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Academic Year</label>
           <select id="subjFilterYear" class="form-control">
-            <option value="All">All Years</option>
             <option value="I Year">I Year</option>
             <option value="II Year">II Year</option>
             <option value="III Year" selected>III Year</option>
@@ -52,11 +60,9 @@
         </div>
 
         <div class="form-group" style="margin-bottom:0;">
-          <label class="form-label">Semester</label>
+          <label class="form-label">Semester (Cascading)</label>
           <select id="subjFilterSem" class="form-control">
-            <option value="All">All Semesters</option>
-            <option value="Semester V" selected>Semester V</option>
-            <option value="Semester VI">Semester VI</option>
+            <!-- Cascading Options -->
           </select>
         </div>
 
@@ -160,8 +166,7 @@
           <div class="form-group">
             <label class="form-label">Semester</label>
             <select id="subjSem" class="form-control">
-              <option value="Semester V" selected>Semester V</option>
-              <option value="Semester VI">Semester VI</option>
+              <!-- Dynamic Cascading Options -->
             </select>
           </div>
           <div class="form-group">
@@ -194,8 +199,13 @@
   <script src="js/api.js"></script>
   <script src="js/navbar.js"></script>
   <script src="js/export.js"></script>
+  <script src="js/semester-cascader.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      // Bind Dynamic Year -> Semester Cascading
+      window.bindYearSemesterCascading(document.getElementById('subjFilterYear'), document.getElementById('subjFilterSem'), true);
+      window.bindYearSemesterCascading(document.getElementById('subjYear'), document.getElementById('subjSem'), false);
+
       const user = JSON.parse(localStorage.getItem('jp_dms_user')) || {};
       const isFacultyOrAdmin = user.role === 'faculty' || user.role === 'admin' || user.role === 'super_admin';
 
@@ -210,6 +220,7 @@
         document.getElementById('editSubjDbId').value = '';
         document.getElementById('subjModalTitle').innerHTML = '<i class="fa-solid fa-book-open" style="color: var(--primary);"></i> Add Course Subject';
         document.getElementById('subjectForm').reset();
+        window.bindYearSemesterCascading(document.getElementById('subjYear'), document.getElementById('subjSem'), false);
         modal.classList.add('active');
       });
 
@@ -259,7 +270,7 @@
         }
       };
 
-      document.querySelectorAll('#subjFilterDept, #subjFilterYear, #subjFilterSem, #subjFilterCat').forEach(el => el.addEventListener('change', fetchSubjects));
+      document.querySelectorAll('#subjFilterDept, #subjFilterReg, #subjFilterYear, #subjFilterSem, #subjFilterCat').forEach(el => el.addEventListener('change', fetchSubjects));
 
       document.getElementById('subjectForm').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -274,8 +285,7 @@
           semester: document.getElementById('subjSem').value,
           credits: Number(document.getElementById('subjCredits').value),
           hoursPerWeek: Number(document.getElementById('subjHours').value),
-          facultyAssigned: document.getElementById('subjFaculty').value,
-          facultyName: document.getElementById('subjFaculty').value
+          facultyAssigned: document.getElementById('subjFaculty').value
         };
 
         const baseUrl = window.APP_CONFIG.getApiBaseUrl();
@@ -306,7 +316,11 @@
         document.getElementById('subjReg').value = s.regulation || '2021';
         document.getElementById('subjCat').value = s.category || 'Theory';
         document.getElementById('subjYear').value = s.year;
+        
+        // Rebind cascading year -> sem for modal
+        window.bindYearSemesterCascading(document.getElementById('subjYear'), document.getElementById('subjSem'), false);
         document.getElementById('subjSem').value = s.semester;
+
         document.getElementById('subjCredits').value = s.credits || 4;
         document.getElementById('subjHours').value = s.hoursPerWeek || 4;
         document.getElementById('subjFaculty').value = s.facultyAssigned || s.facultyName || '';
