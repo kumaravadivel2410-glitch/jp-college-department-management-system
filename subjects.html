@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JP College ERP - Subjects Directory</title>
+  <title>JP College ERP - Course Subjects & Syllabus</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -13,30 +16,175 @@
 
   <main class="main-content-wrapper">
     <div class="page-header-title">
-      <h2><i class="fa-solid fa-book-open"></i> Course Subjects & Syllabus</h2>
-    </div>
-
-    <!-- Data Table Card -->
-    <div class="card-glass">
-      <div class="table-responsive">
-        <table class="custom-table">
-          <thead>
-            <tr>
-              <th>Subject Code</th>
-              <th>Subject Title</th>
-              <th>Department</th>
-              <th>Semester</th>
-              <th>Credits</th>
-              <th>Faculty Assigned</th>
-            </tr>
-          </thead>
-          <tbody id="subjectsTableBody">
-            <!-- Dynamic subjects -->
-          </tbody>
-        </table>
+      <h2><i class="fa-solid fa-book-open" style="color: var(--primary);"></i> Engineering Course Subjects Directory</h2>
+      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <a href="import-export.html" class="btn-secondary"><i class="fa-solid fa-file-import"></i> Bulk Import Subjects</a>
+        <button id="exportSubjectsBtn" class="btn-secondary"><i class="fa-solid fa-file-excel"></i> Export Catalog</button>
+        <button id="openAddSubjectModalBtn" class="btn-primary" style="display:none;"><i class="fa-solid fa-plus-circle"></i> Add Course Subject</button>
       </div>
     </div>
+
+    <!-- Filter Bar -->
+    <div class="card-glass" style="margin-bottom: 1.5rem;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Department</label>
+          <select id="subjFilterDept" class="form-control">
+            <option value="All">All Departments</option>
+            <option value="AI & DS" selected>AI & DS</option>
+            <option value="CSE">CSE</option>
+            <option value="ECE">ECE</option>
+            <option value="EEE">EEE</option>
+            <option value="MECH">Mechanical</option>
+            <option value="CIVIL">Civil</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Year</label>
+          <select id="subjFilterYear" class="form-control">
+            <option value="All">All Years</option>
+            <option value="I Year">I Year</option>
+            <option value="II Year">II Year</option>
+            <option value="III Year" selected>III Year</option>
+            <option value="IV Year">IV Year</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Semester</label>
+          <select id="subjFilterSem" class="form-control">
+            <option value="All">All Semesters</option>
+            <option value="Semester V" selected>Semester V</option>
+            <option value="Semester VI">Semester VI</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Category</label>
+          <select id="subjFilterCat" class="form-control">
+            <option value="All">All Categories</option>
+            <option value="Theory">Theory</option>
+            <option value="Practical">Practical</option>
+            <option value="Laboratory">Laboratory</option>
+            <option value="Project">Project</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Subjects Table -->
+    <div class="table-responsive">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Subject Code</th>
+            <th>Subject Name</th>
+            <th>Department</th>
+            <th>Reg & Category</th>
+            <th>Year & Sem</th>
+            <th>Credits</th>
+            <th>Hours/Wk</th>
+            <th>Assigned Faculty</th>
+            <th style="width: 120px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="subjectsTableBody">
+          <!-- Dynamic Subjects Rows -->
+        </tbody>
+      </table>
+    </div>
   </main>
+
+  <!-- Add/Edit Subject Modal -->
+  <div class="modal-overlay" id="subjectModal">
+    <div class="modal-box" style="max-width: 650px;">
+      <div class="modal-header">
+        <h3 id="subjModalTitle"><i class="fa-solid fa-book-open" style="color: var(--primary);"></i> Add Course Subject</h3>
+        <button class="close-modal-btn" id="closeSubjModalBtn">&times;</button>
+      </div>
+      <form id="subjectForm">
+        <input type="hidden" id="editSubjDbId">
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Subject Code *</label>
+            <input type="text" id="subjCode" class="form-control" placeholder="AD3501" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Subject Name *</label>
+            <input type="text" id="subjName" class="form-control" placeholder="Deep Learning" required>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Department *</label>
+            <select id="subjDept" class="form-control">
+              <option value="AI & DS">AI & DS</option>
+              <option value="CSE">CSE</option>
+              <option value="ECE">ECE</option>
+              <option value="EEE">EEE</option>
+              <option value="MECH">Mechanical</option>
+              <option value="CIVIL">Civil</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Regulation</label>
+            <select id="subjReg" class="form-control">
+              <option value="2021" selected>2021 Regulation</option>
+              <option value="2023">2023 Regulation</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <select id="subjCat" class="form-control">
+              <option value="Theory">Theory</option>
+              <option value="Practical">Practical</option>
+              <option value="Laboratory">Laboratory</option>
+              <option value="Project">Project</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Year</label>
+            <select id="subjYear" class="form-control">
+              <option value="I Year">I Year</option>
+              <option value="II Year">II Year</option>
+              <option value="III Year" selected>III Year</option>
+              <option value="IV Year">IV Year</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Semester</label>
+            <select id="subjSem" class="form-control">
+              <option value="Semester V" selected>Semester V</option>
+              <option value="Semester VI">Semester VI</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Credits</label>
+            <input type="number" id="subjCredits" class="form-control" value="4" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Hours/Wk</label>
+            <input type="number" id="subjHours" class="form-control" value="4">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Assigned Faculty</label>
+          <input type="text" id="subjFaculty" class="form-control" placeholder="Dr. M. Senthil Kumar">
+        </div>
+
+        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 0.5rem;">
+          <i class="fa-solid fa-save"></i> Save Subject Record
+        </button>
+      </form>
+    </div>
+  </div>
 
   <footer>
     &copy; 2026 J.P. College of Engineering. All rights reserved. Department Management ERP System.
@@ -45,6 +193,146 @@
   <script src="js/config.js"></script>
   <script src="js/api.js"></script>
   <script src="js/navbar.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/export.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const user = JSON.parse(localStorage.getItem('jp_dms_user')) || {};
+      const isFacultyOrAdmin = user.role === 'faculty' || user.role === 'admin' || user.role === 'super_admin';
+
+      if (isFacultyOrAdmin) {
+        document.getElementById('openAddSubjectModalBtn').style.display = 'inline-flex';
+      }
+
+      let subjectsList = [];
+      const modal = document.getElementById('subjectModal');
+
+      document.getElementById('openAddSubjectModalBtn')?.addEventListener('click', () => {
+        document.getElementById('editSubjDbId').value = '';
+        document.getElementById('subjModalTitle').innerHTML = '<i class="fa-solid fa-book-open" style="color: var(--primary);"></i> Add Course Subject';
+        document.getElementById('subjectForm').reset();
+        modal.classList.add('active');
+      });
+
+      document.getElementById('closeSubjModalBtn')?.addEventListener('click', () => modal.classList.remove('active'));
+
+      const fetchSubjects = async () => {
+        const tbody = document.getElementById('subjectsTableBody');
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:2rem; color:var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> Loading course subjects...</td></tr>';
+
+        const dept = document.getElementById('subjFilterDept').value;
+        const year = document.getElementById('subjFilterYear').value;
+        const sem = document.getElementById('subjFilterSem').value;
+
+        try {
+          const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+          const query = `?department=${encodeURIComponent(dept)}&year=${encodeURIComponent(year)}&semester=${encodeURIComponent(sem)}`;
+          const res = await fetch(`${baseUrl}/subjects${query}`);
+          const json = await res.json();
+          subjectsList = json.data || [];
+
+          if (subjectsList.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:2rem; color:var(--text-secondary);">No course subjects configured.</td></tr>';
+            return;
+          }
+
+          tbody.innerHTML = subjectsList.map(s => `
+            <tr>
+              <td style="font-weight:700; color:var(--primary);">${s.subjectCode}</td>
+              <td style="font-weight:700; color:#1E3A8A;">${s.subjectName}</td>
+              <td>${s.department}</td>
+              <td><span class="badge badge-primary">${s.regulation || '2021'} (${s.category || 'Theory'})</span></td>
+              <td>${s.year} (${s.semester})</td>
+              <td style="font-weight:700;">${s.credits || 4}</td>
+              <td>${s.hoursPerWeek || 4} hrs</td>
+              <td>${s.facultyAssigned || s.facultyName || '-'}</td>
+              <td>
+                <div style="display:flex; gap:0.35rem;">
+                  ${isFacultyOrAdmin ? `<button onclick="editSubject('${s._id}')" class="btn-secondary" style="padding:0.35rem 0.6rem; font-size:0.75rem;" title="Edit"><i class="fa-solid fa-pen"></i></button>` : ''}
+                  ${isFacultyOrAdmin ? `<button onclick="deleteSubject('${s._id}')" class="btn-danger" style="padding:0.35rem 0.6rem; font-size:0.75rem;" title="Delete"><i class="fa-solid fa-trash"></i></button>` : ''}
+                </div>
+              </td>
+            </tr>
+          `).join('');
+
+        } catch (err) {
+          tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:var(--error);">Failed to load course subjects.</td></tr>';
+        }
+      };
+
+      document.querySelectorAll('#subjFilterDept, #subjFilterYear, #subjFilterSem, #subjFilterCat').forEach(el => el.addEventListener('change', fetchSubjects));
+
+      document.getElementById('subjectForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('editSubjDbId').value;
+        const payload = {
+          subjectCode: document.getElementById('subjCode').value,
+          subjectName: document.getElementById('subjName').value,
+          department: document.getElementById('subjDept').value,
+          regulation: document.getElementById('subjReg').value,
+          category: document.getElementById('subjCat').value,
+          year: document.getElementById('subjYear').value,
+          semester: document.getElementById('subjSem').value,
+          credits: Number(document.getElementById('subjCredits').value),
+          hoursPerWeek: Number(document.getElementById('subjHours').value),
+          facultyAssigned: document.getElementById('subjFaculty').value,
+          facultyName: document.getElementById('subjFaculty').value
+        };
+
+        const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+        const token = localStorage.getItem('jp_dms_token');
+        const url = id ? `${baseUrl}/subjects/${id}` : `${baseUrl}/subjects`;
+        const method = id ? 'PUT' : 'POST';
+
+        const res = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        alert(data.message || 'Subject record saved!');
+        modal.classList.remove('active');
+        fetchSubjects();
+      });
+
+      window.editSubject = (id) => {
+        const s = subjectsList.find(x => x._id === id);
+        if (!s) return;
+
+        document.getElementById('editSubjDbId').value = s._id;
+        document.getElementById('subjCode').value = s.subjectCode;
+        document.getElementById('subjName').value = s.subjectName;
+        document.getElementById('subjDept').value = s.department;
+        document.getElementById('subjReg').value = s.regulation || '2021';
+        document.getElementById('subjCat').value = s.category || 'Theory';
+        document.getElementById('subjYear').value = s.year;
+        document.getElementById('subjSem').value = s.semester;
+        document.getElementById('subjCredits').value = s.credits || 4;
+        document.getElementById('subjHours').value = s.hoursPerWeek || 4;
+        document.getElementById('subjFaculty').value = s.facultyAssigned || s.facultyName || '';
+
+        document.getElementById('subjModalTitle').innerHTML = '<i class="fa-solid fa-pen" style="color: var(--primary);"></i> Edit Course Subject';
+        modal.classList.add('active');
+      };
+
+      window.deleteSubject = async (id) => {
+        if (!confirm('Delete this course subject?')) return;
+        const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+        const token = localStorage.getItem('jp_dms_token');
+        await fetch(`${baseUrl}/subjects/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        fetchSubjects();
+      };
+
+      document.getElementById('exportSubjectsBtn').addEventListener('click', () => {
+        if (!subjectsList.length) return alert('No subjects data to export.');
+        exporter.exportToExcel('JP_College_Subjects', subjectsList);
+      });
+
+      fetchSubjects();
+    });
+  </script>
 </body>
 </html>
