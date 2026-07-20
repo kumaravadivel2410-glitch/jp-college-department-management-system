@@ -7,6 +7,16 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .clickable-stat-card {
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .clickable-stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.15);
+    }
+  </style>
 </head>
 <body>
 
@@ -47,15 +57,15 @@
 
       <!-- Student Stats Cards -->
       <div class="stats-grid">
-        <div class="stat-card">
+        <div class="stat-card clickable-stat-card" onclick="window.location.href='attendance.html'">
           <div class="stat-icon-wrapper"><i class="fa-solid fa-chart-pie"></i></div>
           <div class="stat-info">
             <div class="stat-number" id="stuOverallAttendance">96%</div>
-            <div class="stat-label">Overall Attendance</div>
+            <div class="stat-label">My Attendance Ratio</div>
           </div>
         </div>
 
-        <div class="stat-card">
+        <div class="stat-card clickable-stat-card" onclick="window.location.href='semester-marks.html'">
           <div class="stat-icon-wrapper"><i class="fa-solid fa-graduation-cap"></i></div>
           <div class="stat-info">
             <div class="stat-number" id="stuCgpa">9.2 CGPA</div>
@@ -63,7 +73,7 @@
           </div>
         </div>
 
-        <div class="stat-card">
+        <div class="stat-card clickable-stat-card" onclick="window.location.href='internal-marks.html'">
           <div class="stat-icon-wrapper"><i class="fa-solid fa-file-signature"></i></div>
           <div class="stat-info">
             <div class="stat-number" id="stuInternalAvg">47.6 / 50</div>
@@ -71,7 +81,7 @@
           </div>
         </div>
 
-        <div class="stat-card">
+        <div class="stat-card clickable-stat-card" onclick="window.location.href='assignments.html'">
           <div class="stat-icon-wrapper"><i class="fa-solid fa-tasks"></i></div>
           <div class="stat-info">
             <div class="stat-number" id="stuPendingAssignments">1 Pending</div>
@@ -86,15 +96,10 @@
         <!-- Attendance Gauge Chart -->
         <div class="card-glass">
           <h3 style="font-size: 1.1rem; font-weight: 700; color: #1E3A8A; margin-bottom: 1rem;">
-            <i class="fa-solid fa-calendar-check" style="color: var(--primary);"></i> Attendance Analytics
+            <i class="fa-solid fa-calendar-check" style="color: var(--primary);"></i> My Attendance Analytics
           </h3>
           <div style="height: 220px; position: relative;">
             <canvas id="studentAttendanceChart"></canvas>
-          </div>
-          <div style="display: flex; justify-content: space-around; font-size: 0.85rem; margin-top: 1rem; background: #F8FAFC; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border-subtle);">
-            <div>Total Classes: <strong style="color:var(--primary);">60</strong></div>
-            <div>Present: <strong style="color:var(--success);">58</strong></div>
-            <div>Absent: <strong style="color:var(--error);">2</strong></div>
           </div>
         </div>
 
@@ -124,46 +129,6 @@
 
       </div>
 
-      <!-- Semester Marks & Notes Grid -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
-        
-        <div class="card-glass">
-          <h3 style="font-size: 1.1rem; font-weight: 700; color: #1E3A8A; margin-bottom: 1rem;">
-            <i class="fa-solid fa-graduation-cap" style="color: var(--primary);"></i> Semester Grade Sheet
-          </h3>
-          <div class="table-responsive">
-            <table class="custom-table">
-              <thead>
-                <tr>
-                  <th>Code</th>
-                  <th>Subject</th>
-                  <th>Grade</th>
-                  <th>Marks</th>
-                  <th>Credits</th>
-                  <th>Result</th>
-                </tr>
-              </thead>
-              <tbody id="stuSemesterTbody">
-                <!-- Dynamic Semester Marks -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="card-glass">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-            <h3 style="font-size: 1.1rem; font-weight: 700; color: #1E3A8A;">
-              <i class="fa-solid fa-file-pdf" style="color: var(--primary);"></i> Subject Notes Repository
-            </h3>
-            <a href="subject-notes.html" class="btn-secondary" style="font-size: 0.75rem; padding: 0.35rem 0.75rem;">View All</a>
-          </div>
-          <div id="stuNotesList" style="display: flex; flex-direction: column; gap: 0.75rem;">
-            <!-- Dynamic Notes -->
-          </div>
-        </div>
-
-      </div>
-
     </div>
 
 
@@ -176,9 +141,9 @@
         </a>
       </div>
 
-      <!-- General Stats Grid -->
-      <div class="stats-grid">
-        <div class="stat-card">
+      <!-- General Dynamic Stats Grid -->
+      <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+        <div class="stat-card clickable-stat-card" onclick="window.location.href='students.html'">
           <div class="stat-icon-wrapper"><i class="fa-solid fa-user-graduate"></i></div>
           <div class="stat-info">
             <div class="stat-number" id="dashTotalStudents">0</div>
@@ -186,7 +151,7 @@
           </div>
         </div>
 
-        <div class="stat-card">
+        <div class="stat-card clickable-stat-card" onclick="window.location.href='faculty.html'">
           <div class="stat-icon-wrapper"><i class="fa-solid fa-chalkboard-user"></i></div>
           <div class="stat-info">
             <div class="stat-number" id="dashTotalFaculty">0</div>
@@ -194,7 +159,7 @@
           </div>
         </div>
 
-        <div class="stat-card">
+        <div class="stat-card clickable-stat-card" onclick="window.location.href='departments.html'">
           <div class="stat-icon-wrapper"><i class="fa-solid fa-building-columns"></i></div>
           <div class="stat-info">
             <div class="stat-number" id="dashTotalDepts">6</div>
@@ -202,34 +167,36 @@
           </div>
         </div>
 
-        <div class="stat-card">
+        <div class="stat-card clickable-stat-card" onclick="window.location.href='subjects.html'">
           <div class="stat-icon-wrapper"><i class="fa-solid fa-book-open"></i></div>
           <div class="stat-info">
             <div class="stat-number" id="dashTotalSubjects">0</div>
             <div class="stat-label">Active Subjects</div>
           </div>
         </div>
-      </div>
 
-      <!-- Quick Executive Actions -->
-      <div class="card-glass" style="margin-bottom: 1.5rem;">
-        <h3 style="font-size: 1.1rem; font-weight: 700; color: #1E3A8A; margin-bottom: 1rem;">
-          <i class="fa-solid fa-bolt" style="color: var(--primary);"></i> Quick Operations
-        </h3>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-          <a href="attendance.html" class="btn-secondary" style="justify-content: center; padding: 0.85rem;"><i class="fa-solid fa-calendar-check"></i> Mark Attendance</a>
-          <a href="internal-marks.html" class="btn-secondary" style="justify-content: center; padding: 0.85rem;"><i class="fa-solid fa-file-signature"></i> Enter Internal Marks</a>
-          <a href="assignments.html" class="btn-secondary" style="justify-content: center; padding: 0.85rem;"><i class="fa-solid fa-tasks"></i> Publish Assignment</a>
-          <a href="subject-notes.html" class="btn-secondary" style="justify-content: center; padding: 0.85rem;"><i class="fa-solid fa-file-arrow-up"></i> Upload Notes</a>
-          <a href="settings.html" class="btn-secondary" style="justify-content: center; padding: 0.85rem;"><i class="fa-solid fa-file-excel"></i> Bulk Excel Import</a>
+        <div class="stat-card clickable-stat-card" onclick="window.location.href='classes.html'">
+          <div class="stat-icon-wrapper"><i class="fa-solid fa-door-open"></i></div>
+          <div class="stat-info">
+            <div class="stat-number" id="dashTotalClasses">0</div>
+            <div class="stat-label">Active Classes</div>
+          </div>
+        </div>
+
+        <div class="stat-card clickable-stat-card" onclick="window.location.href='attendance.html'">
+          <div class="stat-icon-wrapper"><i class="fa-solid fa-calendar-check"></i></div>
+          <div class="stat-info">
+            <div class="stat-number" id="dashAttendanceRatio">92.5%</div>
+            <div class="stat-label">Attendance Ratio</div>
+          </div>
         </div>
       </div>
 
-      <!-- Executive Charts Row -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.5rem;">
+      <!-- Executive Real-Time Charts Grid -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
         <div class="card-glass">
           <h3 style="font-size: 1.1rem; font-weight: 700; color: #1E3A8A; margin-bottom: 1rem;">
-            <i class="fa-solid fa-chart-column" style="color: var(--primary);"></i> Department Student Distribution
+            <i class="fa-solid fa-chart-column" style="color: var(--primary);"></i> Students by Department
           </h3>
           <div style="height: 250px;">
             <canvas id="deptDistributionChart"></canvas>
@@ -238,10 +205,31 @@
 
         <div class="card-glass">
           <h3 style="font-size: 1.1rem; font-weight: 700; color: #1E3A8A; margin-bottom: 1rem;">
-            <i class="fa-solid fa-chart-line" style="color: var(--primary);"></i> Overall Attendance Ratio
+            <i class="fa-solid fa-chart-bar" style="color: var(--primary);"></i> Students by Semester (Sem 1 - Sem 8)
           </h3>
           <div style="height: 250px;">
-            <canvas id="attendanceRatioChart"></canvas>
+            <canvas id="semesterDistributionChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Additional Charts Row -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.5rem;">
+        <div class="card-glass">
+          <h3 style="font-size: 1.1rem; font-weight: 700; color: #1E3A8A; margin-bottom: 1rem;">
+            <i class="fa-solid fa-users-gear" style="color: var(--primary);"></i> Faculty by Department
+          </h3>
+          <div style="height: 230px;">
+            <canvas id="facultyDeptChart"></canvas>
+          </div>
+        </div>
+
+        <div class="card-glass">
+          <h3 style="font-size: 1.1rem; font-weight: 700; color: #1E3A8A; margin-bottom: 1rem;">
+            <i class="fa-solid fa-chart-pie" style="color: var(--primary);"></i> Semester Pass vs Fail Result
+          </h3>
+          <div style="height: 230px;">
+            <canvas id="semesterResultChart"></canvas>
           </div>
         </div>
       </div>
@@ -310,56 +298,23 @@
           `).join('');
         } catch(e){}
 
-        try {
-          const baseUrl = window.APP_CONFIG.getApiBaseUrl();
-          const regNo = user.registerNo || '953621104001';
-          const res = await fetch(`${baseUrl}/semester-marks?studentRegisterNo=${regNo}`);
-          const json = await res.json();
-          const list = json.data || [];
-
-          document.getElementById('stuSemesterTbody').innerHTML = list.map(m => `
-            <tr>
-              <td>${m.subjectCode}</td>
-              <td style="font-weight:700; color:var(--primary);">${m.subjectName}</td>
-              <td><span class="badge badge-primary">${m.grade}</span></td>
-              <td>${m.marks || 95}</td>
-              <td>${m.credits || 4}</td>
-              <td><span class="badge badge-success">${m.result}</span></td>
-            </tr>
-          `).join('');
-        } catch(e){}
-
-        try {
-          const baseUrl = window.APP_CONFIG.getApiBaseUrl();
-          const res = await fetch(`${baseUrl}/notes`);
-          const json = await res.json();
-          const list = json.data || [];
-
-          document.getElementById('stuNotesList').innerHTML = list.slice(0, 3).map(n => `
-            <div style="background:#F8FAFC; padding:0.85rem; border-radius:8px; border:1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center;">
-              <div>
-                <div style="font-weight:700; color:#1E3A8A; font-size:0.9rem;">${n.title}</div>
-                <div style="font-size:0.75rem; color:var(--text-secondary);">${n.subjectName} | ${n.uploadedBy}</div>
-              </div>
-              <a href="${n.fileUrl}" target="_blank" class="btn-primary" style="padding:0.4rem 0.75rem; font-size:0.75rem;"><i class="fa-solid fa-download"></i> Download</a>
-            </div>
-          `).join('');
-        } catch(e){}
-
       } else {
         document.getElementById('studentPortalContainer').style.display = 'none';
         document.getElementById('adminFacultyPortalContainer').style.display = 'block';
 
+        let stats = {};
         try {
           const baseUrl = window.APP_CONFIG.getApiBaseUrl();
           const res = await fetch(`${baseUrl}/stats`);
           const json = await res.json();
-          const stats = json.stats || {};
+          stats = json.stats || {};
 
           document.getElementById('dashTotalStudents').textContent = stats.totalStudents || 0;
           document.getElementById('dashTotalFaculty').textContent = stats.totalFaculty || 0;
           document.getElementById('dashTotalDepts').textContent = stats.totalDepartments || 6;
           document.getElementById('dashTotalSubjects').textContent = stats.totalSubjects || 0;
+          document.getElementById('dashTotalClasses').textContent = stats.totalClasses || 0;
+          document.getElementById('dashAttendanceRatio').textContent = `${stats.overallAttendanceRatio || 92.5}%`;
 
           if (stats.pendingApprovals > 0 && (role === 'admin' || role === 'super_admin')) {
             document.getElementById('dashPendingCount').textContent = stats.pendingApprovals;
@@ -367,14 +322,16 @@
           }
         } catch(e){}
 
+        // Students by Department Chart
+        const deptMap = stats.studentsByDepartment || { 'AI & DS': 120, 'CSE': 180, 'ECE': 150, 'EEE': 90, 'Mechanical': 110, 'Civil': 85 };
         const deptCtx = document.getElementById('deptDistributionChart').getContext('2d');
         new Chart(deptCtx, {
           type: 'bar',
           data: {
-            labels: ['AI & DS', 'CSE', 'ECE', 'EEE', 'MECH', 'CIVIL'],
+            labels: Object.keys(deptMap),
             datasets: [{
-              label: 'Students Count',
-              data: [120, 180, 150, 90, 110, 85],
+              label: 'Enrolled Students',
+              data: Object.values(deptMap),
               backgroundColor: '#2563EB',
               borderRadius: 6
             }]
@@ -382,22 +339,57 @@
           options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#1F2937' } } } }
         });
 
-        const attRatioCtx = document.getElementById('attendanceRatioChart').getContext('2d');
-        new Chart(attRatioCtx, {
-          type: 'line',
+        // Students by Semester Chart
+        const semMap = stats.studentsBySemester || { 'Sem 1': 60, 'Sem 2': 60, 'Sem 3': 70, 'Sem 4': 70, 'Sem 5': 120, 'Sem 6': 110, 'Sem 7': 90, 'Sem 8': 85 };
+        const semCtx = document.getElementById('semesterDistributionChart').getContext('2d');
+        new Chart(semCtx, {
+          type: 'bar',
           data: {
-            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+            labels: Object.keys(semMap),
             datasets: [{
-              label: 'Daily Attendance %',
-              data: [95, 96, 94, 98, 97, 95],
-              borderColor: '#2563EB',
-              backgroundColor: 'rgba(37, 99, 235, 0.12)',
-              fill: true,
-              tension: 0.4
+              label: 'Students Count',
+              data: Object.values(semMap),
+              backgroundColor: '#3B82F6',
+              borderRadius: 6
             }]
           },
           options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#1F2937' } } } }
         });
+
+        // Faculty by Department Chart
+        const facDeptMap = stats.facultyByDepartment || { 'AI & DS': 8, 'CSE': 12, 'ECE': 10, 'EEE': 6, 'Mechanical': 8, 'Civil': 6 };
+        const facCtx = document.getElementById('facultyDeptChart').getContext('2d');
+        new Chart(facCtx, {
+          type: 'bar',
+          data: {
+            labels: Object.keys(facDeptMap),
+            datasets: [{
+              label: 'Faculty Members',
+              data: Object.values(facDeptMap),
+              backgroundColor: '#16A34A',
+              borderRadius: 6
+            }]
+          },
+          options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#1F2937' } } } }
+        });
+
+        // Semester Pass vs Fail Donut Chart
+        const resultData = stats.semesterResults || { Pass: 450, Fail: 25 };
+        const resultCtx = document.getElementById('semesterResultChart').getContext('2d');
+        new Chart(resultCtx, {
+          type: 'doughnut',
+          data: {
+            labels: [`Pass (${resultData.Pass || 450})`, `Fail (${resultData.Fail || 25})`],
+            datasets: [{
+              data: [resultData.Pass || 450, resultData.Fail || 25],
+              backgroundColor: ['#16A34A', '#DC2626'],
+              borderColor: '#FFFFFF',
+              borderWidth: 3
+            }]
+          },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#1F2937' } } } }
+        });
+
       }
     });
   </script>
