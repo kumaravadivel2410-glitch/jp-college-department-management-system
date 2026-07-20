@@ -3,7 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const controllers = require('../controllers/apiControllers');
-const { verifyToken, authorizeRoles, enforceStudentAcademicScope } = require('../middleware/authMiddleware');
+const { verifyToken, authorizeRoles, enforceStudentAcademicScope, enforceFacultyAcademicScope } = require('../middleware/authMiddleware');
 
 // Configure Multer for secure file upload
 const storage = multer.diskStorage({
@@ -21,12 +21,12 @@ const upload = multer({
   limits: { fileSize: 25 * 1024 * 1024 }
 });
 
-// Helper to mount CRUD routes with Student Academic Scope Enforcement
+// Helper to mount CRUD routes with Role-Based Scope Enforcement
 const mountCrud = (prefix, controller) => {
-  router.get(`/${prefix}`, verifyToken, enforceStudentAcademicScope, controller.getAll);
-  router.post(`/${prefix}`, verifyToken, enforceStudentAcademicScope, controller.create);
-  router.put(`/${prefix}/:id`, verifyToken, enforceStudentAcademicScope, controller.update);
-  router.delete(`/${prefix}/:id`, verifyToken, enforceStudentAcademicScope, controller.delete);
+  router.get(`/${prefix}`, verifyToken, enforceFacultyAcademicScope, enforceStudentAcademicScope, controller.getAll);
+  router.post(`/${prefix}`, verifyToken, enforceFacultyAcademicScope, enforceStudentAcademicScope, controller.create);
+  router.put(`/${prefix}/:id`, verifyToken, enforceFacultyAcademicScope, enforceStudentAcademicScope, controller.update);
+  router.delete(`/${prefix}/:id`, verifyToken, enforceFacultyAcademicScope, enforceStudentAcademicScope, controller.delete);
 };
 
 // Auth & Registration Routes

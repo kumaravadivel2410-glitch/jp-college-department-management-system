@@ -94,9 +94,25 @@ const enforceStudentAcademicScope = (req, res, next) => {
   next();
 };
 
+// Enforcement Middleware for Faculty Academic Scope
+const enforceFacultyAcademicScope = (req, res, next) => {
+  if (!req.user || req.user.role !== 'faculty') {
+    return next(); // Admins bypass faculty scope restrictions
+  }
+
+  if (req.user.department && req.user.department !== 'All') {
+    if (!req.query.department || req.query.department === 'All') {
+      req.query.department = req.user.department;
+    }
+  }
+
+  next();
+};
+
 module.exports = {
   verifyToken,
   authorizeRoles,
   enforceStudentAcademicScope,
+  enforceFacultyAcademicScope,
   JWT_SECRET
 };
