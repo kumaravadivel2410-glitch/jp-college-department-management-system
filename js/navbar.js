@@ -17,6 +17,7 @@ class NavbarComponent {
       { name: 'Subject Notes', url: 'subject-notes.html', path: '/subject-notes', icon: 'fa-file-pdf', roles: ['super_admin', 'admin', 'faculty', 'student'] },
       { name: 'Assignments', url: 'assignments.html', path: '/assignments', icon: 'fa-tasks', roles: ['super_admin', 'admin', 'faculty', 'student'] },
       { name: 'Timetable', url: 'timetable.html', path: '/timetable', icon: 'fa-calendar-days', roles: ['super_admin', 'admin', 'faculty', 'student'] },
+      { name: 'Import & Export', url: 'import-export.html', path: '/import-export', icon: 'fa-file-import', roles: ['super_admin', 'admin', 'faculty'] },
       { name: 'Reports', url: 'reports.html', path: '/reports', icon: 'fa-chart-line', roles: ['super_admin', 'admin', 'faculty'] },
       { name: 'Downloads', url: 'downloads.html', path: '/downloads', icon: 'fa-download', roles: ['super_admin', 'admin', 'faculty', 'student'] },
       { name: 'History', url: 'history.html', path: '/history', icon: 'fa-clock-rotate-left', roles: ['super_admin', 'admin'] },

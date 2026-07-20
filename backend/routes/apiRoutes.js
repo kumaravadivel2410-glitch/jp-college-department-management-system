@@ -74,6 +74,16 @@ router.post('/reports/generate', verifyToken, controllers.reports.generate);
 // Import & Export Data Routes
 router.post('/import', verifyToken, controllers.importExport.importData);
 router.post('/import/file', verifyToken, upload.single('file'), controllers.importExport.importFile);
+router.post('/import/students', verifyToken, upload.single('file'), (req, res, next) => { req.body.target = 'students'; next(); }, controllers.importExport.importFile);
+router.post('/import/faculty', verifyToken, upload.single('file'), (req, res, next) => { req.body.target = 'faculty'; next(); }, controllers.importExport.importFile);
+router.post('/import/attendance', verifyToken, upload.single('file'), (req, res, next) => { req.body.target = 'attendance'; next(); }, controllers.importExport.importFile);
+router.post('/import/internalmarks', verifyToken, upload.single('file'), (req, res, next) => { req.body.target = 'internalMarks'; next(); }, controllers.importExport.importFile);
+router.post('/import/semestermarks', verifyToken, upload.single('file'), (req, res, next) => { req.body.target = 'semesterMarks'; next(); }, controllers.importExport.importFile);
+router.post('/import/subjects', verifyToken, upload.single('file'), (req, res, next) => { req.body.target = 'subjects'; next(); }, controllers.importExport.importFile);
+router.post('/import/classes', verifyToken, upload.single('file'), (req, res, next) => { req.body.target = 'classes'; next(); }, controllers.importExport.importFile);
+router.post('/import/timetable', verifyToken, upload.single('file'), (req, res, next) => { req.body.target = 'timetables'; next(); }, controllers.importExport.importFile);
+router.post('/import/notes', verifyToken, upload.single('file'), (req, res, next) => { req.body.target = 'notes'; next(); }, controllers.importExport.importFile);
+router.post('/import/assignments', verifyToken, upload.single('file'), (req, res, next) => { req.body.target = 'assignments'; next(); }, controllers.importExport.importFile);
 router.get('/export', verifyToken, controllers.importExport.exportData);
 
 // Stats Route

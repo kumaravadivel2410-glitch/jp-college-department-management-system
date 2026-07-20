@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JP College ERP - Enterprise Import & Export Center</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .dropzone {
+      border: 2px dashed var(--primary);
+      border-radius: var(--radius-md);
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      background: var(--primary-light);
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+    .dropzone.dragover {
+      background: #DBEAFE;
+      border-color: var(--primary-hover);
+    }
+    .progress-bar-wrapper {
+      width: 100%;
+      background: #E5E7EB;
+      border-radius: 20px;
+      height: 10px;
+      overflow: hidden;
+      margin-top: 0.75rem;
+      display: none;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--primary);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="navbar-container"></div>
+
+  <main class="main-content-wrapper">
+    <div class="page-header-title">
+      <h2><i class="fa-solid fa-file-import" style="color: var(--primary);"></i> ERP Enterprise Import & Export Center</h2>
+      <div style="display: flex; gap: 0.75rem;">
+        <button id="downloadSampleBtn" class="btn-secondary">
+          <i class="fa-solid fa-file-excel" style="color: #16A34A;"></i> Download Sample Templates
+        </button>
+      </div>
+    </div>
+
+    <!-- Step-by-Step Import Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+      
+      <!-- Import Control Box -->
+      <div class="card-glass">
+        <h3 style="font-size: 1.15rem; font-weight: 800; color: #1E3A8A; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+          <i class="fa-solid fa-cloud-arrow-up" style="color: var(--primary);"></i> Upload Spreadsheet (.xlsx / .csv)
+        </h3>
+
+        <form id="enterpriseImportForm">
+          <!-- Module & Filter Selection -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.85rem; margin-bottom: 1rem;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Target Module *</label>
+              <select id="impModule" class="form-control" style="font-weight: 700;">
+                <option value="students" selected>Students List</option>
+                <option value="faculty">Faculty Directory</option>
+                <option value="departments">Departments</option>
+                <option value="subjects">Subjects List</option>
+                <option value="classes">Classes & Advisors</option>
+                <option value="attendance">Attendance Records</option>
+                <option value="internalmarks">Internal Assessment Marks</option>
+                <option value="semestermarks">Semester Marks & GPA</option>
+                <option value="notes">Subject Notes Repository</option>
+                <option value="assignments">Course Assignments</option>
+                <option value="timetable">Class Timetable</option>
+              </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Department</label>
+              <select id="impDept" class="form-control">
+                <option value="AI & DS" selected>AI & DS</option>
+                <option value="CSE">CSE</option>
+                <option value="ECE">ECE</option>
+                <option value="EEE">EEE</option>
+                <option value="MECH">Mechanical</option>
+                <option value="CIVIL">Civil</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem; margin-bottom: 1rem;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Year</label>
+              <select id="impYear" class="form-control">
+                <option value="III Year" selected>III Year</option>
+                <option value="I Year">I Year</option>
+                <option value="II Year">II Year</option>
+                <option value="IV Year">IV Year</option>
+              </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Semester</label>
+              <select id="impSem" class="form-control">
+                <option value="Semester V" selected>Semester V</option>
+                <option value="Semester VI">Semester VI</option>
+              </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Section</label>
+              <select id="impSec" class="form-control">
+                <option value="A" selected>Section A</option>
+                <option value="B">Section B</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Dropzone -->
+          <div class="dropzone" id="entDropzone">
+            <i class="fa-solid fa-file-excel fa-3x" style="color: var(--primary); margin-bottom: 0.5rem;"></i>
+            <h4 style="font-size: 1rem; color: #1E3A8A; font-weight: 700;">Drag & Drop Excel (.xlsx) or CSV File Here</h4>
+            <p style="font-size: 0.8rem; color: var(--text-secondary);">or click to browse your computer</p>
+            <input type="file" id="entFileInput" accept=".xlsx,.xls,.csv" style="display: none;">
+            <div id="entBadge" style="margin-top: 0.5rem; font-weight: 700; color: var(--primary); font-size: 0.85rem; display: none;"></div>
+          </div>
+
+          <!-- Upload Progress -->
+          <div class="progress-bar-wrapper" id="uploadProgressWrapper">
+            <div class="progress-bar-fill" id="uploadProgressFill"></div>
+          </div>
+          <div id="progressPercentText" style="text-align:center; font-size:0.75rem; font-weight:700; color:var(--primary); margin-top:0.25rem; display:none;">0%</div>
+
+          <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
+            <button type="button" id="entPreviewBtn" class="btn-secondary" style="display: none; flex: 1; justify-content: center;">
+              <i class="fa-solid fa-eye"></i> Preview Row Data
+            </button>
+            <button type="submit" class="btn-primary" id="entSubmitBtn" style="flex: 2; justify-content: center;">
+              <i class="fa-solid fa-paper-plane"></i> Execute Import & Sync MongoDB
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Export Data Box -->
+      <div class="card-glass">
+        <h3 style="font-size: 1.15rem; font-weight: 800; color: #1E3A8A; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+          <i class="fa-solid fa-file-export" style="color: var(--primary);"></i> Multi-Format Data Export Center
+        </h3>
+
+        <div class="form-group">
+          <label class="form-label">Select Module to Export</label>
+          <select id="expTarget" class="form-control" style="font-weight: 700;">
+            <option value="students">Students Database</option>
+            <option value="faculty">Faculty Directory</option>
+            <option value="attendance">Attendance Records</option>
+            <option value="internalMarks">Internal Assessment Marks</option>
+            <option value="semesterMarks">Semester Marks & Grades</option>
+            <option value="subjects">Subjects List</option>
+            <option value="classes">Classes & Advisors</option>
+            <option value="timetable">Class Timetables</option>
+          </select>
+        </div>
+
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+          Generate structured report files directly from MongoDB Atlas database. Choose your preferred export format below:
+        </p>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem;">
+          <button type="button" id="expExcelBtn" class="btn-success" style="justify-content: center; padding: 0.75rem 0.5rem;">
+            <i class="fa-solid fa-file-excel"></i> Excel (.xlsx)
+          </button>
+          <button type="button" id="expCsvBtn" class="btn-secondary" style="justify-content: center; padding: 0.75rem 0.5rem;">
+            <i class="fa-solid fa-file-csv"></i> CSV File
+          </button>
+          <button type="button" id="expPdfBtn" class="btn-primary" style="justify-content: center; padding: 0.75rem 0.5rem;">
+            <i class="fa-solid fa-file-pdf"></i> PDF Document
+          </button>
+        </div>
+
+        <!-- Sample Templates Downloads Grid -->
+        <div style="margin-top: 2rem; border-top: 1px solid var(--border-subtle); padding-top: 1.25rem;">
+          <h4 style="font-size: 0.9rem; font-weight: 800; color: #1E3A8A; margin-bottom: 0.75rem;">
+            <i class="fa-solid fa-download" style="color: var(--primary);"></i> Download Sample Spreadsheet Templates
+          </h4>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.5rem;">
+            <button onclick="downloadSample('Students')" class="btn-secondary" style="font-size:0.75rem; padding:0.4rem;"><i class="fa-solid fa-file-excel"></i> Students.xlsx</button>
+            <button onclick="downloadSample('Faculty')" class="btn-secondary" style="font-size:0.75rem; padding:0.4rem;"><i class="fa-solid fa-file-excel"></i> Faculty.xlsx</button>
+            <button onclick="downloadSample('Attendance')" class="btn-secondary" style="font-size:0.75rem; padding:0.4rem;"><i class="fa-solid fa-file-excel"></i> Attendance.xlsx</button>
+            <button onclick="downloadSample('InternalMarks')" class="btn-secondary" style="font-size:0.75rem; padding:0.4rem;"><i class="fa-solid fa-file-excel"></i> InternalMarks.xlsx</button>
+            <button onclick="downloadSample('SemesterMarks')" class="btn-secondary" style="font-size:0.75rem; padding:0.4rem;"><i class="fa-solid fa-file-excel"></i> SemesterMarks.xlsx</button>
+            <button onclick="downloadSample('Subjects')" class="btn-secondary" style="font-size:0.75rem; padding:0.4rem;"><i class="fa-solid fa-file-excel"></i> Subjects.xlsx</button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Summary Box -->
+    <div class="card-glass" id="entSummaryBox" style="display: none; margin-bottom: 1.5rem;">
+      <h3 style="font-size: 1.1rem; font-weight: 800; color: #1E3A8A; margin-bottom: 1rem;">
+        <i class="fa-solid fa-square-poll-vertical" style="color: var(--primary);"></i> Real-Time Import Summary Report
+      </h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+        <div style="background:#DCFCE7; padding:0.85rem; border-radius:8px; text-align:center;"><div style="font-size:1.6rem; font-weight:800; color:#16A34A;" id="entSumInserted">0</div><div style="font-size:0.8rem; font-weight:700; color:#166534;">Inserted</div></div>
+        <div style="background:#EFF6FF; padding:0.85rem; border-radius:8px; text-align:center;"><div style="font-size:1.6rem; font-weight:800; color:#2563EB;" id="entSumUpdated">0</div><div style="font-size:0.8rem; font-weight:700; color:#1E40AF;">Updated</div></div>
+        <div style="background:#FEF3C7; padding:0.85rem; border-radius:8px; text-align:center;"><div style="font-size:1.6rem; font-weight:800; color:#B45309;" id="entSumSkipped">0</div><div style="font-size:0.8rem; font-weight:700; color:#78350F;">Skipped</div></div>
+        <div style="background:#FEE2E2; padding:0.85rem; border-radius:8px; text-align:center;"><div style="font-size:1.6rem; font-weight:800; color:#DC2626;" id="entSumErrors">0</div><div style="font-size:0.8rem; font-weight:700; color:#991B1B;">Errors</div></div>
+      </div>
+      <div id="entErrorsList" style="font-size:0.85rem; color:var(--error); max-height:150px; overflow-y:auto; background:#FFF; padding:0.75rem; border-radius:8px; border:1px solid var(--border-subtle);"></div>
+    </div>
+
+  </main>
+
+  <!-- Spreadsheet Data Preview Modal -->
+  <div class="modal-overlay" id="entPreviewModal">
+    <div class="modal-box" style="max-width: 900px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-table" style="color: var(--primary);"></i> Spreadsheet Row Preview</h3>
+        <button class="close-modal-btn" id="closeEntPreviewBtn">&times;</button>
+      </div>
+      <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+        <table class="custom-table">
+          <thead id="entPreviewThead"></thead>
+          <tbody id="entPreviewTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    &copy; 2026 J.P. College of Engineering. All rights reserved. Department Management ERP System.
+  </footer>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/navbar.js"></script>
+  <script src="js/export.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const dropzone = document.getElementById('entDropzone');
+      const fileInput = document.getElementById('entFileInput');
+      const badge = document.getElementById('entBadge');
+      const previewBtn = document.getElementById('entPreviewBtn');
+      const previewModal = document.getElementById('entPreviewModal');
+      let parsedRows = [];
+
+      dropzone.addEventListener('click', () => fileInput.click());
+      dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+      dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+      dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+        if (e.dataTransfer.files.length) {
+          fileInput.files = e.dataTransfer.files;
+          handleFileSelect(fileInput.files[0]);
+        }
+      });
+
+      fileInput.addEventListener('change', () => {
+        if (fileInput.files.length) handleFileSelect(fileInput.files[0]);
+      });
+
+      const handleFileSelect = (file) => {
+        badge.style.display = 'block';
+        badge.textContent = `📄 Selected File: ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+        previewBtn.style.display = 'inline-flex';
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            parsedRows = XLSX.utils.sheet_to_json(sheet);
+          } catch(err){}
+        };
+        reader.readAsArrayBuffer(file);
+      };
+
+      previewBtn.addEventListener('click', () => {
+        if (!parsedRows.length) return alert('No data parsed.');
+        const keys = Object.keys(parsedRows[0]);
+        document.getElementById('entPreviewThead').innerHTML = `<tr>${keys.map(k => `<th>${k}</th>`).join('')}</tr>`;
+        document.getElementById('entPreviewTbody').innerHTML = parsedRows.slice(0, 10).map(r => `
+          <tr>${keys.map(k => `<td>${r[k] !== undefined ? r[k] : ''}</td>`).join('')}</tr>
+        `).join('');
+        previewModal.classList.add('active');
+      });
+
+      document.getElementById('closeEntPreviewBtn')?.addEventListener('click', () => previewModal.classList.remove('active'));
+
+      // Form Submit
+      document.getElementById('enterpriseImportForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!fileInput.files[0]) return alert('Select or drop an Excel/CSV file.');
+
+        const moduleName = document.getElementById('impModule').value;
+        const submitBtn = document.getElementById('entSubmitBtn');
+        const progressWrapper = document.getElementById('uploadProgressWrapper');
+        const progressFill = document.getElementById('uploadProgressFill');
+        const percentText = document.getElementById('progressPercentText');
+
+        submitBtn.disabled = true;
+        progressWrapper.style.display = 'block';
+        percentText.style.display = 'block';
+        progressFill.style.width = '30%';
+        percentText.textContent = '30% - Uploading to Server...';
+
+        try {
+          const formData = new FormData();
+          formData.append('file', fileInput.files[0]);
+
+          const token = localStorage.getItem('jp_dms_token');
+          const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+
+          progressFill.style.width = '70%';
+          percentText.textContent = '70% - Parsing & Saving to MongoDB Atlas...';
+
+          const res = await fetch(`${baseUrl}/import/${moduleName}`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+            body: formData
+          });
+
+          const json = await res.json();
+          progressFill.style.width = '100%';
+          percentText.textContent = '100% - Import Completed!';
+
+          if (json.success) {
+            document.getElementById('entSummaryBox').style.display = 'block';
+            document.getElementById('entSumInserted').textContent = json.summary.inserted;
+            document.getElementById('entSumUpdated').textContent = json.summary.updated;
+            document.getElementById('entSumSkipped').textContent = json.summary.skipped;
+            document.getElementById('entSumErrors').textContent = json.summary.errorsCount;
+
+            if (json.errors && json.errors.length > 0) {
+              document.getElementById('entErrorsList').innerHTML = json.errors.map(err => `<div>• ${err}</div>`).join('');
+            } else {
+              document.getElementById('entErrorsList').innerHTML = '<div style="color:var(--success);">✅ All rows imported and validated successfully!</div>';
+            }
+
+            alert(json.message || 'Import execution succeeded!');
+          } else {
+            alert(`Import Error: ${json.message}`);
+          }
+        } catch (err) {
+          alert(`Network Error: ${err.message}`);
+        } finally {
+          submitBtn.disabled = false;
+          setTimeout(() => {
+            progressWrapper.style.display = 'none';
+            percentText.style.display = 'none';
+          }, 2000);
+        }
+      });
+
+      // Export Buttons
+      document.getElementById('expExcelBtn').addEventListener('click', async () => exportActiveModule('excel'));
+      document.getElementById('expCsvBtn').addEventListener('click', async () => exportActiveModule('csv'));
+      document.getElementById('expPdfBtn').addEventListener('click', async () => exportActiveModule('pdf'));
+
+      const exportActiveModule = async (format) => {
+        const target = document.getElementById('expTarget').value;
+        const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+        const token = localStorage.getItem('jp_dms_token');
+
+        try {
+          const res = await fetch(`${baseUrl}/${target}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const json = await res.json();
+          const list = json.data || [];
+
+          if (!list.length) return alert(`No records found in ${target} to export.`);
+
+          if (format === 'excel') exporter.exportToExcel(`JP_College_${target}`, list);
+          else if (format === 'csv') exporter.exportToCSV(`JP_College_${target}`, list);
+          else if (format === 'pdf') {
+            const cols = Object.keys(list[0]).slice(0, 6).map(k => ({ header: k.toUpperCase(), dataKey: k }));
+            exporter.exportToPDF(`JP College ${target.toUpperCase()} Report`, `JP_College_${target}`, cols, list);
+          }
+        } catch(e) {
+          alert('Export failed.');
+        }
+      };
+
+      window.downloadSample = (type) => {
+        let sampleData = [];
+        if (type === 'Students') {
+          sampleData = [{ registerNo: '953621104010', rollNumber: '21AD10', studentName: 'Rohan Verma', email: 'rohan.21ad@jpcoe.ac.in', phone: '9876543210', gender: 'Male', department: 'AI & DS', year: 'III Year', semester: 'Semester V', section: 'A', batch: '2021 - 2025' }];
+        } else if (type === 'Faculty') {
+          sampleData = [{ facultyId: 'JPC-FAC-110', facultyName: 'Dr. Ramesh Kumar', email: 'ramesh@jpcoe.ac.in', phone: '9876543211', department: 'AI & DS', designation: 'Professor', qualification: 'Ph.D.' }];
+        } else if (type === 'Attendance') {
+          sampleData = [{ studentRegisterNo: '953621104010', date: '2026-07-20', session: 'Full Day', morningStatus: 'Present', afternoonStatus: 'Present', status: 'Present', percentage: 100 }];
+        } else if (type === 'InternalMarks') {
+          sampleData = [{ studentRegisterNo: '953621104010', subjectCode: 'AD3501', internal1: 48, internal2: 49, internal3: 50, average: 49.0, modelExam: 95, assignmentMark: 10, totalInternal: 99 }];
+        } else {
+          sampleData = [{ subjectCode: 'AD3501', subjectName: 'Deep Learning', credits: 4, department: 'AI & DS', semester: 'Semester V' }];
+        }
+        exporter.exportToExcel(`Sample_${type}_Template`, sampleData);
+      };
+    });
+  </script>
+</body>
+</html>
