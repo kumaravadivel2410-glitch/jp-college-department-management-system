@@ -73,6 +73,7 @@ router.post('/reports/generate', verifyToken, controllers.reports.generate);
 
 // Import & Export Data Routes
 router.post('/import', verifyToken, controllers.importExport.importData);
+router.post('/import/file', verifyToken, upload.single('file'), controllers.importExport.importFile);
 router.get('/export', verifyToken, controllers.importExport.exportData);
 
 // Stats Route

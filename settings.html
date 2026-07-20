@@ -3,10 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JP College ERP - System Settings & Approvals</title>
+  <title>JP College ERP - System Settings & Import Center</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    .dropzone {
+      border: 2px dashed var(--primary);
+      border-radius: var(--radius-md);
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      background: var(--primary-light);
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+    .dropzone.dragover {
+      background: #DBEAFE;
+      border-color: var(--primary-hover);
+    }
+  </style>
 </head>
 <body>
 
@@ -14,55 +29,99 @@
 
   <main class="main-content-wrapper">
     <div class="page-header-title">
-      <h2><i class="fa-solid fa-gear"></i> System Settings & User Approvals</h2>
+      <h2><i class="fa-solid fa-gear" style="color: var(--primary);"></i> System Settings & Professional Import Center</h2>
     </div>
 
     <!-- Approvals & Import Grid -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem;">
       
-      <!-- Pending Approvals Card -->
-      <div class="card-glass">
-        <h3 style="font-size: 1.1rem; font-weight: 700; color: #1E293B; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-          <i class="fa-solid fa-user-check" style="color: var(--primary);"></i> Pending User Registrations (Faculty & Students)
-        </h3>
-        <div id="pendingApprovalsList">
-          <!-- Pending approvals list -->
-        </div>
-      </div>
-
-      <!-- Import Data Card -->
-      <div class="card-glass">
-        <h3 style="font-size: 1.1rem; font-weight: 700; color: #1E293B; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-          <i class="fa-solid fa-file-import" style="color: var(--primary);"></i> Bulk Import System (Excel / CSV / PDF)
+      <!-- Bulk Import Center Card -->
+      <div class="card-glass" style="grid-column: 1 / -1;">
+        <h3 style="font-size: 1.2rem; font-weight: 800; color: #1E3A8A; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.6rem;">
+          <i class="fa-solid fa-file-import" style="color: var(--primary);"></i> Multi-Format Import Center (Excel .xlsx / CSV / Direct Sync)
         </h3>
 
         <form id="importDataForm">
-          <div class="form-group">
-            <label class="form-label">Import Target Collection</label>
-            <select id="importTarget" class="form-control">
-              <option value="students">Students List</option>
-              <option value="faculty">Faculty Directory</option>
-              <option value="departments">Departments</option>
-              <option value="subjects">Subjects</option>
-              <option value="classes">Classes</option>
-              <option value="attendance">Attendance Records</option>
-              <option value="internalMarks">Internal Marks</option>
-              <option value="semesterMarks">Semester Marks</option>
-            </select>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; margin-bottom: 1.25rem;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Select Target ERP Module *</label>
+              <select id="importTarget" class="form-control" style="font-weight: 700;">
+                <option value="students">Students List</option>
+                <option value="faculty">Faculty Directory</option>
+                <option value="departments">Departments</option>
+                <option value="subjects">Subjects List</option>
+                <option value="classes">Classes & Advisors</option>
+                <option value="attendance">Attendance Records</option>
+                <option value="internalMarks">Internal Assessment Marks</option>
+                <option value="semesterMarks">Semester Marks & GPA/CGPA</option>
+                <option value="subjectNotes">Subject Notes Repository</option>
+                <option value="assignments">Course Assignments</option>
+                <option value="timetables">Class Timetables</option>
+                <option value="notifications">Notifications & Circulars</option>
+              </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Duplicate Prevention Mode</label>
+              <select class="form-control" disabled style="background:#F1F5F9;">
+                <option selected>Smart Upsert (Update Existing IDs, Insert New)</option>
+              </select>
+            </div>
           </div>
 
-          <div class="form-group">
-            <label class="form-label">Select Excel (.xlsx, .xls) / CSV File</label>
-            <input type="file" id="importFileInput" class="form-control" accept=".xlsx,.xls,.csv">
+          <!-- Drag and Drop Dropzone -->
+          <div class="dropzone" id="fileDropzone" style="margin-bottom: 1.25rem;">
+            <i class="fa-solid fa-cloud-arrow-up fa-3x" style="color: var(--primary); margin-bottom: 0.75rem;"></i>
+            <h4 style="font-size: 1.1rem; color: #1E3A8A; font-weight: 700;">Drag & Drop Excel (.xlsx, .xls) or CSV File Here</h4>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.35rem;">or click to browse your computer</p>
+            <input type="file" id="importFileInput" accept=".xlsx,.xls,.csv" style="display: none;">
+            <div id="fileSelectedBadge" style="margin-top: 0.75rem; font-weight: 700; color: var(--primary); font-size: 0.9rem; display: none;"></div>
           </div>
 
-          <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">
-            <i class="fa-solid fa-cloud-arrow-up"></i> Execute Bulk Import
-          </button>
+          <!-- Preview & Action Buttons -->
+          <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+            <button type="button" id="previewFileBtn" class="btn-secondary" style="display: none;">
+              <i class="fa-solid fa-eye"></i> Preview Spreadsheet Data
+            </button>
+            <button type="submit" class="btn-primary" id="startImportBtn" style="padding: 0.75rem 1.5rem;">
+              <i class="fa-solid fa-file-import"></i> Start MongoDB Atlas Import & Sync
+            </button>
+          </div>
         </form>
+
+        <!-- Import Summary Result Box -->
+        <div id="importSummaryBox" style="display: none; margin-top: 1.5rem; background: #F8FAFC; border: 1px solid var(--border-subtle); border-radius: 12px; padding: 1.25rem;">
+          <h4 style="font-size: 1rem; font-weight: 800; color: #1E3A8A; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fa-solid fa-chart-line" style="color: var(--primary);"></i> Import Operation Summary
+          </h4>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem; margin-bottom: 0.75rem;">
+            <div style="background:#DCFCE7; padding:0.75rem; border-radius:8px; text-align:center;"><div style="font-size:1.4rem; font-weight:800; color:#16A34A;" id="sumInserted">0</div><div style="font-size:0.75rem; font-weight:700; color:#166534;">Inserted</div></div>
+            <div style="background:#EFF6FF; padding:0.75rem; border-radius:8px; text-align:center;"><div style="font-size:1.4rem; font-weight:800; color:#2563EB;" id="sumUpdated">0</div><div style="font-size:0.75rem; font-weight:700; color:#1E40AF;">Updated</div></div>
+            <div style="background:#FEF3C7; padding:0.75rem; border-radius:8px; text-align:center;"><div style="font-size:1.4rem; font-weight:800; color:#B45309;" id="sumSkipped">0</div><div style="font-size:0.75rem; font-weight:700; color:#78350F;">Skipped</div></div>
+            <div style="background:#FEE2E2; padding:0.75rem; border-radius:8px; text-align:center;"><div style="font-size:1.4rem; font-weight:800; color:#DC2626;" id="sumErrors">0</div><div style="font-size:0.75rem; font-weight:700; color:#991B1B;">Errors</div></div>
+          </div>
+          <div id="importErrorsList" style="font-size: 0.8rem; color: var(--error); max-height: 120px; overflow-y: auto;"></div>
+        </div>
       </div>
+
     </div>
   </main>
+
+  <!-- Spreadsheet Data Preview Modal -->
+  <div class="modal-overlay" id="previewModal">
+    <div class="modal-box" style="max-width: 850px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-table" style="color: var(--primary);"></i> Spreadsheet Row Preview</h3>
+        <button class="close-modal-btn" id="closePreviewModalBtn">&times;</button>
+      </div>
+      <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+        <table class="custom-table" id="previewTable">
+          <thead id="previewThead"></thead>
+          <tbody id="previewTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
   <footer>
     &copy; 2026 J.P. College of Engineering. All rights reserved. Department Management ERP System.
@@ -71,49 +130,127 @@
   <script src="js/config.js"></script>
   <script src="js/api.js"></script>
   <script src="js/navbar.js"></script>
-  <script src="js/app.js"></script>
   <script>
-    document.getElementById('importDataForm')?.addEventListener('submit', async (e) => {
-      e.preventDefault();
+    document.addEventListener('DOMContentLoaded', () => {
+      const dropzone = document.getElementById('fileDropzone');
       const fileInput = document.getElementById('importFileInput');
-      const target = document.getElementById('importTarget').value;
+      const badge = document.getElementById('fileSelectedBadge');
+      const previewBtn = document.getElementById('previewFileBtn');
+      const previewModal = document.getElementById('previewModal');
 
-      if (!fileInput.files[0]) {
-        alert('Please select an Excel or CSV file to import.');
-        return;
-      }
+      let parsedRecords = [];
 
-      const file = fileInput.files[0];
-      const reader = new FileReader();
-      reader.onload = async (evt) => {
+      dropzone.addEventListener('click', () => fileInput.click());
+
+      dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.classList.add('dragover');
+      });
+
+      dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+
+      dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+        if (e.dataTransfer.files.length) {
+          fileInput.files = e.dataTransfer.files;
+          handleFileSelected(e.dataTransfer.files[0]);
+        }
+      });
+
+      fileInput.addEventListener('change', () => {
+        if (fileInput.files.length) handleFileSelected(fileInput.files[0]);
+      });
+
+      const handleFileSelected = (file) => {
+        badge.style.display = 'block';
+        badge.textContent = `📄 Selected File: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+        previewBtn.style.display = 'inline-flex';
+
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          try {
+            const data = new Uint8Array(evt.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const sheetName = workbook.SheetNames[0];
+            parsedRecords = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+          } catch(e) {}
+        };
+        reader.readAsArrayBuffer(file);
+      };
+
+      previewBtn.addEventListener('click', () => {
+        if (!parsedRecords.length) {
+          alert('No preview data available.');
+          return;
+        }
+
+        const keys = Object.keys(parsedRecords[0]);
+        document.getElementById('previewThead').innerHTML = `<tr>${keys.map(k => `<th>${k}</th>`).join('')}</tr>`;
+        document.getElementById('previewTbody').innerHTML = parsedRecords.slice(0, 10).map(r => `
+          <tr>${keys.map(k => `<td>${r[k] !== undefined ? r[k] : ''}</td>`).join('')}</tr>
+        `).join('');
+
+        previewModal.classList.add('active');
+      });
+
+      document.getElementById('closePreviewModalBtn')?.addEventListener('click', () => previewModal.classList.remove('active'));
+
+      // Form Submit Handler
+      document.getElementById('importDataForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!fileInput.files[0]) {
+          alert('Please select or drag & drop an Excel or CSV file.');
+          return;
+        }
+
+        const file = fileInput.files[0];
+        const target = document.getElementById('importTarget').value;
+        const startBtn = document.getElementById('startImportBtn');
+
+        startBtn.disabled = true;
+        startBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing & Syncing to MongoDB...';
+
         try {
-          const data = new Uint8Array(evt.target.result);
-          const workbook = XLSX.read(data, { type: 'array' });
-          const firstSheetName = workbook.SheetNames[0];
-          const records = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheetName]);
-
-          if (records.length === 0) {
-            alert('File is empty.');
-            return;
-          }
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('target', target);
 
           const token = localStorage.getItem('jp_dms_token');
           const baseUrl = window.APP_CONFIG.getApiBaseUrl();
 
-          const res = await fetch(`${baseUrl}/import`, {
+          const res = await fetch(`${baseUrl}/import/file`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify({ target, records })
+            headers: { 'Authorization': `Bearer ${token}` },
+            body: formData
           });
 
           const json = await res.json();
-          alert(json.message || `Successfully imported ${records.length} records into ${target}!`);
-          location.reload();
+
+          if (json.success) {
+            document.getElementById('importSummaryBox').style.display = 'block';
+            document.getElementById('sumInserted').textContent = json.summary.inserted;
+            document.getElementById('sumUpdated').textContent = json.summary.updated;
+            document.getElementById('sumSkipped').textContent = json.summary.skipped;
+            document.getElementById('sumErrors').textContent = json.summary.errorsCount;
+
+            if (json.errors && json.errors.length > 0) {
+              document.getElementById('importErrorsList').innerHTML = json.errors.map(err => `<div>• ${err}</div>`).join('');
+            } else {
+              document.getElementById('importErrorsList').innerHTML = '<div style="color:var(--success);">✅ All rows imported cleanly with zero validation errors!</div>';
+            }
+
+            alert(json.message || 'Import executed successfully!');
+          } else {
+            alert(`Import Failed: ${json.message}`);
+          }
         } catch (err) {
-          alert(`Import Error: ${err.message}`);
+          alert(`Network Error: ${err.message}`);
+        } finally {
+          startBtn.disabled = false;
+          startBtn.innerHTML = '<i class="fa-solid fa-file-import"></i> Start MongoDB Atlas Import & Sync';
         }
-      };
-      reader.readAsArrayBuffer(file);
+      });
     });
   </script>
 </body>

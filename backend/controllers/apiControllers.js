@@ -713,47 +713,147 @@ const notifications = {
 };
 
 // IMPORT / EXPORT CONTROLLERS
+const XLSX = require('xlsx');
+
 const importExport = {
-  importData: async (req, res) => {
+  importFile: async (req, res) => {
     try {
-      const { target, records } = req.body;
+      const target = req.body.target || 'students';
+      let records = [];
+
+      if (req.file) {
+        const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        records = XLSX.utils.sheet_to_json(sheet);
+      } else if (Array.isArray(req.body.records)) {
+        records = req.body.records;
+      }
+
       if (!Array.isArray(records) || records.length === 0) {
-        return res.status(400).json({ success: false, message: 'No records provided for import.' });
+        return res.status(400).json({ success: false, message: 'No valid spreadsheet records found for import.' });
       }
 
-      let insertedCount = 0;
-      if (target === 'students') {
-        const result = await Student.insertMany(records, { ordered: false });
-        insertedCount = result.length;
-      } else if (target === 'faculty') {
-        const result = await Faculty.insertMany(records, { ordered: false });
-        insertedCount = result.length;
-      } else if (target === 'departments') {
-        const result = await Department.insertMany(records, { ordered: false });
-        insertedCount = result.length;
-      } else if (target === 'subjects') {
-        const result = await Subject.insertMany(records, { ordered: false });
-        insertedCount = result.length;
-      } else if (target === 'classes') {
-        const result = await ClassModel.insertMany(records, { ordered: false });
-        insertedCount = result.length;
-      } else if (target === 'attendance') {
-        const result = await Attendance.insertMany(records, { ordered: false });
-        insertedCount = result.length;
-      } else if (target === 'internalMarks') {
-        const result = await InternalMark.insertMany(records, { ordered: false });
-        insertedCount = result.length;
-      } else if (target === 'semesterMarks') {
-        const result = await SemesterMark.insertMany(records, { ordered: false });
-        insertedCount = result.length;
-      } else {
-        return res.status(400).json({ success: false, message: `Invalid import target: ${target}` });
+      let inserted = 0;
+      let updated = 0;
+      let skipped = 0;
+      let errors = [];
+
+      // Faculty Scope Enforcement
+      if (req.user && req.user.role === 'faculty') {
+        const allowedTargets = ['attendance', 'internalMarks', 'semesterMarks', 'notes', 'subjectNotes', 'assignments', 'timetables'];
+        if (!allowedTargets.includes(target)) {
+          return res.status(403).json({ success: false, message: `Faculty members cannot import ${target}.` });
+        }
       }
 
-      res.json({ success: true, message: `Imported ${insertedCount} records into ${target} successfully!` });
+      for (let i = 0; i < records.length; i++) {
+        const row = records[i];
+
+        // Faculty department scope check
+        if (req.user && req.user.role === 'faculty' && req.user.department) {
+          if (row.department && row.department !== req.user.department) {
+            skipped++;
+            errors.push(`Row ${i + 1}: Skipped record outside assigned department (${row.department})`);
+            continue;
+          }
+          row.department = req.user.department;
+        }
+
+        try {
+          let filter = null;
+          let ModelClass = null;
+
+          if (target === 'students') {
+            ModelClass = Student;
+            if (row.registerNo) filter = { registerNo: String(row.registerNo).trim() };
+            else if (row.email) filter = { email: String(row.email).toLowerCase().trim() };
+          } else if (target === 'faculty') {
+            ModelClass = Faculty;
+            if (row.facultyId) filter = { facultyId: String(row.facultyId).trim() };
+            else if (row.email) filter = { email: String(row.email).toLowerCase().trim() };
+          } else if (target === 'departments') {
+            ModelClass = Department;
+            if (row.code) filter = { code: String(row.code).trim() };
+          } else if (target === 'subjects') {
+            ModelClass = Subject;
+            if (row.subjectCode) filter = { subjectCode: String(row.subjectCode).trim() };
+          } else if (target === 'classes') {
+            ModelClass = ClassModel;
+            if (row.className) filter = { className: String(row.className).trim() };
+          } else if (target === 'attendance') {
+            ModelClass = Attendance;
+            if (row.studentRegisterNo && row.date) {
+              filter = { studentRegisterNo: String(row.studentRegisterNo).trim(), date: String(row.date).trim(), session: row.session || 'Full Day' };
+            }
+          } else if (target === 'internalMarks') {
+            ModelClass = InternalMark;
+            if (row.studentRegisterNo && row.subjectCode) {
+              filter = { studentRegisterNo: String(row.studentRegisterNo).trim(), subjectCode: String(row.subjectCode).trim() };
+            }
+          } else if (target === 'semesterMarks') {
+            ModelClass = SemesterMark;
+            if (row.studentRegisterNo && row.subjectCode) {
+              filter = { studentRegisterNo: String(row.studentRegisterNo).trim(), subjectCode: String(row.subjectCode).trim() };
+            }
+          } else if (target === 'notes' || target === 'subjectNotes') {
+            ModelClass = Note;
+            if (row.title && row.subjectCode) {
+              filter = { title: String(row.title).trim(), subjectCode: String(row.subjectCode).trim() };
+            }
+          } else if (target === 'assignments') {
+            ModelClass = Assignment;
+            if (row.title && row.dueDate) {
+              filter = { title: String(row.title).trim(), dueDate: String(row.dueDate).trim() };
+            }
+          } else if (target === 'timetables') {
+            ModelClass = Timetable;
+            if (row.department && row.day) {
+              filter = { department: String(row.department).trim(), year: row.year || 'III Year', semester: row.semester || 'Semester V', section: row.section || 'A', day: row.day };
+            }
+          } else if (target === 'notifications') {
+            ModelClass = Notification;
+            if (row.title) filter = { title: String(row.title).trim() };
+          }
+
+          if (!ModelClass) {
+            skipped++;
+            errors.push(`Row ${i + 1}: Invalid target module ${target}`);
+            continue;
+          }
+
+          if (filter) {
+            const existing = await ModelClass.findOne(filter);
+            if (existing) {
+              await ModelClass.findOneAndUpdate(filter, row, { runValidators: true });
+              updated++;
+            } else {
+              await ModelClass.create(row);
+              inserted++;
+            }
+          } else {
+            await ModelClass.create(row);
+            inserted++;
+          }
+        } catch (rowErr) {
+          skipped++;
+          errors.push(`Row ${i + 1}: ${rowErr.message}`);
+        }
+      }
+
+      res.json({
+        success: true,
+        message: `Import completed: ${inserted} inserted, ${updated} updated, ${skipped} skipped.`,
+        summary: { inserted, updated, skipped, errorsCount: errors.length },
+        errors
+      });
     } catch (err) {
       res.status(500).json({ success: false, message: err.message });
     }
+  },
+
+  importData: async (req, res) => {
+    return importExport.importFile(req, res);
   },
 
   exportData: async (req, res) => {
