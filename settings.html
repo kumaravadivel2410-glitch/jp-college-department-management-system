@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JP College ERP - System Settings & Approvals</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div id="navbar-container"></div>
+
+  <main class="main-content-wrapper">
+    <div class="page-header-title">
+      <h2><i class="fa-solid fa-gear"></i> System Settings & User Approvals</h2>
+    </div>
+
+    <!-- Approvals & Import Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem;">
+      
+      <!-- Pending Approvals Card -->
+      <div class="card-glass">
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: #1E293B; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+          <i class="fa-solid fa-user-check" style="color: var(--primary);"></i> Pending User Registrations (Faculty & Students)
+        </h3>
+        <div id="pendingApprovalsList">
+          <!-- Pending approvals list -->
+        </div>
+      </div>
+
+      <!-- Import Data Card -->
+      <div class="card-glass">
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: #1E293B; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+          <i class="fa-solid fa-file-import" style="color: var(--primary);"></i> Bulk Import System (Excel / CSV / PDF)
+        </h3>
+
+        <form id="importDataForm">
+          <div class="form-group">
+            <label class="form-label">Import Target Collection</label>
+            <select id="importTarget" class="form-control">
+              <option value="students">Students List</option>
+              <option value="faculty">Faculty Directory</option>
+              <option value="departments">Departments</option>
+              <option value="subjects">Subjects</option>
+              <option value="classes">Classes</option>
+              <option value="attendance">Attendance Records</option>
+              <option value="internalMarks">Internal Marks</option>
+              <option value="semesterMarks">Semester Marks</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Select Excel (.xlsx, .xls) / CSV File</label>
+            <input type="file" id="importFileInput" class="form-control" accept=".xlsx,.xls,.csv">
+          </div>
+
+          <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Execute Bulk Import
+          </button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    &copy; 2026 J.P. College of Engineering. All rights reserved. Department Management ERP System.
+  </footer>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/navbar.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.getElementById('importDataForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fileInput = document.getElementById('importFileInput');
+      const target = document.getElementById('importTarget').value;
+
+      if (!fileInput.files[0]) {
+        alert('Please select an Excel or CSV file to import.');
+        return;
+      }
+
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+      reader.onload = async (evt) => {
+        try {
+          const data = new Uint8Array(evt.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheetName = workbook.SheetNames[0];
+          const records = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheetName]);
+
+          if (records.length === 0) {
+            alert('File is empty.');
+            return;
+          }
+
+          const token = localStorage.getItem('jp_dms_token');
+          const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+
+          const res = await fetch(`${baseUrl}/import`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ target, records })
+          });
+
+          const json = await res.json();
+          alert(json.message || `Successfully imported ${records.length} records into ${target}!`);
+          location.reload();
+        } catch (err) {
+          alert(`Import Error: ${err.message}`);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    });
+  </script>
+</body>
+</html>

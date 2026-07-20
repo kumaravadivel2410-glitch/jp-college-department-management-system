@@ -55,9 +55,9 @@ connectDB().then(() => {
 // API Routes
 app.use('/api', apiRoutes);
 
-// Static frontend serving
-const frontendPath = path.join(__dirname, '../frontend');
-app.use(express.static(frontendPath));
+// Static frontend serving (Root & Frontend directories)
+app.use(express.static(path.join(__dirname, '..')));
+app.use(express.static(path.join(__dirname, '../frontend')));
 
 // Clean URL Route Mappings for Multi-Page Navigation
 const pageRoutes = [

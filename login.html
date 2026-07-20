@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JP College ERP - Professional System Login</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="login-page-container">
+
+  <div class="login-card">
+    <div class="login-brand-header">
+      <div class="login-logo">JPC</div>
+      <h2 style="color: #1E3A8A; font-weight: 800;">J.P. COLLEGE OF ENGINEERING</h2>
+      <p style="color: var(--primary); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; margin-top: 0.25rem;">
+        Department Management ERP Portal
+      </p>
+    </div>
+
+    <!-- Role Selection Tabs -->
+    <div class="role-tab-group" id="loginRoleTabGroup">
+      <button class="role-tab-btn active" data-role="admin"><i class="fa-solid fa-user-shield"></i> Admin</button>
+      <button class="role-tab-btn" data-role="faculty"><i class="fa-solid fa-chalkboard-user"></i> Faculty</button>
+      <button class="role-tab-btn" data-role="student"><i class="fa-solid fa-user-graduate"></i> Student</button>
+    </div>
+
+    <form id="loginForm">
+      <input type="hidden" id="selectedRoleInput" value="admin">
+
+      <div class="form-group">
+        <label class="form-label">Email Address *</label>
+        <div style="position: relative;">
+          <input type="email" id="loginEmail" class="form-control" style="padding-left: 2.3rem;" placeholder="name@jpcoe.ac.in" required>
+          <i class="fa-solid fa-envelope" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--primary);"></i>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+          <label class="form-label" style="margin-bottom: 0;">Password *</label>
+          <a href="#" style="font-size: 0.8rem; color: var(--primary); font-weight: 600; text-decoration: none;">Forgot Password?</a>
+        </div>
+        <div style="position: relative;">
+          <input type="password" id="loginPassword" class="form-control" style="padding-left: 2.3rem; padding-right: 2.5rem;" placeholder="Enter your password" required>
+          <i class="fa-solid fa-lock" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--primary);"></i>
+          <button type="button" id="togglePasswordBtn" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer;">
+            <i class="fa-solid fa-eye"></i>
+          </button>
+        </div>
+      </div>
+
+      <div id="loginAlertBox" style="display: none; padding: 0.75rem; border-radius: var(--radius-md); font-size: 0.825rem; margin-bottom: 1rem;"></div>
+
+      <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; padding: 0.75rem; font-size: 0.95rem;">
+        <i class="fa-solid fa-right-to-bracket"></i> Login to ERP System
+      </button>
+
+      <div style="text-align: center; margin-top: 1.25rem; font-size: 0.85rem; color: var(--text-secondary);">
+        Don't have an account? 
+        <a href="register.html" style="color: var(--primary); font-weight: 700; text-decoration: none;">Register / Request Access</a>
+      </div>
+    </form>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script>
+    let activeRole = 'admin';
+    const roleBtns = document.querySelectorAll('.role-tab-btn');
+    const roleInput = document.getElementById('selectedRoleInput');
+    const emailInput = document.getElementById('loginEmail');
+    const passInput = document.getElementById('loginPassword');
+
+    const defaultCredentials = {
+      admin: { email: 'Adminjpcoe@gmail.com', pass: 'Adminhod123' },
+      faculty: { email: 'senthil@jpcoe.ac.in', pass: 'faculty123' },
+      student: { email: 'aarav.21ad@jpcoe.ac.in', pass: 'student123' }
+    };
+
+    roleBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        roleBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeRole = btn.dataset.role;
+        roleInput.value = activeRole;
+
+        emailInput.value = defaultCredentials[activeRole].email;
+        passInput.value = defaultCredentials[activeRole].pass;
+      });
+    });
+
+    emailInput.value = defaultCredentials['admin'].email;
+    passInput.value = defaultCredentials['admin'].pass;
+
+    document.getElementById('togglePasswordBtn').addEventListener('click', () => {
+      const type = passInput.type === 'password' ? 'text' : 'password';
+      passInput.type = type;
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const alertBox = document.getElementById('loginAlertBox');
+      alertBox.style.display = 'none';
+
+      const email = emailInput.value;
+      const password = passInput.value;
+      const role = roleInput.value;
+
+      try {
+        const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+        const res = await fetch(`${baseUrl}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, role })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          alertBox.style.display = 'block';
+          alertBox.style.background = 'var(--success-bg)';
+          alertBox.style.color = 'var(--success)';
+          alertBox.innerHTML = '<i class="fa-solid fa-circle-check"></i> Login Successful! Redirecting...';
+
+          localStorage.setItem('jp_dms_token', data.token);
+          localStorage.setItem('jp_dms_user', JSON.stringify(data.user));
+          localStorage.setItem('jp_dms_role', data.user.role === 'super_admin' || data.user.role === 'admin' ? 'Super Admin' : (data.user.role === 'faculty' ? 'Faculty' : 'Student'));
+
+          setTimeout(() => {
+            window.location.href = 'dashboard.html';
+          }, 800);
+        } else {
+          alertBox.style.display = 'block';
+          if (data.status === 'Pending') {
+            alertBox.style.background = 'var(--warning-bg)';
+            alertBox.style.color = '#B45309';
+            alertBox.innerHTML = `<i class="fa-solid fa-clock"></i> Your account is waiting for Super Admin approval.`;
+          } else if (data.status === 'Rejected') {
+            alertBox.style.background = 'var(--error-bg)';
+            alertBox.style.color = 'var(--error)';
+            alertBox.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Your registration request has been rejected. Please contact the administrator.`;
+          } else {
+            alertBox.style.background = 'var(--error-bg)';
+            alertBox.style.color = 'var(--error)';
+            alertBox.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> ${data.message}`;
+          }
+        }
+      } catch (err) {
+        alertBox.style.display = 'block';
+        alertBox.style.background = 'var(--error-bg)';
+        alertBox.style.color = 'var(--error)';
+        alertBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Unable to connect to server. Please check backend API.';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+/dashboard        /dashboard.html        200
+/students         /students.html         200
+/faculty          /faculty.html          200
+/departments      /departments.html      200
+/subjects         /subjects.html         200
+/classes          /classes.html          200
+/attendance       /attendance.html       200
+/semester-marks   /semester-marks.html   200
+/internal-marks   /internal-marks.html   200
+/reports          /reports.html          200
+/downloads        /downloads.html        200
+/history          /history.html          200
+/settings         /settings.html         200
+/about            /about.html            200
+/*                /dashboard.html        200

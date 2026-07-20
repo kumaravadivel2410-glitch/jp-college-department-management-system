@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JP College ERP - Attendance Management</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div id="navbar-container"></div>
+
+  <main class="main-content-wrapper">
+    <div class="page-header-title">
+      <h2><i class="fa-solid fa-calendar-check"></i> Attendance Management</h2>
+      <div style="display: flex; gap: 0.75rem;" class="faculty-only">
+        <button class="btn-primary" id="openMarkAttendanceBtn">
+          <i class="fa-solid fa-user-check"></i> Mark Daily Attendance
+        </button>
+      </div>
+    </div>
+
+    <!-- Attendance Filters & Summary Bar -->
+    <div class="card-glass" style="margin-bottom: 1.5rem; padding: 1.25rem;">
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+        <div style="flex: 1; min-width: 180px;">
+          <label class="form-label">Date</label>
+          <input type="date" id="attFilterDate" class="form-control" value="2026-07-20">
+        </div>
+
+        <div style="flex: 1; min-width: 180px;">
+          <label class="form-label">Department</label>
+          <select id="attFilterDept" class="form-control">
+            <option value="All">All Departments</option>
+            <option value="AI & DS">AI & DS</option>
+            <option value="CSE">CSE</option>
+            <option value="ECE">ECE</option>
+            <option value="EEE">EEE</option>
+            <option value="Mechanical">Mechanical</option>
+            <option value="Civil">Civil</option>
+          </select>
+        </div>
+
+        <div style="flex: 1; min-width: 150px;">
+          <label class="form-label">Session Filter</label>
+          <select id="attFilterSession" class="form-control">
+            <option value="All">All Sessions</option>
+            <option value="Morning">Morning Session</option>
+            <option value="Afternoon">Afternoon Session</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table Card -->
+    <div class="card-glass">
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Register No</th>
+              <th>Student Name</th>
+              <th>Department</th>
+              <th>Date</th>
+              <th>Morning Session</th>
+              <th>Afternoon Session</th>
+              <th>Attendance %</th>
+            </tr>
+          </thead>
+          <tbody id="attendanceTableBody">
+            <!-- Dynamic rows -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- Mark Attendance Modal -->
+  <div class="modal-overlay" id="markAttendanceModal">
+    <div class="modal-box" style="max-width: 650px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-clipboard-user" style="color: var(--primary);"></i> Mark Morning / Afternoon Attendance</h3>
+        <button class="close-modal-btn" id="closeMarkAttModalBtn">&times;</button>
+      </div>
+
+      <form id="markAttendanceForm">
+        <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+          <div class="form-group" style="flex: 1;">
+            <label class="form-label">Department</label>
+            <select id="markDept" class="form-control">
+              <option value="AI & DS">AI & DS</option>
+              <option value="CSE">CSE</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex: 1;">
+            <label class="form-label">Session</label>
+            <select id="markSession" class="form-control">
+              <option value="Morning">Morning Session</option>
+              <option value="Afternoon">Afternoon Session</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-responsive" style="margin-bottom: 1.25rem; max-height: 250px;">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Register No</th>
+                <th>Student Name</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>953621104001</td>
+                <td>Aarav Kumar</td>
+                <td>
+                  <select class="form-control att-status-select" data-reg="953621104001">
+                    <option value="Present">Present</option>
+                    <option value="Absent">Absent</option>
+                    <option value="Leave">Leave</option>
+                    <option value="OD">OD</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td>953621104002</td>
+                <td>Bhavna Sharma</td>
+                <td>
+                  <select class="form-control att-status-select" data-reg="953621104002">
+                    <option value="Present">Present</option>
+                    <option value="Absent">Absent</option>
+                    <option value="Leave">Leave</option>
+                  </select>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">
+          <i class="fa-solid fa-floppy-disk"></i> Save Attendance Records
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <footer>
+    &copy; 2026 J.P. College of Engineering. All rights reserved. Department Management ERP System.
+  </footer>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/navbar.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const modal = document.getElementById('markAttendanceModal');
+      const openBtn = document.getElementById('openMarkAttendanceBtn');
+      const closeBtn = document.getElementById('closeMarkAttModalBtn');
+
+      if (openBtn) openBtn.addEventListener('click', () => modal.classList.add('active'));
+      if (closeBtn) closeBtn.addEventListener('click', () => modal.classList.remove('active'));
+
+      document.getElementById('markAttendanceForm')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        alert('Attendance marked and saved successfully!');
+        modal.classList.remove('active');
+        location.reload();
+      });
+    });
+  </script>
+</body>
+</html>
