@@ -506,6 +506,105 @@ const auth = {
     }
   },
 
+  googleLogin: async (req, res) => {
+    try {
+      const { email, name, googleId, photo, role } = req.body;
+      if (!email || !googleId) {
+        return res.status(400).json({ success: false, message: 'Missing Google credentials' });
+      }
+
+      const cleanEmail = email.toLowerCase().trim();
+      let user = await User.findOne({ email: cleanEmail });
+
+      if (!user) {
+        // First login: Auto-create user
+        user = new User({
+          name,
+          email: cleanEmail,
+          googleId,
+          photo: photo || '',
+          role: role || 'student',
+          status: 'Approved',
+          isApproved: true,
+          loginTime: new Date()
+        });
+
+        // Set some default registerNo or facultyId for Google logins
+        if (user.role === 'student') {
+          user.registerNo = 'G-' + Math.floor(1000000000 + Math.random() * 9000000000);
+          user.rollNumber = 'G-' + Math.floor(100000 + Math.random() * 900000);
+          user.year = 'III Year';
+          user.semester = 'Semester V';
+          user.section = 'A';
+          user.department = 'AI & DS';
+          
+          const Student = require('../models/Student');
+          await Student.create({
+            registerNo: user.registerNo,
+            studentName: user.name,
+            email: user.email,
+            department: user.department,
+            semester: user.semester,
+            section: user.section,
+            rollNumber: user.rollNumber,
+            phone: '9998887770',
+            approvalStatus: 'approved'
+          });
+        } else if (user.role === 'faculty') {
+          user.facultyId = 'GFAC-' + Math.floor(1000 + Math.random() * 9000);
+          user.designation = 'Assistant Professor';
+          user.department = 'AI & DS';
+          user.qualification = 'M.E. / Ph.D.';
+          
+          const Faculty = require('../models/Faculty');
+          await Faculty.create({
+            facultyId: user.facultyId,
+            facultyName: user.name,
+            email: user.email,
+            department: user.department,
+            designation: user.designation,
+            qualification: user.qualification,
+            phone: '9998887770',
+            approvalStatus: 'approved'
+          });
+        }
+        await user.save();
+      } else {
+        user.googleId = googleId;
+        user.loginTime = new Date();
+        if (photo && !user.photo) user.photo = photo;
+        await user.save();
+      }
+
+      const payload = {
+        userId: user._id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        status: user.status,
+        department: user.department,
+        year: user.year,
+        semester: user.semester,
+        section: user.section,
+        facultyId: user.facultyId,
+        registerNo: user.registerNo,
+        rollNumber: user.rollNumber,
+        photo: user.photo
+      };
+
+      const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' });
+
+      res.json({
+        success: true,
+        message: 'Google Sign-In successful',
+        token,
+        user: payload
+      });
+    } catch (err) {
+      res.status(500).json({ success: false, message: err.message });
+    }
+  },
+
   register: async (req, res) => {
     try {
       const {

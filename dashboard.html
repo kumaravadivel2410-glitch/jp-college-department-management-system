@@ -129,11 +129,175 @@
 
       </div>
 
+      <!-- Subjects, Timetable, Assignments Row -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
+        
+        <!-- My Subjects -->
+        <div class="card-glass">
+          <h3 style="font-size: 1.1rem; font-weight: 700; color: #1E3A8A; margin-bottom: 1rem;">
+            <i class="fa-solid fa-book-open" style="color: var(--primary);"></i> My Registered Subjects
+          </h3>
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Subject Name</th>
+                  <th>Credits</th>
+                </tr>
+              </thead>
+              <tbody id="stuSubjectsTbody">
+                <tr><td>AD3501</td><td>Deep Learning</td><td>4 Credits</td></tr>
+                <tr><td>AD3502</td><td>Data Analytics</td><td>3 Credits</td></tr>
+                <tr><td>CS3503</td><td>DBMS</td><td>4 Credits</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Active Assignments -->
+        <div class="card-glass">
+          <h3 style="font-size: 1.1rem; font-weight: 700; color: #1E3A8A; margin-bottom: 1rem;">
+            <i class="fa-solid fa-file-arrow-up" style="color: var(--primary);"></i> My Assignments
+          </h3>
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Assignment</th>
+                  <th>Subject</th>
+                  <th>Due Date</th>
+                </tr>
+              </thead>
+              <tbody id="stuAssignmentsTbody">
+                <tr><td>Course Assignment 1</td><td>Deep Learning</td><td>2026-07-25</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Timetable -->
+        <div class="card-glass">
+          <h3 style="font-size: 1.1rem; font-weight: 700; color: #1E3A8A; margin-bottom: 1rem;">
+            <i class="fa-solid fa-calendar-days" style="color: var(--primary);"></i> Today's Class Timetable
+          </h3>
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Period</th>
+                  <th>Time Slot</th>
+                  <th>Subject</th>
+                </tr>
+              </thead>
+              <tbody id="stuTimetableTbody">
+                <tr><td>Period 1</td><td>09:00 - 09:50 AM</td><td>Deep Learning</td></tr>
+                <tr><td>Period 2</td><td>09:50 - 10:40 AM</td><td>Data Analytics</td></tr>
+                <tr><td>Period 3</td><td>11:00 - 11:50 AM</td><td>DBMS</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
     </div>
 
 
-    <!-- FACULTY & ADMIN DASHBOARD -->
-    <div id="adminFacultyPortalContainer">
+    <!-- FACULTY PORTAL DASHBOARD -->
+    <div id="facultyPortalContainer" style="display: none;">
+      <!-- Faculty Profile Card -->
+      <div class="card-glass" style="margin-bottom: 1.5rem; background: #FFFFFF; border-top: 4px solid var(--primary);">
+        <div style="display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap;">
+          <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--primary-bg); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 800; border: 3px solid var(--primary);">
+            F
+          </div>
+          <div style="flex: 1;">
+            <h2 id="facProfileName" style="font-size: 1.5rem; font-weight: 800; color: #1E3A8A; margin:0;">Dr. M. Senthil Kumar</h2>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0.2rem 0 0 0;">
+              Faculty ID: <strong id="facProfileId" style="color: var(--primary);">JPC-FAC-101</strong> | Department: <span id="facDeptBadge">AI & DS</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Faculty Stats Row -->
+      <div class="stats-grid" style="margin-bottom: 1.5rem;">
+        <div class="stat-card clickable-stat-card" onclick="window.location.href='subjects.html'">
+          <div class="stat-icon-wrapper" style="background:var(--primary-bg); color:var(--primary);"><i class="fa-solid fa-book-open"></i></div>
+          <div class="stat-info">
+            <div class="stat-number" id="facAssignedSubjectsCount">3</div>
+            <div class="stat-label">Assigned Subjects</div>
+          </div>
+        </div>
+        <div class="stat-card clickable-stat-card" onclick="window.location.href='classes.html'">
+          <div class="stat-icon-wrapper" style="background:#ECFDF5; color:#10B981;"><i class="fa-solid fa-door-open"></i></div>
+          <div class="stat-info">
+            <div class="stat-number" id="facAssignedClassesCount">2</div>
+            <div class="stat-label">Assigned Classes</div>
+          </div>
+        </div>
+        <div class="stat-card clickable-stat-card" onclick="window.location.href='attendance.html'">
+          <div class="stat-icon-wrapper" style="background:#FFFBEB; color:#D97706;"><i class="fa-solid fa-calendar-check"></i></div>
+          <div class="stat-info">
+            <div class="stat-number" id="facTodayClasses">4</div>
+            <div class="stat-label">Today's Classes</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Two Column Layout: Assigned Subjects & Student List -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.5rem;">
+        
+        <!-- Assigned Subjects & Classes -->
+        <div class="card-glass">
+          <h3 style="font-size: 1.1rem; font-weight: 700; color: #1E3A8A; margin-bottom: 1rem;">
+            <i class="fa-solid fa-book" style="color: var(--primary);"></i> My Assigned Subjects & Classes
+          </h3>
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Subject Code</th>
+                  <th>Subject Name</th>
+                  <th>Class / Year</th>
+                </tr>
+              </thead>
+              <tbody id="facSubjectsTbody">
+                <tr><td>AD3501</td><td>Deep Learning</td><td>III Year - Sec A</td></tr>
+                <tr><td>AD3502</td><td>Data Analytics</td><td>III Year - Sec A</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Student List -->
+        <div class="card-glass">
+          <h3 style="font-size: 1.1rem; font-weight: 700; color: #1E3A8A; margin-bottom: 1rem;">
+            <i class="fa-solid fa-user-graduate" style="color: var(--primary);"></i> Enrolled Student Directory
+          </h3>
+          <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Register No</th>
+                  <th>Name</th>
+                  <th>Class</th>
+                </tr>
+              </thead>
+              <tbody id="facStudentsTbody">
+                <!-- Dynamic Students -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+
+    <!-- ADMIN DASHBOARD -->
+    <div id="adminFacultyPortalContainer" style="display: none;">
       <div class="page-header-title">
         <h2><i class="fa-solid fa-chart-pie" style="color: var(--primary);"></i> ERP Executive Overview</h2>
         <a href="approvals.html" class="btn-primary" id="pendingApprovalsBannerBtn" style="display: none;">
@@ -298,8 +462,33 @@
           `).join('');
         } catch(e){}
 
+      } else if (role === 'faculty') {
+        document.getElementById('studentPortalContainer').style.display = 'none';
+        document.getElementById('facultyPortalContainer').style.display = 'block';
+        document.getElementById('adminFacultyPortalContainer').style.display = 'none';
+
+        document.getElementById('facProfileName').textContent = user.name || 'Dr. M. Senthil Kumar';
+        document.getElementById('facProfileId').textContent = user.facultyId || 'JPC-FAC-101';
+        document.getElementById('facDeptBadge').textContent = user.department || 'AI & DS';
+
+        try {
+          const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+          const dept = user.department || 'AI & DS';
+          const res = await fetch(`${baseUrl}/students?department=${encodeURIComponent(dept)}`);
+          const json = await res.json();
+          const list = json.data || [];
+          document.getElementById('facStudentsTbody').innerHTML = list.slice(0, 10).map(s => `
+            <tr>
+              <td><strong>${s.registerNo}</strong></td>
+              <td>${s.studentName}</td>
+              <td>${s.semester || 'Semester V'} - ${s.section || 'A'}</td>
+            </tr>
+          `).join('');
+        } catch(e){}
+
       } else {
         document.getElementById('studentPortalContainer').style.display = 'none';
+        document.getElementById('facultyPortalContainer').style.display = 'none';
         document.getElementById('adminFacultyPortalContainer').style.display = 'block';
 
         let stats = {};

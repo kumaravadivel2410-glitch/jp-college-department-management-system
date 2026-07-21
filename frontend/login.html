@@ -56,11 +56,96 @@
         <i class="fa-solid fa-right-to-bracket"></i> Login to ERP System
       </button>
 
+      <div style="display:flex; align-items:center; margin:1.25rem 0; color:var(--text-muted); font-size:0.8rem;">
+        <div style="flex:1; height:1px; background:var(--border-subtle);"></div>
+        <span style="padding:0 0.75rem; font-weight:600; text-transform:uppercase;">Or</span>
+        <div style="flex:1; height:1px; background:var(--border-subtle);"></div>
+      </div>
+
+      <button type="button" id="googleSignInBtn" class="btn-secondary" style="width:100%; justify-content:center; gap:0.5rem; background:#FFF; border:1px solid #DADCE0; color:#3C4043; font-weight:700; padding:0.7rem; font-size:0.9rem; box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="18px" height="18px" viewBox="0 0 48 48">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+          <path fill="#4285F4" d="M46.5 24c0-1.63-.15-3.2-.43-4.75H24v9h12.75c-.55 2.87-2.17 5.31-4.61 6.94l7.19 5.58C43.52 36.42 46.5 30.73 46.5 24z"></path>
+          <path fill="#FBBC05" d="M10.54 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24s.92 7.54 2.56 10.78l7.98-6.19z"></path>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.19-5.58c-1.99 1.33-4.54 2.14-7.2 2.14-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+        </svg>
+        Sign in with Google
+      </button>
+
       <div style="text-align: center; margin-top: 1.25rem; font-size: 0.85rem; color: var(--text-secondary);">
         Don't have an account? 
         <a href="register.html" style="color: var(--primary); font-weight: 700; text-decoration: none;">Register / Request Access</a>
       </div>
     </form>
+  </div>
+
+  <!-- Simulated Google OAuth Account Chooser Modal -->
+  <div class="modal-overlay" id="googleOAuthModal">
+    <div class="modal-box" style="max-width: 420px; border-top: 4px solid #4285F4; border-radius:12px;">
+      <div class="modal-header" style="justify-content: center; border-bottom: none; padding-bottom: 0.5rem;">
+        <div style="text-align: center;">
+          <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="36px" height="36px" viewBox="0 0 48 48" style="margin-bottom: 0.5rem;">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+            <path fill="#4285F4" d="M46.5 24c0-1.63-.15-3.2-.43-4.75H24v9h12.75c-.55 2.87-2.17 5.31-4.61 6.94l7.19 5.58C43.52 36.42 46.5 30.73 46.5 24z"></path>
+            <path fill="#FBBC05" d="M10.54 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24s.92 7.54 2.56 10.78l7.98-6.19z"></path>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.19-5.58c-1.99 1.33-4.54 2.14-7.2 2.14-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+          </svg>
+          <h3 style="color: #202124; font-weight: 700; margin: 0;">Sign in with Google</h3>
+          <p style="font-size: 0.8rem; color: #5f6368; margin-top: 0.25rem;">Choose an account to continue to JP College ERP</p>
+        </div>
+      </div>
+      
+      <div style="padding: 1.25rem;">
+        <!-- Simulated Accounts list -->
+        <div style="display: flex; flex-direction: column; gap: 0.65rem;" id="googleAccountsList">
+          <div class="google-acc-item" data-email="admin.google@jpcoe.ac.in" data-name="Admin HOD" data-role="admin" style="display:flex; align-items:center; gap:0.75rem; padding:0.75rem; border:1px solid #DADCE0; border-radius:8px; cursor:pointer; transition:background 0.2s;">
+            <div style="width:36px; height:36px; border-radius:50%; background:#1E3A8A; color:#FFF; display:flex; align-items:center; justify-content:center; font-weight:700;">A</div>
+            <div>
+              <div style="font-weight:700; font-size:0.85rem; color:#202124;">Admin HOD (Google Account)</div>
+              <div style="font-size:0.75rem; color:#5f6368;">admin.google@jpcoe.ac.in</div>
+            </div>
+          </div>
+          <div class="google-acc-item" data-email="senthil.google@jpcoe.ac.in" data-name="Dr. M. Senthil Kumar" data-role="faculty" style="display:flex; align-items:center; gap:0.75rem; padding:0.75rem; border:1px solid #DADCE0; border-radius:8px; cursor:pointer; transition:background 0.2s;">
+            <div style="width:36px; height:36px; border-radius:50%; background:#10B981; color:#FFF; display:flex; align-items:center; justify-content:center; font-weight:700;">S</div>
+            <div>
+              <div style="font-weight:700; font-size:0.85rem; color:#202124;">Dr. M. Senthil Kumar (Faculty)</div>
+              <div style="font-size:0.75rem; color:#5f6368;">senthil.google@jpcoe.ac.in</div>
+            </div>
+          </div>
+          <div class="google-acc-item" data-email="aarav.google@jpcoe.ac.in" data-name="Aarav Kumar" data-role="student" style="display:flex; align-items:center; gap:0.75rem; padding:0.75rem; border:1px solid #DADCE0; border-radius:8px; cursor:pointer; transition:background 0.2s;">
+            <div style="width:36px; height:36px; border-radius:50%; background:#3B82F6; color:#FFF; display:flex; align-items:center; justify-content:center; font-weight:700;">A</div>
+            <div>
+              <div style="font-weight:700; font-size:0.85rem; color:#202124;">Aarav Kumar (Student)</div>
+              <div style="font-size:0.75rem; color:#5f6368;">aarav.google@jpcoe.ac.in</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin: 1rem 0; text-align: center; display:flex; align-items:center; color:#5f6368; font-size:0.75rem; font-weight:700;">
+          <div style="flex:1; height:1px; background:#DADCE0; margin-right:0.5rem;"></div>
+          <span>Or Use Another Account</span>
+          <div style="flex:1; height:1px; background:#DADCE0; margin-left:0.5rem;"></div>
+        </div>
+
+        <!-- Custom Mock Google Sign-In Form -->
+        <div style="display:flex; flex-direction:column; gap:0.5rem;">
+          <input type="text" id="googleCustomName" class="form-control" placeholder="Enter Full Name" style="font-size:0.85rem; padding:0.5rem;">
+          <input type="email" id="googleCustomEmail" class="form-control" placeholder="Enter Google Email" style="font-size:0.85rem; padding:0.5rem;">
+          <select id="googleCustomRole" class="form-control" style="font-size:0.85rem; padding:0.5rem;">
+            <option value="student">Role: Student</option>
+            <option value="faculty">Role: Faculty</option>
+            <option value="admin">Role: Admin</option>
+          </select>
+          <button type="button" id="googleCustomSubmit" class="btn-primary" style="justify-content:center; font-size:0.85rem; padding:0.5rem; background:#4285F4; border-color:#4285F4;">
+            Continue with Custom Google Account
+          </button>
+        </div>
+
+        <button type="button" class="btn-secondary" id="closeGoogleModalBtn" style="width:100%; justify-content:center; margin-top:1rem; padding:0.5rem; font-size:0.85rem;">
+          Cancel
+        </button>
+      </div>
+    </div>
   </div>
 
   <script src="js/config.js"></script>
@@ -96,6 +181,83 @@
     document.getElementById('togglePasswordBtn').addEventListener('click', () => {
       const type = passInput.type === 'password' ? 'text' : 'password';
       passInput.type = type;
+    });
+
+    // Google Sign-In Simulation Trigger
+    const googleModal = document.getElementById('googleOAuthModal');
+    document.getElementById('googleSignInBtn').addEventListener('click', () => {
+      googleModal.classList.add('active');
+    });
+    document.getElementById('closeGoogleModalBtn').addEventListener('click', () => {
+      googleModal.classList.remove('active');
+    });
+
+    const triggerGoogleSignIn = async (email, name, role) => {
+      googleModal.classList.remove('active');
+      const alertBox = document.getElementById('loginAlertBox');
+      alertBox.style.display = 'block';
+      alertBox.style.background = 'var(--primary-bg)';
+      alertBox.style.color = 'var(--primary)';
+      alertBox.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Authenticating with Google OAuth...';
+
+      try {
+        const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+        const res = await fetch(`${baseUrl}/auth/google`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email,
+            name,
+            role,
+            googleId: 'g-' + Math.floor(Math.random() * 1000000000),
+            photo: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`
+          })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          alertBox.style.background = 'var(--success-bg)';
+          alertBox.style.color = 'var(--success)';
+          alertBox.innerHTML = '<i class="fa-solid fa-circle-check"></i> Google Login Successful! Redirecting...';
+
+          localStorage.setItem('jp_dms_token', data.token);
+          localStorage.setItem('jp_dms_user', JSON.stringify(data.user));
+          localStorage.setItem('jp_dms_role', data.user.role === 'super_admin' || data.user.role === 'admin' ? 'Super Admin' : (data.user.role === 'faculty' ? 'Faculty' : 'Student'));
+
+          setTimeout(() => {
+            window.location.href = 'dashboard.html';
+          }, 800);
+        } else {
+          alertBox.style.background = 'var(--error-bg)';
+          alertBox.style.color = 'var(--error)';
+          alertBox.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> ${data.message}`;
+        }
+      } catch (err) {
+        alertBox.style.background = 'var(--error-bg)';
+        alertBox.style.color = 'var(--error)';
+        alertBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Google OAuth API Connection failed.';
+      }
+    };
+
+    // Listen to Google account selector clicks
+    document.querySelectorAll('.google-acc-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const email = item.dataset.email;
+        const name = item.dataset.name;
+        const role = item.dataset.role;
+        triggerGoogleSignIn(email, name, role);
+      });
+    });
+
+    document.getElementById('googleCustomSubmit').addEventListener('click', () => {
+      const email = document.getElementById('googleCustomEmail').value;
+      const name = document.getElementById('googleCustomName').value;
+      const role = document.getElementById('googleCustomRole').value;
+
+      if (!email || !name) {
+        return alert('Please enter both name and email for your custom Google account.');
+      }
+      triggerGoogleSignIn(email, name, role);
     });
 
     document.getElementById('loginForm').addEventListener('submit', async (e) => {

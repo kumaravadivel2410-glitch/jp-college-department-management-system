@@ -4,13 +4,17 @@ const UserSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-    password: { type: String, required: true },
+    password: { type: String }, // optional for Google Auth users
     role: { type: String, enum: ['super_admin', 'admin', 'faculty', 'student'], default: 'student' },
     status: { type: String, enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending' },
     isApproved: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },
     isProtected: { type: Boolean, default: false },
     
+    // Google Sign-In OAuth fields
+    googleId: { type: String, default: '' },
+    loginTime: { type: Date },
+
     // Common profile details
     department: { type: String, default: 'General' },
     mobileNumber: { type: String, default: '' },

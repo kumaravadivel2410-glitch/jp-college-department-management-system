@@ -33,6 +33,7 @@ const mountCrud = (prefix, controller) => {
 
 // Auth & Registration Routes
 router.post('/auth/login', controllers.auth.login);
+router.post('/auth/google', controllers.auth.googleLogin);
 router.post('/auth/register', controllers.auth.register);
 router.get('/auth/pending-categorized', verifyToken, authorizeRoles('admin', 'super_admin'), controllers.auth.getPendingCategorized);
 router.put('/auth/approve/:userId', verifyToken, authorizeRoles('admin', 'super_admin'), controllers.auth.approveUser);
