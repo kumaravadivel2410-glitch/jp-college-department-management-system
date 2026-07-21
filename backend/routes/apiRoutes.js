@@ -76,19 +76,9 @@ router.post('/notifications/read-all', verifyToken, controllers.notifications.ma
 router.get('/reports', verifyToken, enforceStudentAcademicScope, controllers.reports.getAll);
 router.post('/reports/generate', verifyToken, controllers.reports.generate);
 
-// Import & Export Data Routes (Admin/Faculty Only)
-router.post('/import', verifyToken, authorizeRoles('admin', 'super_admin', 'faculty'), controllers.importExport.importData);
-router.post('/import/file', verifyToken, authorizeRoles('admin', 'super_admin', 'faculty'), upload.single('file'), controllers.importExport.importFile);
-router.post('/import/students', verifyToken, authorizeRoles('admin', 'super_admin', 'faculty'), upload.single('file'), (req, res, next) => { req.body.target = 'students'; next(); }, controllers.importExport.importFile);
-router.post('/import/faculty', verifyToken, authorizeRoles('admin', 'super_admin', 'faculty'), upload.single('file'), (req, res, next) => { req.body.target = 'faculty'; next(); }, controllers.importExport.importFile);
-router.post('/import/attendance', verifyToken, authorizeRoles('admin', 'super_admin', 'faculty'), upload.single('file'), (req, res, next) => { req.body.target = 'attendance'; next(); }, controllers.importExport.importFile);
-router.post('/import/internalmarks', verifyToken, authorizeRoles('admin', 'super_admin', 'faculty'), upload.single('file'), (req, res, next) => { req.body.target = 'internalMarks'; next(); }, controllers.importExport.importFile);
-router.post('/import/semestermarks', verifyToken, authorizeRoles('admin', 'super_admin', 'faculty'), upload.single('file'), (req, res, next) => { req.body.target = 'semesterMarks'; next(); }, controllers.importExport.importFile);
-router.post('/import/subjects', verifyToken, authorizeRoles('admin', 'super_admin', 'faculty'), upload.single('file'), (req, res, next) => { req.body.target = 'subjects'; next(); }, controllers.importExport.importFile);
-router.post('/import/classes', verifyToken, authorizeRoles('admin', 'super_admin', 'faculty'), upload.single('file'), (req, res, next) => { req.body.target = 'classes'; next(); }, controllers.importExport.importFile);
-router.post('/import/timetable', verifyToken, authorizeRoles('admin', 'super_admin', 'faculty'), upload.single('file'), (req, res, next) => { req.body.target = 'timetables'; next(); }, controllers.importExport.importFile);
-router.post('/import/notes', verifyToken, authorizeRoles('admin', 'super_admin', 'faculty'), upload.single('file'), (req, res, next) => { req.body.target = 'notes'; next(); }, controllers.importExport.importFile);
-router.post('/import/assignments', verifyToken, authorizeRoles('admin', 'super_admin', 'faculty'), upload.single('file'), (req, res, next) => { req.body.target = 'assignments'; next(); }, controllers.importExport.importFile);
+// Import & Export Data Routes (Modular Architecture)
+const importRoutes = require('./importRoutes');
+router.use('/import', importRoutes);
 router.get('/export', verifyToken, controllers.importExport.exportData);
 
 // Stats Route

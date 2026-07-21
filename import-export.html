@@ -38,6 +38,18 @@
       width: 0%;
       transition: width 0.3s ease;
     }
+    .file-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 0.85rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      background: #DBEAFE;
+      color: #1E40AF;
+      margin-top: 0.75rem;
+    }
   </style>
 </head>
 <body>
@@ -46,9 +58,9 @@
 
   <main class="main-content-wrapper">
     <div class="page-header-title">
-      <h2><i class="fa-solid fa-file-import" style="color: var(--primary);"></i> ERP Enterprise Import & Export Center</h2>
+      <h2><i class="fa-solid fa-file-import" style="color: var(--primary);"></i> ERP Enterprise Modular Import & Export Center</h2>
       <div style="display: flex; gap: 0.75rem;">
-        <button id="downloadSampleBtn" class="btn-secondary">
+        <button id="downloadSampleBtn" class="btn-secondary" onclick="document.getElementById('sampleTemplatesGrid').scrollIntoView({behavior:'smooth'});">
           <i class="fa-solid fa-file-excel" style="color: #16A34A;"></i> Download Sample Templates
         </button>
       </div>
@@ -57,32 +69,35 @@
     <!-- Step-by-Step Import Grid -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
       
-      <!-- Import Control Box -->
+      <!-- Modular Import Control Box -->
       <div class="card-glass">
         <h3 style="font-size: 1.15rem; font-weight: 800; color: #1E3A8A; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-          <i class="fa-solid fa-cloud-arrow-up" style="color: var(--primary);"></i> Upload Spreadsheet (.xlsx / .csv)
+          <i class="fa-solid fa-cloud-arrow-up" style="color: var(--primary);"></i> Modular Upload (.xlsx, .csv, .pdf)
         </h3>
 
         <form id="enterpriseImportForm">
-          <!-- Module & Filter Selection -->
+          <!-- 12 Independent Modules Selector -->
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.85rem; margin-bottom: 1rem;">
             <div class="form-group" style="margin-bottom:0;">
-              <label class="form-label">Target Module *</label>
+              <label class="form-label">Target ERP Module (Independent Pipeline) *</label>
               <select id="impModule" class="form-control" style="font-weight: 700;">
-                <option value="students" selected>Students List</option>
-                <option value="faculty">Faculty Directory</option>
-                <option value="departments">Departments</option>
-                <option value="subjects">Subjects List</option>
-                <option value="classes">Classes & Advisors</option>
-                <option value="attendance">Attendance Records</option>
-                <option value="internalmarks">Internal Assessment Marks</option>
-                <option value="semestermarks">Semester Marks & GPA</option>
-                <option value="notes">Subject Notes Repository</option>
-                <option value="assignments">Course Assignments</option>
-                <option value="timetable">Class Timetable</option>
+                <option value="students" selected>1. Student Import (StudentImportService)</option>
+                <option value="faculty">2. Faculty Import (FacultyImportService)</option>
+                <option value="departments">3. Department Import (DepartmentImportService)</option>
+                <option value="subjects">4. Subject Import (SubjectImportService)</option>
+                <option value="classes">5. Class Import (ClassImportService)</option>
+                <option value="attendance">6. Attendance Import (AttendanceImportService)</option>
+                <option value="internalmarks">7. Internal Marks Import (InternalMarkImportService)</option>
+                <option value="semestermarks">8. Semester Marks Import (SemesterMarkImportService)</option>
+                <option value="notes">9. Subject Notes Import (NotesImportService)</option>
+                <option value="assignments">10. Assignment Import (AssignmentImportService)</option>
+                <option value="timetable">11. Timetable Import (TimetableImportService)</option>
+                <option value="notifications">12. Notification Import (NotificationImportService)</option>
               </select>
             </div>
+          </div>
 
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem; margin-bottom: 1rem;">
             <div class="form-group" style="margin-bottom:0;">
               <label class="form-label">Department</label>
               <select id="impDept" class="form-control">
@@ -94,9 +109,7 @@
                 <option value="CIVIL">Civil</option>
               </select>
             </div>
-          </div>
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem; margin-bottom: 1rem;">
             <div class="form-group" style="margin-bottom:0;">
               <label class="form-label">Year</label>
               <select id="impYear" class="form-control">
@@ -114,23 +127,15 @@
                 <option value="Semester VI">Semester VI</option>
               </select>
             </div>
-
-            <div class="form-group" style="margin-bottom:0;">
-              <label class="form-label">Section</label>
-              <select id="impSec" class="form-control">
-                <option value="A" selected>Section A</option>
-                <option value="B">Section B</option>
-              </select>
-            </div>
           </div>
 
           <!-- Dropzone -->
           <div class="dropzone" id="entDropzone">
-            <i class="fa-solid fa-file-excel fa-3x" style="color: var(--primary); margin-bottom: 0.5rem;"></i>
-            <h4 style="font-size: 1rem; color: #1E3A8A; font-weight: 700;">Drag & Drop Excel (.xlsx) or CSV File Here</h4>
-            <p style="font-size: 0.8rem; color: var(--text-secondary);">or click to browse your computer</p>
-            <input type="file" id="entFileInput" accept=".xlsx,.xls,.csv" style="display: none;">
-            <div id="entBadge" style="margin-top: 0.5rem; font-weight: 700; color: var(--primary); font-size: 0.85rem; display: none;"></div>
+            <i class="fa-solid fa-file-arrow-up fa-3x" style="color: var(--primary); margin-bottom: 0.5rem;"></i>
+            <h4 style="font-size: 1rem; color: #1E3A8A; font-weight: 700;">Drag & Drop Spreadsheet (.xlsx, .csv) or PDF / Doc File Here</h4>
+            <p style="font-size: 0.8rem; color: var(--text-secondary);">Automatic file type detection and field mapping</p>
+            <input type="file" id="entFileInput" accept=".xlsx,.xls,.csv,.pdf,.docx,.pptx,.zip" style="display: none;">
+            <div id="entBadge" class="file-badge" style="display: none;"></div>
           </div>
 
           <!-- Upload Progress -->
@@ -141,10 +146,10 @@
 
           <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
             <button type="button" id="entPreviewBtn" class="btn-secondary" style="display: none; flex: 1; justify-content: center;">
-              <i class="fa-solid fa-eye"></i> Preview Row Data
+              <i class="fa-solid fa-eye"></i> Live Row Preview
             </button>
             <button type="submit" class="btn-primary" id="entSubmitBtn" style="flex: 2; justify-content: center;">
-              <i class="fa-solid fa-paper-plane"></i> Execute Import & Sync MongoDB
+              <i class="fa-solid fa-paper-plane"></i> Execute Pipeline & Sync MongoDB
             </button>
           </div>
         </form>
@@ -167,11 +172,14 @@
             <option value="subjects">Subjects List</option>
             <option value="classes">Classes & Advisors</option>
             <option value="timetable">Class Timetables</option>
+            <option value="notes">Subject Notes</option>
+            <option value="assignments">Assignments</option>
+            <option value="notifications">Notifications</option>
           </select>
         </div>
 
         <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
-          Generate structured report files directly from MongoDB Atlas database. Choose your preferred export format below:
+          Generate structured reports directly from MongoDB Atlas database. Choose export format:
         </p>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem;">
@@ -186,46 +194,66 @@
           </button>
         </div>
 
-        <!-- Sample Templates Downloads Grid -->
-        <div style="margin-top: 2rem; border-top: 1px solid var(--border-subtle); padding-top: 1.25rem;">
-          <h4 style="font-size: 0.9rem; font-weight: 800; color: #1E3A8A; margin-bottom: 0.75rem;">
-            <i class="fa-solid fa-download" style="color: var(--primary);"></i> Download Sample Spreadsheet Templates
-          </h4>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.5rem;">
-            <button onclick="downloadSample('Students')" class="btn-secondary" style="font-size:0.75rem; padding:0.4rem;"><i class="fa-solid fa-file-excel"></i> Students.xlsx</button>
-            <button onclick="downloadSample('Faculty')" class="btn-secondary" style="font-size:0.75rem; padding:0.4rem;"><i class="fa-solid fa-file-excel"></i> Faculty.xlsx</button>
-            <button onclick="downloadSample('Attendance')" class="btn-secondary" style="font-size:0.75rem; padding:0.4rem;"><i class="fa-solid fa-file-excel"></i> Attendance.xlsx</button>
-            <button onclick="downloadSample('InternalMarks')" class="btn-secondary" style="font-size:0.75rem; padding:0.4rem;"><i class="fa-solid fa-file-excel"></i> InternalMarks.xlsx</button>
-            <button onclick="downloadSample('SemesterMarks')" class="btn-secondary" style="font-size:0.75rem; padding:0.4rem;"><i class="fa-solid fa-file-excel"></i> SemesterMarks.xlsx</button>
-            <button onclick="downloadSample('Subjects')" class="btn-secondary" style="font-size:0.75rem; padding:0.4rem;"><i class="fa-solid fa-file-excel"></i> Subjects.xlsx</button>
-          </div>
-        </div>
-
       </div>
 
     </div>
 
-    <!-- Summary Box -->
+    <!-- Real-Time Summary Dashboard & Download Reports -->
     <div class="card-glass" id="entSummaryBox" style="display: none; margin-bottom: 1.5rem;">
-      <h3 style="font-size: 1.1rem; font-weight: 800; color: #1E3A8A; margin-bottom: 1rem;">
-        <i class="fa-solid fa-square-poll-vertical" style="color: var(--primary);"></i> Real-Time Import Summary Report
-      </h3>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
-        <div style="background:#DCFCE7; padding:0.85rem; border-radius:8px; text-align:center;"><div style="font-size:1.6rem; font-weight:800; color:#16A34A;" id="entSumInserted">0</div><div style="font-size:0.8rem; font-weight:700; color:#166534;">Inserted</div></div>
-        <div style="background:#EFF6FF; padding:0.85rem; border-radius:8px; text-align:center;"><div style="font-size:1.6rem; font-weight:800; color:#2563EB;" id="entSumUpdated">0</div><div style="font-size:0.8rem; font-weight:700; color:#1E40AF;">Updated</div></div>
-        <div style="background:#FEF3C7; padding:0.85rem; border-radius:8px; text-align:center;"><div style="font-size:1.6rem; font-weight:800; color:#B45309;" id="entSumSkipped">0</div><div style="font-size:0.8rem; font-weight:700; color:#78350F;">Skipped</div></div>
-        <div style="background:#FEE2E2; padding:0.85rem; border-radius:8px; text-align:center;"><div style="font-size:1.6rem; font-weight:800; color:#DC2626;" id="entSumErrors">0</div><div style="font-size:0.8rem; font-weight:700; color:#991B1B;">Errors</div></div>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h3 style="font-size: 1.1rem; font-weight: 800; color: #1E3A8A; margin:0;">
+          <i class="fa-solid fa-square-poll-vertical" style="color: var(--primary);"></i> Real-Time Modular Import Summary Report
+        </h3>
+        <div style="display: flex; gap: 0.5rem;">
+          <button id="downloadSuccessReportBtn" class="btn-success" style="font-size: 0.8rem; padding: 0.4rem 0.75rem; display: none;">
+            <i class="fa-solid fa-download"></i> Download Success Report (CSV)
+          </button>
+          <button id="downloadErrorReportBtn" class="btn-secondary" style="font-size: 0.8rem; padding: 0.4rem 0.75rem; color:#DC2626; border-color:#FCA5A5; display: none;">
+            <i class="fa-solid fa-triangle-exclamation"></i> Download Error Report (CSV)
+          </button>
+        </div>
       </div>
-      <div id="entErrorsList" style="font-size:0.85rem; color:var(--error); max-height:150px; overflow-y:auto; background:#FFF; padding:0.75rem; border-radius:8px; border:1px solid var(--border-subtle);"></div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+        <div style="background:#F3F4F6; padding:0.85rem; border-radius:8px; text-align:center;"><div style="font-size:1.6rem; font-weight:800; color:#374151;" id="entSumTotal">0</div><div style="font-size:0.75rem; font-weight:700; color:#4B5563;">Total Records</div></div>
+        <div style="background:#DCFCE7; padding:0.85rem; border-radius:8px; text-align:center;"><div style="font-size:1.6rem; font-weight:800; color:#16A34A;" id="entSumInserted">0</div><div style="font-size:0.75rem; font-weight:700; color:#166534;">Inserted</div></div>
+        <div style="background:#EFF6FF; padding:0.85rem; border-radius:8px; text-align:center;"><div style="font-size:1.6rem; font-weight:800; color:#2563EB;" id="entSumUpdated">0</div><div style="font-size:0.75rem; font-weight:700; color:#1E40AF;">Updated</div></div>
+        <div style="background:#FEF3C7; padding:0.85rem; border-radius:8px; text-align:center;"><div style="font-size:1.6rem; font-weight:800; color:#B45309;" id="entSumDuplicates">0</div><div style="font-size:0.75rem; font-weight:700; color:#78350F;">Duplicates</div></div>
+        <div style="background:#F3E8FF; padding:0.85rem; border-radius:8px; text-align:center;"><div style="font-size:1.6rem; font-weight:800; color:#9333EA;" id="entSumSkipped">0</div><div style="font-size:0.75rem; font-weight:700; color:#6B21A8;">Skipped</div></div>
+        <div style="background:#FEE2E2; padding:0.85rem; border-radius:8px; text-align:center;"><div style="font-size:1.6rem; font-weight:800; color:#DC2626;" id="entSumErrors">0</div><div style="font-size:0.75rem; font-weight:700; color:#991B1B;">Errors</div></div>
+      </div>
+
+      <div id="entErrorsList" style="font-size:0.85rem; max-height:180px; overflow-y:auto; background:#FFF; padding:0.75rem; border-radius:8px; border:1px solid var(--border-subtle);"></div>
+    </div>
+
+    <!-- Sample Spreadsheet Templates Downloads Grid -->
+    <div class="card-glass" id="sampleTemplatesGrid">
+      <h3 style="font-size: 1.1rem; font-weight: 800; color: #1E3A8A; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+        <i class="fa-solid fa-download" style="color: var(--primary);"></i> Download Sample Spreadsheet Templates (All 12 ERP Modules)
+      </h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.75rem;">
+        <button onclick="downloadSample('Students')" class="btn-secondary" style="font-size:0.75rem; padding:0.5rem;"><i class="fa-solid fa-file-excel" style="color:#16A34A;"></i> 1. Students.xlsx</button>
+        <button onclick="downloadSample('Faculty')" class="btn-secondary" style="font-size:0.75rem; padding:0.5rem;"><i class="fa-solid fa-file-excel" style="color:#16A34A;"></i> 2. Faculty.xlsx</button>
+        <button onclick="downloadSample('Departments')" class="btn-secondary" style="font-size:0.75rem; padding:0.5rem;"><i class="fa-solid fa-file-excel" style="color:#16A34A;"></i> 3. Departments.xlsx</button>
+        <button onclick="downloadSample('Subjects')" class="btn-secondary" style="font-size:0.75rem; padding:0.5rem;"><i class="fa-solid fa-file-excel" style="color:#16A34A;"></i> 4. Subjects.xlsx</button>
+        <button onclick="downloadSample('Classes')" class="btn-secondary" style="font-size:0.75rem; padding:0.5rem;"><i class="fa-solid fa-file-excel" style="color:#16A34A;"></i> 5. Classes.xlsx</button>
+        <button onclick="downloadSample('Attendance')" class="btn-secondary" style="font-size:0.75rem; padding:0.5rem;"><i class="fa-solid fa-file-excel" style="color:#16A34A;"></i> 6. Attendance.xlsx</button>
+        <button onclick="downloadSample('InternalMarks')" class="btn-secondary" style="font-size:0.75rem; padding:0.5rem;"><i class="fa-solid fa-file-excel" style="color:#16A34A;"></i> 7. InternalMarks.xlsx</button>
+        <button onclick="downloadSample('SemesterMarks')" class="btn-secondary" style="font-size:0.75rem; padding:0.5rem;"><i class="fa-solid fa-file-excel" style="color:#16A34A;"></i> 8. SemesterMarks.xlsx</button>
+        <button onclick="downloadSample('Notes')" class="btn-secondary" style="font-size:0.75rem; padding:0.5rem;"><i class="fa-solid fa-file-excel" style="color:#16A34A;"></i> 9. SubjectNotes.xlsx</button>
+        <button onclick="downloadSample('Assignments')" class="btn-secondary" style="font-size:0.75rem; padding:0.5rem;"><i class="fa-solid fa-file-excel" style="color:#16A34A;"></i> 10. Assignments.xlsx</button>
+        <button onclick="downloadSample('Timetable')" class="btn-secondary" style="font-size:0.75rem; padding:0.5rem;"><i class="fa-solid fa-file-excel" style="color:#16A34A;"></i> 11. Timetable.xlsx</button>
+        <button onclick="downloadSample('Notifications')" class="btn-secondary" style="font-size:0.75rem; padding:0.5rem;"><i class="fa-solid fa-file-excel" style="color:#16A34A;"></i> 12. Notifications.xlsx</button>
+      </div>
     </div>
 
   </main>
 
-  <!-- Spreadsheet Data Preview Modal -->
+  <!-- Live Row Data Preview Modal -->
   <div class="modal-overlay" id="entPreviewModal">
     <div class="modal-box" style="max-width: 900px;">
       <div class="modal-header">
-        <h3><i class="fa-solid fa-table" style="color: var(--primary);"></i> Spreadsheet Row Preview</h3>
+        <h3><i class="fa-solid fa-table" style="color: var(--primary);"></i> Live Data Row Preview</h3>
         <button class="close-modal-btn" id="closeEntPreviewBtn">&times;</button>
       </div>
       <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
@@ -253,6 +281,7 @@
       const previewBtn = document.getElementById('entPreviewBtn');
       const previewModal = document.getElementById('entPreviewModal');
       let parsedRows = [];
+      let currentImportId = null;
 
       dropzone.addEventListener('click', () => fileInput.click());
       dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
@@ -271,8 +300,15 @@
       });
 
       const handleFileSelect = (file) => {
-        badge.style.display = 'block';
-        badge.textContent = `📄 Selected File: ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+        badge.style.display = 'inline-flex';
+        const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+        let icon = 'fa-file';
+        if (['.xlsx','.xls'].includes(ext)) icon = 'fa-file-excel';
+        else if (ext === '.csv') icon = 'fa-file-csv';
+        else if (ext === '.pdf') icon = 'fa-file-pdf';
+        else icon = 'fa-file-word';
+
+        badge.innerHTML = `<i class="fa-solid ${icon}"></i> File Selected: ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
         previewBtn.style.display = 'inline-flex';
 
         const reader = new FileReader();
@@ -288,10 +324,10 @@
       };
 
       previewBtn.addEventListener('click', () => {
-        if (!parsedRows.length) return alert('No data parsed.');
-        const keys = Object.keys(parsedRows[0]);
+        if (!parsedRows.length) return alert('No rows parsed. Please verify file format.');
+        const keys = Object.keys(parsedRows[0] || {});
         document.getElementById('entPreviewThead').innerHTML = `<tr>${keys.map(k => `<th>${k}</th>`).join('')}</tr>`;
-        document.getElementById('entPreviewTbody').innerHTML = parsedRows.slice(0, 10).map(r => `
+        document.getElementById('entPreviewTbody').innerHTML = parsedRows.slice(0, 15).map((r, idx) => `
           <tr>${keys.map(k => `<td>${r[k] !== undefined ? r[k] : ''}</td>`).join('')}</tr>
         `).join('');
         previewModal.classList.add('active');
@@ -299,10 +335,10 @@
 
       document.getElementById('closeEntPreviewBtn')?.addEventListener('click', () => previewModal.classList.remove('active'));
 
-      // Form Submit
+      // Form Submit (Modular Dispatch)
       document.getElementById('enterpriseImportForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        if (!fileInput.files[0]) return alert('Select or drop an Excel/CSV file.');
+        if (!fileInput.files[0]) return alert('Please select or drop an Excel, CSV, or PDF file.');
 
         const moduleName = document.getElementById('impModule').value;
         const submitBtn = document.getElementById('entSubmitBtn');
@@ -314,7 +350,7 @@
         progressWrapper.style.display = 'block';
         percentText.style.display = 'block';
         progressFill.style.width = '30%';
-        percentText.textContent = '30% - Uploading to Server...';
+        percentText.textContent = '30% - Uploading to Module Pipeline...';
 
         try {
           const formData = new FormData();
@@ -324,7 +360,7 @@
           const baseUrl = window.APP_CONFIG.getApiBaseUrl();
 
           progressFill.style.width = '70%';
-          percentText.textContent = '70% - Parsing & Saving to MongoDB Atlas...';
+          percentText.textContent = '70% - Parsing, Validating & Database Transactions...';
 
           const res = await fetch(`${baseUrl}/import/${moduleName}`, {
             method: 'POST',
@@ -334,24 +370,36 @@
 
           const json = await res.json();
           progressFill.style.width = '100%';
-          percentText.textContent = '100% - Import Completed!';
+          percentText.textContent = '100% - Pipeline Completed!';
 
           if (json.success) {
+            currentImportId = json.importId;
             document.getElementById('entSummaryBox').style.display = 'block';
+            document.getElementById('entSumTotal').textContent = json.summary.totalRecords;
             document.getElementById('entSumInserted').textContent = json.summary.inserted;
             document.getElementById('entSumUpdated').textContent = json.summary.updated;
+            document.getElementById('entSumDuplicates').textContent = json.summary.duplicates;
             document.getElementById('entSumSkipped').textContent = json.summary.skipped;
             document.getElementById('entSumErrors').textContent = json.summary.errorsCount;
 
+            const errBtn = document.getElementById('downloadErrorReportBtn');
+            const succBtn = document.getElementById('downloadSuccessReportBtn');
+            succBtn.style.display = 'inline-flex';
+            errBtn.style.display = json.summary.errorsCount > 0 ? 'inline-flex' : 'none';
+
             if (json.errors && json.errors.length > 0) {
-              document.getElementById('entErrorsList').innerHTML = json.errors.map(err => `<div>• ${err}</div>`).join('');
+              document.getElementById('entErrorsList').innerHTML = json.errors.map(err => `
+                <div style="margin-bottom:0.25rem; color:#DC2626;">
+                  <strong>Row ${err.row || 'N/A'}:</strong> ${err.field ? `[${err.field}] ` : ''}${err.message}
+                </div>
+              `).join('');
             } else {
-              document.getElementById('entErrorsList').innerHTML = '<div style="color:var(--success);">✅ All rows imported and validated successfully!</div>';
+              document.getElementById('entErrorsList').innerHTML = '<div style="color:var(--success); font-weight:700;">✅ All records processed and validated successfully with 0 errors!</div>';
             }
 
-            alert(json.message || 'Import execution succeeded!');
+            alert(json.message || 'Import pipeline execution succeeded!');
           } else {
-            alert(`Import Error: ${json.message}`);
+            alert(`Import Failed: ${json.message}`);
           }
         } catch (err) {
           alert(`Network Error: ${err.message}`);
@@ -364,10 +412,23 @@
         }
       });
 
-      // Export Buttons
-      document.getElementById('expExcelBtn').addEventListener('click', async () => exportActiveModule('excel'));
-      document.getElementById('expCsvBtn').addEventListener('click', async () => exportActiveModule('csv'));
-      document.getElementById('expPdfBtn').addEventListener('click', async () => exportActiveModule('pdf'));
+      // Report Download Actions
+      document.getElementById('downloadSuccessReportBtn').addEventListener('click', () => {
+        if (!currentImportId) return alert('No active import session found.');
+        const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+        window.open(`${baseUrl}/import/report/${currentImportId}/success`, '_blank');
+      });
+
+      document.getElementById('downloadErrorReportBtn').addEventListener('click', () => {
+        if (!currentImportId) return alert('No active import session found.');
+        const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+        window.open(`${baseUrl}/import/report/${currentImportId}/error`, '_blank');
+      });
+
+      // Export Actions
+      document.getElementById('expExcelBtn').addEventListener('click', () => exportActiveModule('excel'));
+      document.getElementById('expCsvBtn').addEventListener('click', () => exportActiveModule('csv'));
+      document.getElementById('expPdfBtn').addEventListener('click', () => exportActiveModule('pdf'));
 
       const exportActiveModule = async (format) => {
         const target = document.getElementById('expTarget').value;
@@ -394,20 +455,35 @@
         }
       };
 
+      // Sample Template Download Generator for all 12 modules
       window.downloadSample = (type) => {
         let sampleData = [];
         if (type === 'Students') {
-          sampleData = [{ registerNo: '953621104010', rollNumber: '21AD10', studentName: 'Rohan Verma', email: 'rohan.21ad@jpcoe.ac.in', phone: '9876543210', gender: 'Male', department: 'AI & DS', year: 'III Year', semester: 'Semester V', section: 'A', batch: '2021 - 2025' }];
+          sampleData = [{ registerNo: '953621104010', rollNumber: '21AD10', studentName: 'Rohan Verma', email: 'rohan.21ad@jpcoe.ac.in', phone: '9876543210', gender: 'Male', department: 'AI & DS', year: 'III Year', semester: 'Semester V', section: 'A', dateOfBirth: '2003-05-15', bloodGroup: 'O+'}, { registerNo: '953621104011', rollNumber: '21AD11', studentName: 'Ananya Sharma', email: 'ananya.21ad@jpcoe.ac.in', phone: '9876543211', gender: 'Female', department: 'AI & DS', year: 'III Year', semester: 'Semester V', section: 'A', dateOfBirth: '2003-08-20', bloodGroup: 'B+'}];
         } else if (type === 'Faculty') {
-          sampleData = [{ facultyId: 'JPC-FAC-110', facultyName: 'Dr. Ramesh Kumar', email: 'ramesh@jpcoe.ac.in', phone: '9876543211', department: 'AI & DS', designation: 'Professor', qualification: 'Ph.D.' }];
+          sampleData = [{ facultyId: 'JPC-FAC-110', facultyName: 'Dr. Ramesh Kumar', email: 'ramesh@jpcoe.ac.in', phone: '9876543211', department: 'AI & DS', designation: 'Professor', qualification: 'Ph.D.', experience: '12 Years' }];
+        } else if (type === 'Departments') {
+          sampleData = [{ departmentCode: 'AIDS', departmentName: 'Artificial Intelligence and Data Science', hod: 'Dr. Ramesh Kumar', building: 'Tech Block - 2nd Floor', phone: '04633-280100' }];
+        } else if (type === 'Subjects') {
+          sampleData = [{ subjectCode: 'AD3501', subjectName: 'Deep Learning', department: 'AI & DS', semester: 'Semester V', credits: 4, regulation: '2021', faculty: 'Dr. Ramesh Kumar' }];
+        } else if (type === 'Classes') {
+          sampleData = [{ department: 'AI & DS', year: 'III Year', semester: 'Semester V', section: 'A', classAdvisor: 'Dr. Ramesh Kumar', roomNumber: 'LH-201' }];
         } else if (type === 'Attendance') {
-          sampleData = [{ studentRegisterNo: '953621104010', date: '2026-07-20', session: 'Full Day', morningStatus: 'Present', afternoonStatus: 'Present', status: 'Present', percentage: 100 }];
+          sampleData = [{ studentRegisterNo: '953621104010', subject: 'AD3501', date: '2026-07-21', session: 'Full Day', status: 'Present', markedBy: 'Dr. Ramesh Kumar' }];
         } else if (type === 'InternalMarks') {
-          sampleData = [{ studentRegisterNo: '953621104010', subjectCode: 'AD3501', internal1: 48, internal2: 49, internal3: 50, average: 49.0, modelExam: 95, assignmentMark: 10, totalInternal: 99 }];
-        } else {
-          sampleData = [{ subjectCode: 'AD3501', subjectName: 'Deep Learning', credits: 4, department: 'AI & DS', semester: 'Semester V' }];
+          sampleData = [{ studentRegisterNo: '953621104010', subjectCode: 'AD3501', internal1: 48, internal2: 49, internal3: 50, modelExam: 95, assignmentMark: 10 }];
+        } else if (type === 'SemesterMarks') {
+          sampleData = [{ studentRegisterNo: '953621104010', subjectCode: 'AD3501', grade: 'O', marks: 95, credits: 4, gpa: 9.5, cgpa: 9.2 }];
+        } else if (type === 'Notes') {
+          sampleData = [{ title: 'Unit 1 Deep Neural Networks Notes', department: 'AI & DS', semester: 'Semester V', subjectCode: 'AD3501', fileName: 'unit1_dl.pdf', fileSize: '3.2 MB', uploadedBy: 'Dr. Ramesh Kumar' }];
+        } else if (type === 'Assignments') {
+          sampleData = [{ title: 'Assignment 1 - CNN Implementation', description: 'Implement ResNet architecture in PyTorch', department: 'AI & DS', year: 'III Year', semester: 'Semester V', section: 'A', subjectCode: 'AD3501', dueDate: '2026-08-05' }];
+        } else if (type === 'Timetable') {
+          sampleData = [{ department: 'AI & DS', year: 'III Year', semester: 'Semester V', section: 'A', day: 'Monday', period: '09:00 AM - 10:00 AM', subjectCode: 'AD3501', subjectName: 'Deep Learning', facultyName: 'Dr. Ramesh Kumar', roomNo: 'Lab 2' }];
+        } else if (type === 'Notifications') {
+          sampleData = [{ title: 'Internal Exam Schedule', message: 'Internal Assessment II begins next Monday.', type: 'marks', recipientRole: 'all' }];
         }
-        exporter.exportToExcel(`Sample_${type}_Template`, sampleData);
+        exporter.exportToExcel(`JP_College_Sample_${type}_Template`, sampleData);
       };
     });
   </script>
