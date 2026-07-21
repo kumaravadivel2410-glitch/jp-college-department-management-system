@@ -386,10 +386,31 @@ const createCrudControllers = (Model, modelName) => ({
         return res.status(400).json({ success: false, message: 'No record IDs provided for bulk deletion.' });
       }
 
-      let filter = { _id: { $in: ids } };
+      const validObjectIds = ids.filter(id => typeof id === 'string' && /^[0-9a-fA-F]{24}$/.test(id));
+      const stringIds = ids.filter(id => typeof id === 'string' && !/^[0-9a-fA-F]{24}$/.test(id));
+
+      const orConditions = [];
+      if (validObjectIds.length > 0) {
+        orConditions.push({ _id: { $in: validObjectIds } });
+      }
+      if (stringIds.length > 0) {
+        orConditions.push(
+          { facultyId: { $in: stringIds } },
+          { registerNo: { $in: stringIds } },
+          { departmentCode: { $in: stringIds } },
+          { subjectCode: { $in: stringIds } }
+        );
+      }
+
+      if (orConditions.length === 0) {
+        return res.status(400).json({ success: false, message: 'No valid record IDs provided for bulk deletion.' });
+      }
+
+      const filter = orConditions.length === 1 ? orConditions[0] : { $or: orConditions };
+
       if (modelName === 'User') {
         const protectedUser = await Model.findOne({
-          _id: { $in: ids },
+          _id: { $in: validObjectIds },
           $or: [{ isProtected: true }, { email: (process.env.SUPER_ADMIN_EMAIL || 'Adminjpcoe@gmail.com').toLowerCase() }]
         });
         if (protectedUser) {
@@ -410,7 +431,8 @@ const createCrudControllers = (Model, modelName) => ({
 
       res.json({
         success: true,
-        message: `Successfully deleted ${result.deletedCount} records permanently.`,
+        message: `Successfully deleted ${result.deletedCount} ${modelName.toLowerCase()} records.`,
+        deleted: result.deletedCount,
         deletedCount: result.deletedCount
       });
     } catch (err) {

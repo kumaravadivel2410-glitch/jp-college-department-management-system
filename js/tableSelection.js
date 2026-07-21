@@ -5,7 +5,8 @@
 class TableSelectionManager {
   constructor(options = {}) {
     this.tableId = options.tableId || null;
-    this.resource = options.resource || 'students';
+    this.resource = options.resource || 'faculty';
+    this.entityLabel = options.entityLabel || 'Faculty Members';
     this.onSelectionChange = options.onSelectionChange || null;
     this.onRefresh = options.onRefresh || null;
     this.getSelectedData = options.getSelectedData || null;
@@ -14,6 +15,7 @@ class TableSelectionManager {
     this.toolbarEl = null;
 
     this.initToolbar();
+    this.initConfirmationModal();
   }
 
   initToolbar() {
@@ -46,7 +48,7 @@ class TableSelectionManager {
     bar.innerHTML = `
       <div id="erpSelectedCountText" style="display:flex; align-items:center; gap:0.5rem;">
         <i class="fa-solid fa-check-double" style="color:#60A5FA;"></i>
-        <span>0 Selected</span>
+        <span>Selected: 0</span>
       </div>
       <div style="height:20px; width:1px; background:rgba(255,255,255,0.3);"></div>
       <div style="display:flex; gap:0.5rem;">
@@ -59,8 +61,10 @@ class TableSelectionManager {
         <button type="button" id="erpBulkPrintBtn" style="background:#3B82F6; color:#FFF; border:none; padding:0.4rem 0.85rem; border-radius:20px; font-weight:700; cursor:pointer; font-size:0.8rem; display:inline-flex; align-items:center; gap:0.4rem;">
           <i class="fa-solid fa-print"></i> Print Selected
         </button>
+        <button type="button" id="erpCancelSelectionBtn" style="background:rgba(255,255,255,0.15); color:#FFF; border:1px solid rgba(255,255,255,0.3); padding:0.4rem 0.85rem; border-radius:20px; font-weight:700; cursor:pointer; font-size:0.8rem; display:inline-flex; align-items:center; gap:0.4rem;">
+          Cancel Selection
+        </button>
       </div>
-      <button type="button" id="erpClearSelectionBtn" style="background:transparent; color:#9CA3AF; border:none; font-size:1.1rem; cursor:pointer; margin-left:0.5rem;" title="Clear Selection">&times;</button>
     `;
 
     document.body.appendChild(bar);
@@ -69,11 +73,49 @@ class TableSelectionManager {
     document.getElementById('erpBulkDeleteBtn').addEventListener('click', () => this.handleBulkDelete());
     document.getElementById('erpBulkExportBtn').addEventListener('click', () => this.handleBulkExport());
     document.getElementById('erpBulkPrintBtn').addEventListener('click', () => this.handleBulkPrint());
-    document.getElementById('erpClearSelectionBtn').addEventListener('click', () => this.clearSelection());
+    document.getElementById('erpCancelSelectionBtn').addEventListener('click', () => this.clearSelection());
   }
 
-  bindTable(tableOrId, resourceName, onRefreshCallback, getSelectedDataFn) {
-    this.resource = resourceName || 'students';
+  initConfirmationModal() {
+    let existingModal = document.getElementById('erpBulkDeleteModal');
+    if (existingModal) return;
+
+    const modalHtml = `
+      <div class="modal-overlay" id="erpBulkDeleteModal" style="z-index: 10000;">
+        <div class="modal-box" style="max-width: 440px; border-top: 4px solid #EF4444;">
+          <div class="modal-header">
+            <h3 style="color: #991B1B;"><i class="fa-solid fa-triangle-exclamation" style="color: #EF4444;"></i> <span id="erpModalTitle">Delete Records</span></h3>
+            <button class="close-modal-btn" id="closeErpDeleteModalBtn">&times;</button>
+          </div>
+          <div style="padding: 1.25rem;">
+            <p id="erpModalMessage" style="font-size: 0.95rem; color: #374151; font-weight: 500; margin-bottom: 0.5rem;">
+              Are you sure you want to permanently delete the selected records?
+            </p>
+            <p style="font-size: 0.8rem; color: #EF4444; font-weight: 700; margin-bottom: 1.5rem;">
+              This action cannot be undone.
+            </p>
+            <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+              <button type="button" class="btn-secondary" id="erpModalCancelBtn">Cancel</button>
+              <button type="button" class="btn-danger" id="erpModalConfirmBtn" style="background: #EF4444;"><i class="fa-solid fa-trash"></i> Delete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+    document.getElementById('closeErpDeleteModalBtn').addEventListener('click', () => {
+      document.getElementById('erpBulkDeleteModal').classList.remove('active');
+    });
+    document.getElementById('erpModalCancelBtn').addEventListener('click', () => {
+      document.getElementById('erpBulkDeleteModal').classList.remove('active');
+    });
+  }
+
+  bindTable(tableOrId, resourceName, onRefreshCallback, getSelectedDataFn, entityLabel = 'Records') {
+    this.resource = resourceName || 'faculty';
+    this.entityLabel = entityLabel;
     this.onRefresh = onRefreshCallback || null;
     this.getSelectedData = getSelectedDataFn || null;
 
@@ -104,7 +146,7 @@ class TableSelectionManager {
         else this.selectedIds.delete(e.target.value);
 
         if (headerCheckbox) {
-          headerCheckbox.checked = Array.from(rowCheckboxes).every(c => c.checked);
+          headerCheckbox.checked = Array.from(rowCheckboxes).length > 0 && Array.from(rowCheckboxes).every(c => c.checked);
         }
         this.updateToolbarState();
       };
@@ -118,7 +160,7 @@ class TableSelectionManager {
     const count = this.selectedIds.size;
     if (count > 0) {
       this.toolbarEl.style.display = 'flex';
-      document.getElementById('erpSelectedCountText').querySelector('span').textContent = `${count} Record${count > 1 ? 's' : ''} Selected`;
+      document.getElementById('erpSelectedCountText').querySelector('span').textContent = `Selected: ${count} ${this.entityLabel}`;
     } else {
       this.toolbarEl.style.display = 'none';
     }
@@ -134,19 +176,39 @@ class TableSelectionManager {
     this.updateToolbarState();
   }
 
-  async handleBulkDelete() {
+  handleBulkDelete() {
     const ids = Array.from(this.selectedIds);
     if (ids.length === 0) return alert('No records selected.');
 
-    const confirmed = confirm(`Are you sure you want to delete the selected ${ids.length} records permanently from MongoDB Atlas?`);
-    if (!confirmed) return;
+    const entityCapitalized = this.resource.charAt(0).toUpperCase() + this.resource.slice(1);
+    const modalTitle = document.getElementById('erpModalTitle');
+    const modalMessage = document.getElementById('erpModalMessage');
+    const confirmBtn = document.getElementById('erpModalConfirmBtn');
+    const deleteModal = document.getElementById('erpBulkDeleteModal');
 
+    if (modalTitle) modalTitle.textContent = `Delete ${entityCapitalized} Records`;
+    if (modalMessage) modalMessage.textContent = `Are you sure you want to permanently delete the selected ${this.resource} records?`;
+
+    deleteModal.classList.add('active');
+
+    // Remove old listeners
+    const newConfirmBtn = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+    newConfirmBtn.addEventListener('click', async () => {
+      deleteModal.classList.remove('active');
+      await this.executeBulkDelete(ids);
+    });
+  }
+
+  async executeBulkDelete(ids) {
     try {
       const token = localStorage.getItem('jp_dms_token');
       const baseUrl = window.APP_CONFIG ? window.APP_CONFIG.getApiBaseUrl() : 'http://localhost:5000/api';
 
+      // Send DELETE request to /api/:resource/bulk-delete
       const res = await fetch(`${baseUrl}/${this.resource}/bulk-delete`, {
-        method: 'POST',
+        method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
@@ -154,9 +216,23 @@ class TableSelectionManager {
         body: JSON.stringify({ ids })
       });
 
-      const json = await res.json();
+      let json = await res.json();
+      // Fallback to POST if DELETE endpoint is not mapped
+      if (!res.ok && res.status === 404) {
+        const postRes = await fetch(`${baseUrl}/${this.resource}/bulk-delete`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ ids })
+        });
+        json = await postRes.json();
+      }
+
       if (json?.success) {
-        alert(json.message || `Successfully deleted ${ids.length} records.`);
+        const deletedCount = json.deleted !== undefined ? json.deleted : (json.deletedCount || ids.length);
+        alert(json.message || `Successfully deleted ${deletedCount} ${this.resource} records.`);
         this.clearSelection();
         if (typeof this.onRefresh === 'function') {
           await this.onRefresh();
