@@ -51,19 +51,36 @@ class Application {
 
   async loadAllData() {
     try {
-      this.data.departments = await api.request('departments') || [];
-      this.data.faculty = await api.request('faculty') || [];
-      this.data.students = await api.request('students') || [];
-      this.data.subjects = await api.request('subjects') || [];
-      this.data.classes = await api.request('classes') || [];
-      this.data.attendance = await api.request('attendance') || [];
-      this.data.semesterMarks = await api.request('semester-marks') || [];
-      this.data.internalMarks = await api.request('internal-marks') || [];
+      const deptsRes = await api.request('departments');
+      this.data.departments = Array.isArray(deptsRes) ? deptsRes : (deptsRes?.data || []);
+
+      const facRes = await api.request('faculty');
+      this.data.faculty = Array.isArray(facRes) ? facRes : (facRes?.data || []);
+
+      const stuRes = await api.request('students');
+      this.data.students = Array.isArray(stuRes) ? stuRes : (stuRes?.data || []);
+
+      const subRes = await api.request('subjects');
+      this.data.subjects = Array.isArray(subRes) ? subRes : (subRes?.data || []);
+
+      const clsRes = await api.request('classes');
+      this.data.classes = Array.isArray(clsRes) ? clsRes : (clsRes?.data || []);
+
+      const attRes = await api.request('attendance');
+      this.data.attendance = Array.isArray(attRes) ? attRes : (attRes?.data || []);
+
+      const semRes = await api.request('semester-marks');
+      this.data.semesterMarks = Array.isArray(semRes) ? semRes : (semRes?.data || []);
+
+      const intRes = await api.request('internal-marks');
+      this.data.internalMarks = Array.isArray(intRes) ? intRes : (intRes?.data || []);
 
       if (this.role === 'admin') {
-        this.data.history = await api.request('history') || [];
+        const histRes = await api.request('history');
+        this.data.history = Array.isArray(histRes) ? histRes : (histRes?.data || []);
         try {
-          this.data.pendingUsers = await api.request('auth/pending') || [];
+          const pendRes = await api.request('auth/pending');
+          this.data.pendingUsers = Array.isArray(pendRes) ? pendRes : (pendRes?.data || []);
         } catch (e) { this.data.pendingUsers = []; }
       }
     } catch (err) {

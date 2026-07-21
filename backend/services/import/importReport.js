@@ -1,7 +1,7 @@
 const reportStore = new Map();
 
 /**
- * Creates a clean Import Report accumulator object
+ * Creates a clean Import Report accumulator object with warnings support
  */
 const createImportReport = (moduleName) => {
   const importId = 'IMP-' + Date.now() + '-' + Math.round(Math.random() * 1000);
@@ -16,6 +16,8 @@ const createImportReport = (moduleName) => {
     duplicates: 0,
     skipped: 0,
     failed: 0,
+    warningsCount: 0,
+    warnings: [],
     validationErrors: [],
     successRecords: []
   };
@@ -30,6 +32,7 @@ const createImportReport = (moduleName) => {
 const finalizeReport = (report) => {
   report.endTime = new Date();
   report.durationMs = report.endTime - report.startTime;
+  report.warningsCount = (report.warnings || []).length;
   return report;
 };
 
@@ -41,18 +44,29 @@ const getReport = (importId) => {
 };
 
 /**
- * Converts validation errors array into CSV format for download
+ * Converts validation errors and warnings into CSV format for download
  */
 const generateErrorReportCSV = (report) => {
   const errors = report?.validationErrors || [];
-  let csv = 'Row Number,Field Name,Submitted Value,Error Description\n';
+  const warnings = report?.warnings || [];
+  let csv = 'Type,Row Number,Field Name,Submitted Value,Message Description\n';
+
+  warnings.forEach(w => {
+    const row = w.row || 'N/A';
+    const field = String(w.field || '').replace(/"/g, '""');
+    const val = String(w.value || '').replace(/"/g, '""');
+    const msg = String(w.message || '').replace(/"/g, '""');
+    csv += `"WARNING","${row}","${field}","${val}","${msg}"\n`;
+  });
+
   errors.forEach(e => {
     const row = e.row || 'N/A';
     const field = String(e.field || '').replace(/"/g, '""');
     const val = String(e.value || '').replace(/"/g, '""');
     const msg = String(e.message || '').replace(/"/g, '""');
-    csv += `"${row}","${field}","${val}","${msg}"\n`;
+    csv += `"ERROR","${row}","${field}","${val}","${msg}"\n`;
   });
+
   return csv;
 };
 

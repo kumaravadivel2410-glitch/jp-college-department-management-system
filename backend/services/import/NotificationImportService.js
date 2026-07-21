@@ -3,31 +3,56 @@ const { parseSpreadsheetOrPdf } = require('./fileParsers');
 const { createImportReport, finalizeReport } = require('./importReport');
 const mongoose = require('mongoose');
 
+const VALID_TYPES = ['attendance', 'marks', 'notes', 'import', 'export', 'approval', 'system'];
+
 class NotificationImportService {
   static async parseNotificationFile(file) {
     return await parseSpreadsheetOrPdf(file);
   }
 
-  static async validateNotification(record, index) {
-    const errors = [];
+  static async validateNotification(record, index, report) {
+    const warnings = [];
     const rowNum = index + 1;
 
-    const title = String(record.title || record.subject || record.notificationTitle || 'System Notification').trim();
-    const message = String(record.message || record.body || record.content || '').trim();
-    const type = String(record.type || record.category || 'general').trim();
+    let title = String(record.title || record.subject || record.notificationTitle || '').trim();
+    let message = String(record.message || record.body || record.content || record.details || '').trim();
+    let type = String(record.type || record.category || 'system').trim().toLowerCase();
     const recipientRole = String(record.recipientRole || record.role || 'all').trim();
 
-    if (!title) errors.push({ row: rowNum, field: 'title', value: record.title, message: 'Notification Title is required.' });
+    // Check zero usable data
+    const nonKeys = Object.keys(record).filter(k => String(record[k] || '').trim().length > 0);
+    if (nonKeys.length === 0) {
+      return { isValid: false, errors: [{ row: rowNum, field: 'all', value: '', message: 'Row contains no usable notification data.' }], warnings: [], record: null };
+    }
+
+    if (!title) {
+      title = `Notification ${index + 1}`;
+      warnings.push({ row: rowNum, field: 'title', value: '', message: `Notification Title missing. Defaulted to '${title}'.` });
+    }
+
+    if (!message) {
+      message = title;
+      warnings.push({ row: rowNum, field: 'message', value: '', message: 'Notification Message missing. Defaulted to title.' });
+    }
+
+    if (!VALID_TYPES.includes(type)) {
+      warnings.push({ row: rowNum, field: 'type', value: type, message: `Invalid notification type '${type}'. Defaulted to 'system'.` });
+      type = 'system';
+    }
+
+    if (report && warnings.length > 0) {
+      report.warnings.push(...warnings);
+    }
 
     const cleanRecord = {
       title,
-      message: message || title,
+      message,
       type,
       recipientRole,
       read: false
     };
 
-    return { isValid: errors.length === 0, errors, record: cleanRecord };
+    return { isValid: true, errors: [], warnings, record: cleanRecord };
   }
 
   static async saveNotifications(records) {
@@ -40,7 +65,7 @@ class NotificationImportService {
 
     const validatedRecords = [];
     for (let i = 0; i < records.length; i++) {
-      const val = await this.validateNotification(records[i], i);
+      const val = await this.validateNotification(records[i], i, report);
       if (!val.isValid) {
         report.failed++;
         report.validationErrors.push(...val.errors);

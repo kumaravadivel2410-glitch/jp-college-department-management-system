@@ -52,12 +52,12 @@ const modelMap = {
 };
 
 /**
- * Main Controller handling independent module import execution with full verification & logging
+ * Main Controller handling independent module import execution with intelligent column mapping & warning reports
  */
 const executeModuleImport = async (req, res) => {
   const startTime = Date.now();
   console.log('\n==================================================');
-  console.log('🚀 IMPORT TRANSACTION STARTED');
+  console.log('🚀 INTELLIGENT IMPORT TRANSACTION STARTED');
   console.log('==================================================');
 
   try {
@@ -110,7 +110,8 @@ const executeModuleImport = async (req, res) => {
     if (req.file) {
       records = await service[`parse${getParseMethodName(targetModule)}File`](req.file);
     } else if (Array.isArray(req.body.records)) {
-      records = req.body.records;
+      const { smartMapRow } = require('../services/import/fileParsers');
+      records = req.body.records.map(r => smartMapRow(r));
     }
 
     if (!Array.isArray(records) || records.length === 0) {
@@ -122,7 +123,6 @@ const executeModuleImport = async (req, res) => {
 
     console.log(`📊 Rows Parsed: ${records.length}`);
     console.log(`   🔹 First Row:`, records[0]);
-    console.log(`   🔹 Last Row:`, records[records.length - 1]);
 
     // Save records via independent service
     const saveMethodName = `save${getSaveMethodName(targetModule)}`;
@@ -131,10 +131,11 @@ const executeModuleImport = async (req, res) => {
     console.log(`📋 Rows Validated & Processed:`);
     console.log(`   ✅ Valid/Saved: ${report.inserted + report.updated} (Inserted: ${report.inserted}, Updated: ${report.updated})`);
     console.log(`   ⚠️ Duplicates: ${report.duplicates}`);
+    console.log(`   ⚠️ Warnings: ${report.warningsCount || (report.warnings || []).length}`);
     console.log(`   ⏭️ Skipped: ${report.skipped}`);
     console.log(`   ❌ Failed: ${report.failed}`);
 
-    // Immediately Query MongoDB to verify saved documents
+    // Query MongoDB to verify saved documents
     let savedRecords = [];
     if (targetInfo.model) {
       savedRecords = await targetInfo.model.find({}).sort({ updatedAt: -1 }).limit(100).lean();
@@ -146,18 +147,32 @@ const executeModuleImport = async (req, res) => {
 
     res.json({
       success: true,
+      imported: report.inserted || 0,
+      updated: report.updated || 0,
+      duplicates: report.duplicates || 0,
+      skipped: report.skipped || 0,
+      warnings: report.warningsCount || (report.warnings || []).length || 0,
+      failed: report.failed || 0,
+      totalRecords: report.totalRecords || 0,
       collection: targetInfo.collection,
-      parsed: report.totalRecords,
-      inserted: report.inserted,
-      updated: report.updated,
-      duplicates: report.duplicates,
-      skipped: report.skipped,
-      failed: report.failed,
-      errorsCount: report.validationErrors.length,
-      savedRecords,
+      parsed: report.totalRecords || 0,
+      inserted: report.inserted || 0,
+      summary: {
+        totalRecords: report.totalRecords || 0,
+        inserted: report.inserted || 0,
+        updated: report.updated || 0,
+        duplicates: report.duplicates || 0,
+        skipped: report.skipped || 0,
+        warnings: report.warningsCount || (report.warnings || []).length || 0,
+        failed: report.failed || 0,
+        errorsCount: (report.validationErrors || []).length
+      },
+      warningList: report.warnings || [],
+      savedRecords: savedRecords || [],
+      data: savedRecords || [],
       importId: report.importId,
-      message: `Import completed for '${targetInfo.collection}': ${report.inserted} inserted, ${report.updated} updated, ${report.duplicates} duplicates, ${report.skipped} skipped, ${report.failed} failed.`,
-      errors: report.validationErrors,
+      message: `Import completed for '${targetInfo.collection}': ${report.inserted || 0} inserted, ${report.updated || 0} updated.`,
+      errors: report.validationErrors || [],
       downloadLinks: {
         errorReport: `/api/import/report/${report.importId}/error`,
         successReport: `/api/import/report/${report.importId}/success`
@@ -169,7 +184,15 @@ const executeModuleImport = async (req, res) => {
     res.status(500).json({
       success: false,
       message: err.message || 'An unexpected error occurred during import processing.',
-      error: err.stack || err.message
+      imported: 0,
+      updated: 0,
+      duplicates: 0,
+      skipped: 0,
+      warnings: 0,
+      failed: 0,
+      totalRecords: 0,
+      data: [],
+      errors: [err.message]
     });
   }
 };
@@ -209,7 +232,7 @@ const previewImportFile = async (req, res) => {
 };
 
 /**
- * Controller downloading error report as CSV
+ * Controller downloading error/warning report as CSV
  */
 const downloadErrorReport = (req, res) => {
   const { importId } = req.params;
@@ -221,7 +244,7 @@ const downloadErrorReport = (req, res) => {
 
   const csv = generateErrorReportCSV(report);
   res.setHeader('Content-Type', 'text/csv');
-  res.setHeader('Content-Disposition', `attachment; filename="Import_Error_Report_${importId}.csv"`);
+  res.setHeader('Content-Disposition', `attachment; filename="Import_Report_${importId}.csv"`);
   res.status(200).send(csv);
 };
 

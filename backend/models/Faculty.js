@@ -8,7 +8,7 @@ const FacultySchema = new mongoose.Schema(
     subject: { type: String, default: '' },
     qualification: { type: String, default: '' },
     phone: { type: String, default: '' },
-    email: { type: String, required: true, lowercase: true, trim: true, index: true },
+    email: { type: String, default: '', lowercase: true, trim: true, index: true },
     experience: { type: String, default: '' },
     designation: { type: String, default: 'Assistant Professor' },
     photo: { type: String, default: '' },

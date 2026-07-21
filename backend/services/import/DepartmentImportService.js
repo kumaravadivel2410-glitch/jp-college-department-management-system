@@ -8,18 +8,35 @@ class DepartmentImportService {
     return await parseSpreadsheetOrPdf(file);
   }
 
-  static async validateDepartment(record, index) {
-    const errors = [];
+  static async validateDepartment(record, index, report) {
+    const warnings = [];
     const rowNum = index + 1;
 
-    const departmentCode = String(record.departmentCode || record.code || record.departmentcode || '').trim().toUpperCase();
-    const departmentName = String(record.departmentName || record.name || record.departmentname || '').trim();
-    const hod = String(record.hod || record.hodName || record.hodname || '').trim();
-    const building = String(record.building || record.description || '').trim();
+    let departmentCode = String(record.departmentCode || record.code || record.deptCode || record.departmentcode || '').trim().toUpperCase();
+    let departmentName = String(record.departmentName || record.name || record.deptName || record.departmentname || '').trim();
+    const hod = String(record.hod || record.hodName || record.headOfDepartment || '').trim();
+    const building = String(record.building || record.block || record.description || '').trim();
     const phone = String(record.phone || record.mobile || '').trim();
 
-    if (!departmentCode) errors.push({ row: rowNum, field: 'departmentCode', value: record.departmentCode, message: 'Department Code is required.' });
-    if (!departmentName) errors.push({ row: rowNum, field: 'departmentName', value: record.departmentName, message: 'Department Name is required.' });
+    // Check zero usable data
+    const nonKeys = Object.keys(record).filter(k => String(record[k] || '').trim().length > 0);
+    if (nonKeys.length === 0) {
+      return { isValid: false, errors: [{ row: rowNum, field: 'all', value: '', message: 'Row contains no usable department data.' }], warnings: [], record: null };
+    }
+
+    if (!departmentCode) {
+      departmentCode = `DEPT-${index + 1}`;
+      warnings.push({ row: rowNum, field: 'departmentCode', value: '', message: `Department Code missing. Generated automatically (${departmentCode}).` });
+    }
+
+    if (!departmentName) {
+      departmentName = `Department of ${departmentCode}`;
+      warnings.push({ row: rowNum, field: 'departmentName', value: '', message: `Department Name missing. Defaulted to '${departmentName}'.` });
+    }
+
+    if (report && warnings.length > 0) {
+      report.warnings.push(...warnings);
+    }
 
     const cleanRecord = {
       departmentCode,
@@ -32,7 +49,7 @@ class DepartmentImportService {
       phone
     };
 
-    return { isValid: errors.length === 0, errors, record: cleanRecord };
+    return { isValid: true, errors: [], warnings, record: cleanRecord };
   }
 
   static async saveDepartments(records) {
@@ -45,7 +62,7 @@ class DepartmentImportService {
 
     const validatedRecords = [];
     for (let i = 0; i < records.length; i++) {
-      const val = await this.validateDepartment(records[i], i);
+      const val = await this.validateDepartment(records[i], i, report);
       if (!val.isValid) {
         report.failed++;
         report.validationErrors.push(...val.errors);

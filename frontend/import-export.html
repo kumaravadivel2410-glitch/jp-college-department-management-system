@@ -220,6 +220,7 @@
         <div style="background:#EFF6FF; padding:0.85rem; border-radius:8px; text-align:center;"><div style="font-size:1.6rem; font-weight:800; color:#2563EB;" id="entSumUpdated">0</div><div style="font-size:0.75rem; font-weight:700; color:#1E40AF;">Updated</div></div>
         <div style="background:#FEF3C7; padding:0.85rem; border-radius:8px; text-align:center;"><div style="font-size:1.6rem; font-weight:800; color:#B45309;" id="entSumDuplicates">0</div><div style="font-size:0.75rem; font-weight:700; color:#78350F;">Duplicates</div></div>
         <div style="background:#F3E8FF; padding:0.85rem; border-radius:8px; text-align:center;"><div style="font-size:1.6rem; font-weight:800; color:#9333EA;" id="entSumSkipped">0</div><div style="font-size:0.75rem; font-weight:700; color:#6B21A8;">Skipped</div></div>
+        <div style="background:#FFFBEB; padding:0.85rem; border-radius:8px; text-align:center;"><div style="font-size:1.6rem; font-weight:800; color:#D97706;" id="entSumWarnings">0</div><div style="font-size:0.75rem; font-weight:700; color:#92400E;">Warnings</div></div>
         <div style="background:#FEE2E2; padding:0.85rem; border-radius:8px; text-align:center;"><div style="font-size:1.6rem; font-weight:800; color:#DC2626;" id="entSumErrors">0</div><div style="font-size:0.75rem; font-weight:700; color:#991B1B;">Errors</div></div>
       </div>
 
@@ -386,30 +387,52 @@
           progressFill.style.width = '100%';
           percentText.textContent = '100% - Pipeline Completed!';
 
-          if (json.success) {
-            currentImportId = json.importId;
+          if (json?.success) {
+            currentImportId = json?.importId;
+            const totalRecs = json?.totalRecords ?? json?.summary?.totalRecords ?? json?.imported ?? 0;
+            const insertedRecs = json?.inserted ?? json?.summary?.inserted ?? 0;
+            const updatedRecs = json?.updated ?? json?.summary?.updated ?? 0;
+            const dups = json?.duplicates ?? json?.summary?.duplicates ?? 0;
+            const skippedRecs = json?.skipped ?? json?.summary?.skipped ?? 0;
+            const warns = json?.warnings ?? json?.summary?.warnings ?? 0;
+            const errsCount = json?.errorsCount ?? json?.summary?.errorsCount ?? (json?.errors || []).length;
+
             document.getElementById('entSummaryBox').style.display = 'block';
-            document.getElementById('entSumTotal').textContent = json.summary.totalRecords;
-            document.getElementById('entSumInserted').textContent = json.summary.inserted;
-            document.getElementById('entSumUpdated').textContent = json.summary.updated;
-            document.getElementById('entSumDuplicates').textContent = json.summary.duplicates;
-            document.getElementById('entSumSkipped').textContent = json.summary.skipped;
-            document.getElementById('entSumErrors').textContent = json.summary.errorsCount;
+            document.getElementById('entSumTotal').textContent = totalRecs;
+            document.getElementById('entSumInserted').textContent = insertedRecs;
+            document.getElementById('entSumUpdated').textContent = updatedRecs;
+            document.getElementById('entSumDuplicates').textContent = dups;
+            document.getElementById('entSumSkipped').textContent = skippedRecs;
+            document.getElementById('entSumWarnings').textContent = warns;
+            document.getElementById('entSumErrors').textContent = errsCount;
 
             const errBtn = document.getElementById('downloadErrorReportBtn');
             const succBtn = document.getElementById('downloadSuccessReportBtn');
             succBtn.style.display = 'inline-flex';
-            errBtn.style.display = json.summary.errorsCount > 0 ? 'inline-flex' : 'none';
+            errBtn.style.display = (errsCount > 0 || warns > 0) ? 'inline-flex' : 'none';
 
-            if (json.errors && json.errors.length > 0) {
-              document.getElementById('entErrorsList').innerHTML = json.errors.map(err => `
-                <div style="margin-bottom:0.25rem; color:#DC2626;">
-                  <strong>Row ${err.row || 'N/A'}:</strong> ${err.field ? `[${err.field}] ` : ''}${err.message}
+            let logHtml = '';
+            if (json.warningList && json.warningList.length > 0) {
+              logHtml += json.warningList.map(w => `
+                <div style="margin-bottom:0.25rem; color:#D97706;">
+                  ⚠️ <strong>Row ${w.row || 'N/A'}:</strong> ${w.field ? `[${w.field}] ` : ''}${w.message}
                 </div>
               `).join('');
-            } else {
-              document.getElementById('entErrorsList').innerHTML = '<div style="color:var(--success); font-weight:700;">✅ All records processed and validated successfully with 0 errors!</div>';
             }
+
+            if (json.errors && json.errors.length > 0) {
+              logHtml += json.errors.map(err => `
+                <div style="margin-bottom:0.25rem; color:#DC2626;">
+                  ❌ <strong>Row ${err.row || 'N/A'}:</strong> ${err.field ? `[${err.field}] ` : ''}${err.message}
+                </div>
+              `).join('');
+            }
+
+            if (!logHtml) {
+              logHtml = '<div style="color:var(--success); font-weight:700;">✅ All records processed and validated successfully with 0 warnings/errors!</div>';
+            }
+
+            document.getElementById('entErrorsList').innerHTML = logHtml;
 
             alert(json.message || 'Import pipeline execution succeeded!');
 
@@ -427,7 +450,7 @@
             alert(`Import Failed: ${json.message}`);
           }
         } catch (err) {
-          alert(`Network Error: ${err.message}`);
+          alert(err?.message || 'Import operation failed.');
         } finally {
           submitBtn.disabled = false;
           setTimeout(() => {

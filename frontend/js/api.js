@@ -36,6 +36,7 @@ class ApiService {
     if (body) options.body = JSON.stringify(body);
 
     try {
+      console.log(`[API Request] ${method} ${fullUrl}`);
       const response = await fetch(fullUrl, options);
       const contentType = response.headers.get('content-type') || '';
 
@@ -43,27 +44,27 @@ class ApiService {
       if (contentType.includes('application/json')) {
         json = await response.json();
       } else {
-        await response.text();
-        throw new Error('Backend server unavailable.');
+        const text = await response.text();
+        console.error(`[API Non-JSON Response] ${method} ${fullUrl}:`, text);
+        throw new Error('Backend server returned non-JSON response.');
       }
+
+      console.log(`[API Response] ${method} ${fullUrl} [Status ${response.status}]:`, json);
 
       if (response.status === 401 || response.status === 403) {
         if (cleanEndpoint.startsWith('auth/login')) {
-          throw new Error(json?.message || 'Invalid credentials');
+          throw new Error(json?.message || json?.error || 'Invalid credentials');
         }
       }
 
       if (!response.ok || (json && json.success === false)) {
-        const errorMsg = json?.error || json?.message || `HTTP ${response.status} Request Failed`;
+        const errorMsg = json?.message || json?.error || `HTTP ${response.status} Request Failed`;
         throw new Error(errorMsg);
       }
 
-      return json.data !== undefined ? json.data : json;
+      return json?.data !== undefined ? json.data : json;
     } catch (err) {
-      console.error(`API Request Error [${method} ${fullUrl}]:`, err.message);
-      if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
-        throw new Error('Server connection failed. Please check backend connection.');
-      }
+      console.error(`[API Error] ${method} ${fullUrl}:`, err.message);
       throw err;
     }
   }

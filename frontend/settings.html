@@ -255,7 +255,7 @@
             alert(`Import Failed: ${json.message}`);
           }
         } catch (err) {
-          alert(`Network Error: ${err.message}`);
+          alert(err?.message || 'Settings import failed.');
         } finally {
           startBtn.disabled = false;
           startBtn.innerHTML = '<i class="fa-solid fa-file-import"></i> Start MongoDB Atlas Import & Sync';

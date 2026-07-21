@@ -23,29 +23,47 @@ class FacultyImportService {
     return await parseSpreadsheetOrPdf(file);
   }
 
-  static async validateFaculty(record, index, validDepartmentsSet) {
-    const errors = [];
+  static async validateFaculty(record, index, validDepartmentsSet, report) {
+    const warnings = [];
     const rowNum = index + 1;
 
-    const facultyId = String(record.facultyId || record.id || record.facultyid || '').trim();
-    const facultyName = String(record.facultyName || record.name || record.facultyname || '').trim();
-    const email = String(record.email || '').toLowerCase().trim();
-    const department = String(record.department || record.dept || '').trim();
-    const designation = String(record.designation || 'Assistant Professor').trim();
-    const phone = String(record.phone || record.mobile || '').trim();
-    const qualification = String(record.qualification || '').trim();
-    const experience = String(record.experience || '').trim();
+    let facultyId = String(record.facultyId || record.id || record.teacherId || record.staffId || record.employeeId || '').trim();
+    let facultyName = String(record.facultyName || record.name || record.teacherName || record.staffName || '').trim();
+    let email = String(record.email || record.emailAddress || record.mail || '').toLowerCase().trim();
+    const department = String(record.department || record.dept || record.branch || 'AI & DS').trim();
+    const designation = String(record.designation || record.role || 'Assistant Professor').trim();
+    const phone = String(record.phone || record.mobile || record.contact || '').trim();
+    const qualification = String(record.qualification || record.degree || 'M.E.').trim();
+    const experience = String(record.experience || record.exp || '2 Years').trim();
 
-    if (!facultyId) errors.push({ row: rowNum, field: 'facultyId', value: record.facultyId, message: 'Faculty ID is required.' });
-    if (!facultyName) errors.push({ row: rowNum, field: 'facultyName', value: record.facultyName, message: 'Faculty Name is required.' });
-    if (!email) errors.push({ row: rowNum, field: 'email', value: record.email, message: 'Email address is required.' });
-
-    if (email && !EMAIL_REGEX.test(email)) {
-      errors.push({ row: rowNum, field: 'email', value: email, message: 'Invalid email address format.' });
+    // Check zero usable data
+    const nonKeys = Object.keys(record).filter(k => String(record[k] || '').trim().length > 0);
+    if (nonKeys.length === 0) {
+      return { isValid: false, errors: [{ row: rowNum, field: 'all', value: '', message: 'Row contains no usable faculty data.' }], warnings: [], record: null };
     }
 
-    if (department && validDepartmentsSet && !validDepartmentsSet.has(department.toLowerCase())) {
-      errors.push({ row: rowNum, field: 'department', value: department, message: `Department '${department}' does not exist.` });
+    // Tolerant fallbacks & auto-generation
+    if (!facultyId) {
+      facultyId = `JPC-FAC-${Date.now().toString().slice(-4)}${index + 10}`;
+      warnings.push({ row: rowNum, field: 'facultyId', value: '', message: `Faculty ID missing. Generated automatically (${facultyId}).` });
+    }
+
+    if (!facultyName) {
+      facultyName = email ? email.split('@')[0] : `Faculty ${facultyId.slice(-4)}`;
+      warnings.push({ row: rowNum, field: 'facultyName', value: '', message: `Faculty Name missing. Defaulted to '${facultyName}'.` });
+    }
+
+    if (!email) {
+      email = `faculty_${facultyId.toLowerCase().replace(/[^a-z0-9]/g, '')}@jpcoe.ac.in`;
+      warnings.push({ row: rowNum, field: 'email', value: '', message: `Email missing. Saved as default (${email}).` });
+    } else if (!EMAIL_REGEX.test(email)) {
+      const fallbackEmail = `faculty_${facultyId.toLowerCase().replace(/[^a-z0-9]/g, '')}@jpcoe.ac.in`;
+      warnings.push({ row: rowNum, field: 'email', value: email, message: `Invalid email address format. Replaced with default (${fallbackEmail}).` });
+      email = fallbackEmail;
+    }
+
+    if (report && warnings.length > 0) {
+      report.warnings.push(...warnings);
     }
 
     const cleanRecord = {
@@ -60,7 +78,7 @@ class FacultyImportService {
       approvalStatus: 'approved'
     };
 
-    return { isValid: errors.length === 0, errors, record: cleanRecord };
+    return { isValid: true, errors: [], warnings, record: cleanRecord };
   }
 
   static async saveFaculty(records, options = {}) {
@@ -75,7 +93,7 @@ class FacultyImportService {
     const validatedRecords = [];
 
     for (let i = 0; i < records.length; i++) {
-      const val = await this.validateFaculty(records[i], i, validDeptsSet);
+      const val = await this.validateFaculty(records[i], i, validDeptsSet, report);
       if (!val.isValid) {
         report.failed++;
         report.validationErrors.push(...val.errors);
@@ -91,8 +109,10 @@ class FacultyImportService {
     for (const rec of validatedRecords) {
       try {
         console.log('Saving Faculty:', rec.facultyId, rec.facultyName, rec.email);
-        const filter = { $or: [{ facultyId: rec.facultyId }, { email: rec.email }] };
-        const existing = await Faculty.findOne(filter);
+        const filterOr = [{ facultyId: rec.facultyId }];
+        if (rec.email) filterOr.push({ email: rec.email });
+
+        const existing = await Faculty.findOne({ $or: filterOr });
 
         if (existing) {
           report.duplicates++;

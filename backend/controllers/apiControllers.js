@@ -232,13 +232,20 @@ const createCrudControllers = (Model, modelName) => ({
 
       res.json({
         success: true,
-        count: totalCount,
+        data: items || [],
+        count: totalCount || 0,
+        totalRecords: totalCount || 0,
         page,
-        totalPages: Math.ceil(totalCount / limit),
-        data: items
+        totalPages: Math.ceil(totalCount / limit) || 1,
+        message: ''
       });
     } catch (err) {
-      res.status(500).json({ success: false, error: err.message });
+      res.status(500).json({
+        success: false,
+        message: err.message || 'An internal server error occurred.',
+        totalRecords: 0,
+        data: []
+      });
     }
   },
   create: async (req, res) => {
@@ -597,9 +604,17 @@ const assignments = {
       if (req.query.subjectCode) filter.subjectCode = req.query.subjectCode;
 
       const list = await Assignment.find(filter).sort({ createdAt: -1 });
-      res.json({ success: true, count: list.length, data: list });
+      res.json({
+        success: true,
+        data: list || [],
+        count: list.length,
+        totalRecords: list.length,
+        page: 1,
+        totalPages: 1,
+        message: ''
+      });
     } catch (err) {
-      res.status(500).json({ success: false, message: err.message });
+      res.status(500).json({ success: false, message: err.message, totalRecords: 0, data: [] });
     }
   },
 
@@ -665,9 +680,17 @@ const timetables = {
       if (req.query.day && req.query.day !== 'All') filter.day = req.query.day;
 
       const list = await Timetable.find(filter);
-      res.json({ success: true, count: list.length, data: list });
+      res.json({
+        success: true,
+        data: list || [],
+        count: list.length,
+        totalRecords: list.length,
+        page: 1,
+        totalPages: 1,
+        message: ''
+      });
     } catch (err) {
-      res.status(500).json({ success: false, message: err.message });
+      res.status(500).json({ success: false, message: err.message, totalRecords: 0, data: [] });
     }
   },
 
@@ -696,9 +719,17 @@ const notes = {
       if (req.query.subjectCode) filter.subjectCode = req.query.subjectCode;
 
       const list = await Note.find(filter).sort({ createdAt: -1 });
-      res.json({ success: true, count: list.length, data: list });
+      res.json({
+        success: true,
+        data: list || [],
+        count: list.length,
+        totalRecords: list.length,
+        page: 1,
+        totalPages: 1,
+        message: ''
+      });
     } catch (err) {
-      res.status(500).json({ success: false, message: err.message });
+      res.status(500).json({ success: false, message: err.message, totalRecords: 0, data: [] });
     }
   },
 
@@ -764,9 +795,17 @@ const reports = {
   getAll: async (req, res) => {
     try {
       const list = await Report.find().sort({ createdAt: -1 });
-      res.json({ success: true, count: list.length, data: list });
+      res.json({
+        success: true,
+        data: list || [],
+        count: list.length,
+        totalRecords: list.length,
+        page: 1,
+        totalPages: 1,
+        message: ''
+      });
     } catch (err) {
-      res.status(500).json({ success: false, message: err.message });
+      res.status(500).json({ success: false, message: err.message, totalRecords: 0, data: [] });
     }
   }
 };
@@ -776,9 +815,17 @@ const notifications = {
   getAll: async (req, res) => {
     try {
       const list = await Notification.find().sort({ createdAt: -1 }).limit(20);
-      res.json({ success: true, count: list.length, data: list });
+      res.json({
+        success: true,
+        data: list || [],
+        count: list.length,
+        totalRecords: list.length,
+        page: 1,
+        totalPages: 1,
+        message: ''
+      });
     } catch (err) {
-      res.status(500).json({ success: false, message: err.message });
+      res.status(500).json({ success: false, message: err.message, totalRecords: 0, data: [] });
     }
   },
   markRead: async (req, res) => {
@@ -1065,9 +1112,17 @@ const departments = {
         };
       }));
 
-      res.json({ success: true, count: enriched.length, data: enriched });
+      res.json({
+        success: true,
+        data: enriched || [],
+        count: enriched.length,
+        totalRecords: enriched.length,
+        page: 1,
+        totalPages: 1,
+        message: ''
+      });
     } catch (err) {
-      res.status(500).json({ success: false, error: err.message });
+      res.status(500).json({ success: false, message: err.message, totalRecords: 0, data: [] });
     }
   },
   create: async (req, res) => {
