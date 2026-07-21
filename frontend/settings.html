@@ -172,15 +172,25 @@
           try {
             const data = new Uint8Array(evt.target.result);
             const workbook = XLSX.read(data, { type: 'array' });
+            if (!workbook || !workbook.SheetNames || !Array.isArray(workbook.SheetNames) || workbook.SheetNames.length === 0) {
+              alert('No worksheets found in the uploaded Excel file.');
+              return;
+            }
             const sheetName = workbook.SheetNames[0];
-            parsedRecords = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-          } catch(e) {}
+            if (!sheetName || !workbook.Sheets[sheetName]) {
+              alert('Worksheet could not be loaded.');
+              return;
+            }
+            parsedRecords = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '' });
+          } catch(e) {
+            console.error('Spreadsheet parse error:', e);
+          }
         };
         reader.readAsArrayBuffer(file);
       };
 
       previewBtn.addEventListener('click', () => {
-        if (!parsedRecords.length) {
+        if (!Array.isArray(parsedRecords) || parsedRecords.length === 0 || !parsedRecords[0]) {
           alert('No preview data available.');
           return;
         }

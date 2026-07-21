@@ -3,9 +3,6 @@ const { parseSpreadsheetOrPdf } = require('./fileParsers');
 const { createImportReport, finalizeReport } = require('./importReport');
 const mongoose = require('mongoose');
 
-const VALID_TYPES = ['attendance', 'marks', 'notes', 'import', 'export', 'approval', 'system'];
-const VALID_ROLES = ['all', 'admin', 'faculty', 'student'];
-
 class NotificationImportService {
   static async parseNotificationFile(file) {
     return await parseSpreadsheetOrPdf(file);
@@ -15,29 +12,18 @@ class NotificationImportService {
     const errors = [];
     const rowNum = index + 1;
 
-    const title = String(record.title || record.subject || '').trim();
+    const title = String(record.title || record.subject || record.notificationTitle || 'System Notification').trim();
     const message = String(record.message || record.body || record.content || '').trim();
-    const type = String(record.type || record.category || 'system').toLowerCase().trim();
-    const recipientRole = String(record.recipientRole || record.audience || record.role || 'all').toLowerCase().trim();
-    const recipientEmail = String(record.recipientEmail || record.email || '').toLowerCase().trim();
+    const type = String(record.type || record.category || 'general').trim();
+    const recipientRole = String(record.recipientRole || record.role || 'all').trim();
 
     if (!title) errors.push({ row: rowNum, field: 'title', value: record.title, message: 'Notification Title is required.' });
-    if (!message) errors.push({ row: rowNum, field: 'message', value: record.message, message: 'Notification Message is required.' });
-
-    if (type && !VALID_TYPES.includes(type)) {
-      errors.push({ row: rowNum, field: 'type', value: type, message: `Type must be one of: ${VALID_TYPES.join(', ')}.` });
-    }
-
-    if (recipientRole && !VALID_ROLES.includes(recipientRole)) {
-      errors.push({ row: rowNum, field: 'recipientRole', value: recipientRole, message: `Recipient Role must be one of: ${VALID_ROLES.join(', ')}.` });
-    }
 
     const cleanRecord = {
       title,
-      message,
-      type: VALID_TYPES.includes(type) ? type : 'system',
-      recipientRole: VALID_ROLES.includes(recipientRole) ? recipientRole : 'all',
-      recipientEmail,
+      message: message || title,
+      type,
+      recipientRole,
       read: false
     };
 
@@ -67,57 +53,27 @@ class NotificationImportService {
       return finalizeReport(report);
     }
 
-    let session = null;
-    try {
-      session = await mongoose.startSession();
-      session.startTransaction();
-
-      for (const rec of validatedRecords) {
-        const existing = await Notification.findOne({
-          title: rec.title,
-          message: rec.message
-        }).session(session);
+    for (const rec of validatedRecords) {
+      try {
+        console.log('Saving Notification:', rec.title, rec.type);
+        const filter = { title: rec.title, message: rec.message };
+        const existing = await Notification.findOne(filter);
 
         if (existing) {
           report.duplicates++;
-          await Notification.updateOne({ _id: existing._id }, { $set: rec }).session(session);
+          const updatedDoc = await Notification.findOneAndUpdate({ _id: existing._id }, { $set: rec }, { new: true, runValidators: true });
           report.updated++;
-          report.successRecords.push(rec);
+          report.successRecords.push(updatedDoc.toObject());
         } else {
-          await Notification.create([rec], { session });
+          const createdDoc = await Notification.create(rec);
           report.inserted++;
-          report.successRecords.push(rec);
+          report.successRecords.push(createdDoc.toObject());
         }
+      } catch (dbErr) {
+        console.error(`❌ MongoDB Notification Save Error [${rec.title}]:`, dbErr.message);
+        report.failed++;
+        report.validationErrors.push({ row: 'DB Save', field: rec.title, value: rec.title, message: dbErr.message });
       }
-
-      await session.commitTransaction();
-    } catch (txErr) {
-      if (session) await session.abortTransaction();
-
-      for (const rec of validatedRecords) {
-        try {
-          const existing = await Notification.findOne({
-            title: rec.title,
-            message: rec.message
-          });
-
-          if (existing) {
-            report.duplicates++;
-            await Notification.updateOne({ _id: existing._id }, { $set: rec });
-            report.updated++;
-            report.successRecords.push(rec);
-          } else {
-            await Notification.create(rec);
-            report.inserted++;
-            report.successRecords.push(rec);
-          }
-        } catch (dbErr) {
-          report.failed++;
-          report.validationErrors.push({ row: 'DB Save', field: rec.title, value: rec.title, message: dbErr.message });
-        }
-      }
-    } finally {
-      if (session) session.endSession();
     }
 
     return finalizeReport(report);

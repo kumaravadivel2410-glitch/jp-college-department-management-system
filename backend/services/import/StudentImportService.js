@@ -28,10 +28,10 @@ class StudentImportService {
     const errors = [];
     const rowNum = index + 1;
 
-    const registerNo = String(record.registerNo || record.registerNumber || record.regNo || '').trim();
-    const studentName = String(record.studentName || record.name || '').trim();
+    const registerNo = String(record.registerNo || record.registerNumber || record.regNo || record.registerno || '').trim();
+    const studentName = String(record.studentName || record.name || record.studentname || '').trim();
     const email = String(record.email || '').toLowerCase().trim();
-    const phone = String(record.phone || record.phoneNumber || '').trim();
+    const phone = String(record.phone || record.phoneNumber || record.mobile || '').trim();
     const department = String(record.department || record.dept || 'AI & DS').trim();
     const year = String(record.year || 'III Year').trim();
     const semester = String(record.semester || 'Semester V').trim();
@@ -122,55 +122,27 @@ class StudentImportService {
       return finalizeReport(report);
     }
 
-    let session = null;
-    try {
-      session = await mongoose.startSession();
-      session.startTransaction();
-
-      for (const rec of validatedRecords) {
-        const existing = await Student.findOne({
-          $or: [{ registerNo: rec.registerNo }, { email: rec.email }]
-        }).session(session);
+    for (const rec of validatedRecords) {
+      try {
+        console.log('Saving Student:', rec.registerNo, rec.studentName, rec.email);
+        const filter = { $or: [{ registerNo: rec.registerNo }, { email: rec.email }] };
+        const existing = await Student.findOne(filter);
 
         if (existing) {
           report.duplicates++;
-          await Student.updateOne({ _id: existing._id }, { $set: rec }).session(session);
+          const updatedDoc = await Student.findOneAndUpdate({ _id: existing._id }, { $set: rec }, { new: true, runValidators: true });
           report.updated++;
-          report.successRecords.push(rec);
+          report.successRecords.push(updatedDoc.toObject());
         } else {
-          await Student.create([rec], { session });
+          const createdDoc = await Student.create(rec);
           report.inserted++;
-          report.successRecords.push(rec);
+          report.successRecords.push(createdDoc.toObject());
         }
+      } catch (dbErr) {
+        console.error(`❌ MongoDB Student Save Error [${rec.registerNo}]:`, dbErr.message);
+        report.failed++;
+        report.validationErrors.push({ row: 'DB Save', field: rec.registerNo, value: rec.registerNo, message: dbErr.message });
       }
-
-      await session.commitTransaction();
-    } catch (txErr) {
-      if (session) await session.abortTransaction();
-
-      for (const rec of validatedRecords) {
-        try {
-          const existing = await Student.findOne({
-            $or: [{ registerNo: rec.registerNo }, { email: rec.email }]
-          });
-
-          if (existing) {
-            report.duplicates++;
-            await Student.updateOne({ _id: existing._id }, { $set: rec });
-            report.updated++;
-            report.successRecords.push(rec);
-          } else {
-            await Student.create(rec);
-            report.inserted++;
-            report.successRecords.push(rec);
-          }
-        } catch (dbErr) {
-          report.failed++;
-          report.validationErrors.push({ row: 'DB Save', field: rec.registerNo, value: rec.registerNo, message: dbErr.message });
-        }
-      }
-    } finally {
-      if (session) session.endSession();
     }
 
     return finalizeReport(report);

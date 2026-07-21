@@ -12,11 +12,11 @@ class DepartmentImportService {
     const errors = [];
     const rowNum = index + 1;
 
-    const departmentCode = String(record.departmentCode || record.code || '').trim().toUpperCase();
-    const departmentName = String(record.departmentName || record.name || '').trim();
-    const hod = String(record.hod || record.hodName || '').trim();
+    const departmentCode = String(record.departmentCode || record.code || record.departmentcode || '').trim().toUpperCase();
+    const departmentName = String(record.departmentName || record.name || record.departmentname || '').trim();
+    const hod = String(record.hod || record.hodName || record.hodname || '').trim();
     const building = String(record.building || record.description || '').trim();
-    const phone = String(record.phone || '').trim();
+    const phone = String(record.phone || record.mobile || '').trim();
 
     if (!departmentCode) errors.push({ row: rowNum, field: 'departmentCode', value: record.departmentCode, message: 'Department Code is required.' });
     if (!departmentName) errors.push({ row: rowNum, field: 'departmentName', value: record.departmentName, message: 'Department Name is required.' });
@@ -58,55 +58,27 @@ class DepartmentImportService {
       return finalizeReport(report);
     }
 
-    let session = null;
-    try {
-      session = await mongoose.startSession();
-      session.startTransaction();
-
-      for (const rec of validatedRecords) {
-        const existing = await Department.findOne({
-          $or: [{ departmentCode: rec.departmentCode }, { code: rec.code }, { departmentName: rec.departmentName }, { name: rec.name }]
-        }).session(session);
+    for (const rec of validatedRecords) {
+      try {
+        console.log('Saving Department:', rec.departmentCode, rec.departmentName);
+        const filter = { $or: [{ departmentCode: rec.departmentCode }, { code: rec.code }, { departmentName: rec.departmentName }, { name: rec.name }] };
+        const existing = await Department.findOne(filter);
 
         if (existing) {
           report.duplicates++;
-          await Department.updateOne({ _id: existing._id }, { $set: rec }).session(session);
+          const updatedDoc = await Department.findOneAndUpdate({ _id: existing._id }, { $set: rec }, { new: true, runValidators: true });
           report.updated++;
-          report.successRecords.push(rec);
+          report.successRecords.push(updatedDoc.toObject());
         } else {
-          await Department.create([rec], { session });
+          const createdDoc = await Department.create(rec);
           report.inserted++;
-          report.successRecords.push(rec);
+          report.successRecords.push(createdDoc.toObject());
         }
+      } catch (dbErr) {
+        console.error(`❌ MongoDB Department Save Error [${rec.departmentCode}]:`, dbErr.message);
+        report.failed++;
+        report.validationErrors.push({ row: 'DB Save', field: rec.departmentCode, value: rec.departmentCode, message: dbErr.message });
       }
-
-      await session.commitTransaction();
-    } catch (txErr) {
-      if (session) await session.abortTransaction();
-
-      for (const rec of validatedRecords) {
-        try {
-          const existing = await Department.findOne({
-            $or: [{ departmentCode: rec.departmentCode }, { code: rec.code }, { departmentName: rec.departmentName }, { name: rec.name }]
-          });
-
-          if (existing) {
-            report.duplicates++;
-            await Department.updateOne({ _id: existing._id }, { $set: rec });
-            report.updated++;
-            report.successRecords.push(rec);
-          } else {
-            await Department.create(rec);
-            report.inserted++;
-            report.successRecords.push(rec);
-          }
-        } catch (dbErr) {
-          report.failed++;
-          report.validationErrors.push({ row: 'DB Save', field: rec.departmentCode, value: rec.departmentCode, message: dbErr.message });
-        }
-      }
-    } finally {
-      if (session) session.endSession();
     }
 
     return finalizeReport(report);

@@ -5,7 +5,7 @@
 class ExportService {
   // Generate CSV File from array of objects
   exportToCSV(filename, rows) {
-    if (!rows || !rows.length) return alert('No data available to export!');
+    if (!Array.isArray(rows) || rows.length === 0 || !rows[0]) return alert('No data available to export!');
     
     const headers = Object.keys(rows[0]);
     const csvContent = [

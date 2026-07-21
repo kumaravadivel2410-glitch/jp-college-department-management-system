@@ -316,16 +316,30 @@
           try {
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, { type: 'array' });
-            const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            parsedRows = XLSX.utils.sheet_to_json(sheet);
-          } catch(err){}
+            if (!workbook || !workbook.SheetNames || !Array.isArray(workbook.SheetNames) || workbook.SheetNames.length === 0) {
+              parsedRows = [];
+              return;
+            }
+            const sheetName = workbook.SheetNames[0];
+            if (!sheetName || !workbook.Sheets[sheetName]) {
+              parsedRows = [];
+              return;
+            }
+            const sheet = workbook.Sheets[sheetName];
+            parsedRows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+          } catch(err){
+            console.error('File parsing error:', err);
+            parsedRows = [];
+          }
         };
         reader.readAsArrayBuffer(file);
       };
 
       previewBtn.addEventListener('click', () => {
-        if (!parsedRows.length) return alert('No rows parsed. Please verify file format.');
-        const keys = Object.keys(parsedRows[0] || {});
+        if (!Array.isArray(parsedRows) || parsedRows.length === 0 || !parsedRows[0]) {
+          return alert('No rows parsed. Please verify file format or select a valid spreadsheet.');
+        }
+        const keys = Object.keys(parsedRows[0]);
         document.getElementById('entPreviewThead').innerHTML = `<tr>${keys.map(k => `<th>${k}</th>`).join('')}</tr>`;
         document.getElementById('entPreviewTbody').innerHTML = parsedRows.slice(0, 15).map((r, idx) => `
           <tr>${keys.map(k => `<td>${r[k] !== undefined ? r[k] : ''}</td>`).join('')}</tr>
@@ -398,6 +412,17 @@
             }
 
             alert(json.message || 'Import pipeline execution succeeded!');
+
+            if (window.app && typeof window.app.loadAllData === 'function') {
+              try {
+                await window.app.loadAllData();
+                if (typeof window.app.renderCurrentPage === 'function') {
+                  window.app.renderCurrentPage();
+                }
+              } catch (appErr) {
+                console.warn('Auto refresh notice:', appErr);
+              }
+            }
           } else {
             alert(`Import Failed: ${json.message}`);
           }

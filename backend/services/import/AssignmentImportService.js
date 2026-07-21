@@ -1,6 +1,5 @@
 const Assignment = require('../../models/Assignment');
 const Department = require('../../models/Department');
-const Subject = require('../../models/Subject');
 const { parseSpreadsheetOrPdf } = require('./fileParsers');
 const { createImportReport, finalizeReport } = require('./importReport');
 const mongoose = require('mongoose');
@@ -22,30 +21,26 @@ class AssignmentImportService {
     return await parseSpreadsheetOrPdf(file);
   }
 
-  static async validateAssignment(record, index, { validDepartmentsSet, subjectMap }) {
+  static async validateAssignment(record, index, validDepartmentsSet) {
     const errors = [];
     const rowNum = index + 1;
 
-    const title = String(record.title || record.assignmentTitle || '').trim();
-    const description = String(record.description || record.instructions || '').trim();
-    const department = String(record.department || 'AI & DS').trim();
+    const title = String(record.title || record.assignmentTitle || 'Course Assignment').trim();
+    const description = String(record.description || record.details || '').trim();
+    const department = String(record.department || record.dept || 'AI & DS').trim();
     const year = String(record.year || 'III Year').trim();
     const semester = String(record.semester || 'Semester V').trim();
     const section = String(record.section || 'A').trim();
-    const subjectCode = String(record.subjectCode || record.subject || '').trim();
-    const dueDate = String(record.dueDate || record.deadline || '').trim();
-    const uploadedBy = String(record.uploadedBy || record.faculty || 'Faculty').trim();
+    const subjectCode = String(record.subjectCode || record.subject || 'AD3501').trim();
+    const subjectName = String(record.subjectName || title).trim();
+    const dueDate = String(record.dueDate || record.deadline || new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0]).trim();
+    const uploadedBy = String(record.uploadedBy || record.faculty || 'Faculty Member').trim();
 
     if (!title) errors.push({ row: rowNum, field: 'title', value: record.title, message: 'Assignment Title is required.' });
-    if (!dueDate) errors.push({ row: rowNum, field: 'dueDate', value: record.dueDate, message: 'Due Date is required.' });
+    if (!department) errors.push({ row: rowNum, field: 'department', value: record.department, message: 'Department is required.' });
 
     if (department && validDepartmentsSet && !validDepartmentsSet.has(department.toLowerCase())) {
       errors.push({ row: rowNum, field: 'department', value: department, message: `Department '${department}' does not exist.` });
-    }
-
-    let subjectObj = null;
-    if (subjectCode && subjectMap) {
-      subjectObj = subjectMap.get(subjectCode.toUpperCase());
     }
 
     const cleanRecord = {
@@ -56,9 +51,10 @@ class AssignmentImportService {
       semester,
       section,
       subjectCode,
-      subjectName: subjectObj?.subjectName || record.subjectName || subjectCode,
+      subjectName,
       dueDate,
       uploadedBy,
+      uploaderEmail: String(record.uploaderEmail || 'faculty@jpcoe.ac.in').trim(),
       submissions: []
     };
 
@@ -73,15 +69,7 @@ class AssignmentImportService {
       return finalizeReport(report);
     }
 
-    const validDepartmentsSet = await getValidDepartmentsSet();
-
-    const subjects = await Subject.find({}, 'subjectCode subjectName');
-    const subjectMap = new Map();
-    subjects.forEach(s => {
-      if (s.subjectCode) subjectMap.set(s.subjectCode.toUpperCase(), s);
-    });
-
-    const context = { validDepartmentsSet, subjectMap };
+    const validDeptsSet = await getValidDepartmentsSet();
     const userRole = options.user?.role;
     const userDept = options.user?.department;
 
@@ -90,15 +78,16 @@ class AssignmentImportService {
       const row = records[i];
 
       if (userRole === 'faculty' && userDept && userDept !== 'All') {
-        if (row.department && row.department.toLowerCase() !== userDept.toLowerCase()) {
+        const rowDept = row.department || row.dept || '';
+        if (rowDept && rowDept.toLowerCase() !== userDept.toLowerCase()) {
           report.skipped++;
-          report.validationErrors.push({ row: i + 1, field: 'department', value: row.department, message: `Skipped record outside assigned department (${userDept}).` });
+          report.validationErrors.push({ row: i + 1, field: 'department', value: rowDept, message: `Skipped record outside assigned department (${userDept}).` });
           continue;
         }
         row.department = userDept;
       }
 
-      const val = await this.validateAssignment(row, i, context);
+      const val = await this.validateAssignment(row, i, validDeptsSet);
       if (!val.isValid) {
         report.failed++;
         report.validationErrors.push(...val.errors);
@@ -111,57 +100,27 @@ class AssignmentImportService {
       return finalizeReport(report);
     }
 
-    let session = null;
-    try {
-      session = await mongoose.startSession();
-      session.startTransaction();
-
-      for (const rec of validatedRecords) {
-        const existing = await Assignment.findOne({
-          title: rec.title,
-          dueDate: rec.dueDate
-        }).session(session);
+    for (const rec of validatedRecords) {
+      try {
+        console.log('Saving Assignment:', rec.title, rec.department, rec.subjectCode);
+        const filter = { title: rec.title, department: rec.department, subjectCode: rec.subjectCode };
+        const existing = await Assignment.findOne(filter);
 
         if (existing) {
           report.duplicates++;
-          await Assignment.updateOne({ _id: existing._id }, { $set: rec }).session(session);
+          const updatedDoc = await Assignment.findOneAndUpdate({ _id: existing._id }, { $set: rec }, { new: true, runValidators: true });
           report.updated++;
-          report.successRecords.push(rec);
+          report.successRecords.push(updatedDoc.toObject());
         } else {
-          await Assignment.create([rec], { session });
+          const createdDoc = await Assignment.create(rec);
           report.inserted++;
-          report.successRecords.push(rec);
+          report.successRecords.push(createdDoc.toObject());
         }
+      } catch (dbErr) {
+        console.error(`❌ MongoDB Assignment Save Error [${rec.title}]:`, dbErr.message);
+        report.failed++;
+        report.validationErrors.push({ row: 'DB Save', field: rec.title, value: rec.title, message: dbErr.message });
       }
-
-      await session.commitTransaction();
-    } catch (txErr) {
-      if (session) await session.abortTransaction();
-
-      for (const rec of validatedRecords) {
-        try {
-          const existing = await Assignment.findOne({
-            title: rec.title,
-            dueDate: rec.dueDate
-          });
-
-          if (existing) {
-            report.duplicates++;
-            await Assignment.updateOne({ _id: existing._id }, { $set: rec });
-            report.updated++;
-            report.successRecords.push(rec);
-          } else {
-            await Assignment.create(rec);
-            report.inserted++;
-            report.successRecords.push(rec);
-          }
-        } catch (dbErr) {
-          report.failed++;
-          report.validationErrors.push({ row: 'DB Save', field: rec.title, value: rec.title, message: dbErr.message });
-        }
-      }
-    } finally {
-      if (session) session.endSession();
     }
 
     return finalizeReport(report);

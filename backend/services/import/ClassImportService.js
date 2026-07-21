@@ -29,7 +29,7 @@ class ClassImportService {
     const year = String(record.year || 'III Year').trim();
     const semester = String(record.semester || 'Semester V').trim();
     const section = String(record.section || 'A').trim();
-    const classAdvisor = String(record.classAdvisor || record.advisor || '').trim();
+    const classAdvisor = String(record.classAdvisor || record.advisor || record.classadvisor || '').trim();
     const roomNumber = String(record.roomNumber || record.room || 'LH-201').trim();
     const className = record.className || `${department} - ${year} - ${section}`;
 
@@ -64,7 +64,6 @@ class ClassImportService {
     }
 
     const validDeptsSet = await getValidDepartmentsSet();
-
     const validatedRecords = [];
     for (let i = 0; i < records.length; i++) {
       const val = await this.validateClass(records[i], i, validDeptsSet);
@@ -80,61 +79,27 @@ class ClassImportService {
       return finalizeReport(report);
     }
 
-    let session = null;
-    try {
-      session = await mongoose.startSession();
-      session.startTransaction();
-
-      for (const rec of validatedRecords) {
-        const existing = await ClassModel.findOne({
-          department: rec.department,
-          year: rec.year,
-          semester: rec.semester,
-          section: rec.section
-        }).session(session);
+    for (const rec of validatedRecords) {
+      try {
+        console.log('Saving Class:', rec.className);
+        const filter = { department: rec.department, year: rec.year, semester: rec.semester, section: rec.section };
+        const existing = await ClassModel.findOne(filter);
 
         if (existing) {
           report.duplicates++;
-          await ClassModel.updateOne({ _id: existing._id }, { $set: rec }).session(session);
+          const updatedDoc = await ClassModel.findOneAndUpdate({ _id: existing._id }, { $set: rec }, { new: true, runValidators: true });
           report.updated++;
-          report.successRecords.push(rec);
+          report.successRecords.push(updatedDoc.toObject());
         } else {
-          await ClassModel.create([rec], { session });
+          const createdDoc = await ClassModel.create(rec);
           report.inserted++;
-          report.successRecords.push(rec);
+          report.successRecords.push(createdDoc.toObject());
         }
+      } catch (dbErr) {
+        console.error(`❌ MongoDB Class Save Error [${rec.className}]:`, dbErr.message);
+        report.failed++;
+        report.validationErrors.push({ row: 'DB Save', field: rec.className, value: rec.className, message: dbErr.message });
       }
-
-      await session.commitTransaction();
-    } catch (txErr) {
-      if (session) await session.abortTransaction();
-
-      for (const rec of validatedRecords) {
-        try {
-          const existing = await ClassModel.findOne({
-            department: rec.department,
-            year: rec.year,
-            semester: rec.semester,
-            section: rec.section
-          });
-
-          if (existing) {
-            report.duplicates++;
-            await ClassModel.updateOne({ _id: existing._id }, { $set: rec });
-            report.updated++;
-            report.successRecords.push(rec);
-          } else {
-            await ClassModel.create(rec);
-            report.inserted++;
-            report.successRecords.push(rec);
-          }
-        } catch (dbErr) {
-          report.failed++;
-          report.validationErrors.push({ row: 'DB Save', field: rec.className, value: rec.className, message: dbErr.message });
-        }
-      }
-    } finally {
-      if (session) session.endSession();
     }
 
     return finalizeReport(report);

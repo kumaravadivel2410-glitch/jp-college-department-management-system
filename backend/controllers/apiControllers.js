@@ -801,10 +801,8 @@ const importExport = {
       let records = [];
 
       if (req.file) {
-        const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-        records = XLSX.utils.sheet_to_json(sheet);
+        const { parseSpreadsheetOrPdf } = require('../services/import/fileParsers');
+        records = await parseSpreadsheetOrPdf(req.file);
       } else if (Array.isArray(req.body.records)) {
         records = req.body.records;
       }

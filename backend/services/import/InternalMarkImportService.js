@@ -14,8 +14,8 @@ class InternalMarkImportService {
     const errors = [];
     const rowNum = index + 1;
 
-    const studentRegisterNo = String(record.studentRegisterNo || record.registerNo || record.regNo || '').trim();
-    const subjectCode = String(record.subjectCode || record.subject || '').trim();
+    const studentRegisterNo = String(record.studentRegisterNo || record.registerNo || record.regNo || record.registerno || '').trim();
+    const subjectCode = String(record.subjectCode || record.subject || record.subjectcode || '').trim();
 
     const internal1 = record.internal1 !== undefined && record.internal1 !== '' ? Number(record.internal1) : 0;
     const internal2 = record.internal2 !== undefined && record.internal2 !== '' ? Number(record.internal2) : 0;
@@ -26,7 +26,6 @@ class InternalMarkImportService {
     if (!studentRegisterNo) errors.push({ row: rowNum, field: 'studentRegisterNo', value: record.studentRegisterNo, message: 'Student Register Number is required.' });
     if (!subjectCode) errors.push({ row: rowNum, field: 'subjectCode', value: record.subjectCode, message: 'Subject Code is required.' });
 
-    // Mark range validations
     [
       { name: 'internal1', val: internal1 },
       { name: 'internal2', val: internal2 },
@@ -39,7 +38,6 @@ class InternalMarkImportService {
       }
     });
 
-    // Student existence check
     let studentObj = null;
     if (studentRegisterNo && studentMap) {
       studentObj = studentMap.get(studentRegisterNo);
@@ -48,7 +46,6 @@ class InternalMarkImportService {
       }
     }
 
-    // Subject existence check
     let subjectObj = null;
     if (subjectCode && subjectMap) {
       subjectObj = subjectMap.get(subjectCode.toUpperCase());
@@ -57,7 +54,6 @@ class InternalMarkImportService {
       }
     }
 
-    // Automatically calculate Average
     const validMarks = [internal1, internal2, internal3].filter(m => !isNaN(m));
     const average = validMarks.length > 0 ? Number((validMarks.reduce((a, b) => a + b, 0) / validMarks.length).toFixed(2)) : 0;
     const totalInternal = Number((average * 0.8 + assignmentMark).toFixed(2));
@@ -132,57 +128,27 @@ class InternalMarkImportService {
       return finalizeReport(report);
     }
 
-    let session = null;
-    try {
-      session = await mongoose.startSession();
-      session.startTransaction();
-
-      for (const rec of validatedRecords) {
-        const existing = await InternalMark.findOne({
-          studentRegisterNo: rec.studentRegisterNo,
-          subjectCode: rec.subjectCode
-        }).session(session);
+    for (const rec of validatedRecords) {
+      try {
+        console.log('Saving Internal Mark:', rec.studentRegisterNo, rec.subjectCode, rec.average);
+        const filter = { studentRegisterNo: rec.studentRegisterNo, subjectCode: rec.subjectCode };
+        const existing = await InternalMark.findOne(filter);
 
         if (existing) {
           report.duplicates++;
-          await InternalMark.updateOne({ _id: existing._id }, { $set: rec }).session(session);
+          const updatedDoc = await InternalMark.findOneAndUpdate({ _id: existing._id }, { $set: rec }, { new: true, runValidators: true });
           report.updated++;
-          report.successRecords.push(rec);
+          report.successRecords.push(updatedDoc.toObject());
         } else {
-          await InternalMark.create([rec], { session });
+          const createdDoc = await InternalMark.create(rec);
           report.inserted++;
-          report.successRecords.push(rec);
+          report.successRecords.push(createdDoc.toObject());
         }
+      } catch (dbErr) {
+        console.error(`❌ MongoDB Internal Mark Save Error [${rec.studentRegisterNo}]:`, dbErr.message);
+        report.failed++;
+        report.validationErrors.push({ row: 'DB Save', field: rec.studentRegisterNo, value: rec.studentRegisterNo, message: dbErr.message });
       }
-
-      await session.commitTransaction();
-    } catch (txErr) {
-      if (session) await session.abortTransaction();
-
-      for (const rec of validatedRecords) {
-        try {
-          const existing = await InternalMark.findOne({
-            studentRegisterNo: rec.studentRegisterNo,
-            subjectCode: rec.subjectCode
-          });
-
-          if (existing) {
-            report.duplicates++;
-            await InternalMark.updateOne({ _id: existing._id }, { $set: rec });
-            report.updated++;
-            report.successRecords.push(rec);
-          } else {
-            await InternalMark.create(rec);
-            report.inserted++;
-            report.successRecords.push(rec);
-          }
-        } catch (dbErr) {
-          report.failed++;
-          report.validationErrors.push({ row: 'DB Save', field: rec.studentRegisterNo, value: rec.studentRegisterNo, message: dbErr.message });
-        }
-      }
-    } finally {
-      if (session) session.endSession();
     }
 
     return finalizeReport(report);

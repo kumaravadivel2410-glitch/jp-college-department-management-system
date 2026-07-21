@@ -25,9 +25,9 @@ class SubjectImportService {
     const errors = [];
     const rowNum = index + 1;
 
-    const subjectCode = String(record.subjectCode || record.code || '').trim().toUpperCase();
-    const subjectName = String(record.subjectName || record.name || '').trim();
-    const department = String(record.department || 'AI & DS').trim();
+    const subjectCode = String(record.subjectCode || record.code || record.subjectcode || '').trim().toUpperCase();
+    const subjectName = String(record.subjectName || record.name || record.subjectname || '').trim();
+    const department = String(record.department || record.dept || 'AI & DS').trim();
     const semester = String(record.semester || 'Semester V').trim();
     const credits = Number(record.credits) || 4;
     const regulation = String(record.regulation || '2021').trim();
@@ -64,7 +64,6 @@ class SubjectImportService {
     }
 
     const validDeptsSet = await getValidDepartmentsSet();
-
     const validatedRecords = [];
     for (let i = 0; i < records.length; i++) {
       const val = await this.validateSubject(records[i], i, validDeptsSet);
@@ -80,51 +79,26 @@ class SubjectImportService {
       return finalizeReport(report);
     }
 
-    let session = null;
-    try {
-      session = await mongoose.startSession();
-      session.startTransaction();
-
-      for (const rec of validatedRecords) {
-        const existing = await Subject.findOne({ subjectCode: rec.subjectCode }).session(session);
+    for (const rec of validatedRecords) {
+      try {
+        console.log('Saving Subject:', rec.subjectCode, rec.subjectName);
+        const existing = await Subject.findOne({ subjectCode: rec.subjectCode });
 
         if (existing) {
           report.duplicates++;
-          await Subject.updateOne({ _id: existing._id }, { $set: rec }).session(session);
+          const updatedDoc = await Subject.findOneAndUpdate({ _id: existing._id }, { $set: rec }, { new: true, runValidators: true });
           report.updated++;
-          report.successRecords.push(rec);
+          report.successRecords.push(updatedDoc.toObject());
         } else {
-          await Subject.create([rec], { session });
+          const createdDoc = await Subject.create(rec);
           report.inserted++;
-          report.successRecords.push(rec);
+          report.successRecords.push(createdDoc.toObject());
         }
+      } catch (dbErr) {
+        console.error(`❌ MongoDB Subject Save Error [${rec.subjectCode}]:`, dbErr.message);
+        report.failed++;
+        report.validationErrors.push({ row: 'DB Save', field: rec.subjectCode, value: rec.subjectCode, message: dbErr.message });
       }
-
-      await session.commitTransaction();
-    } catch (txErr) {
-      if (session) await session.abortTransaction();
-
-      for (const rec of validatedRecords) {
-        try {
-          const existing = await Subject.findOne({ subjectCode: rec.subjectCode });
-
-          if (existing) {
-            report.duplicates++;
-            await Subject.updateOne({ _id: existing._id }, { $set: rec });
-            report.updated++;
-            report.successRecords.push(rec);
-          } else {
-            await Subject.create(rec);
-            report.inserted++;
-            report.successRecords.push(rec);
-          }
-        } catch (dbErr) {
-          report.failed++;
-          report.validationErrors.push({ row: 'DB Save', field: rec.subjectCode, value: rec.subjectCode, message: dbErr.message });
-        }
-      }
-    } finally {
-      if (session) session.endSession();
     }
 
     return finalizeReport(report);

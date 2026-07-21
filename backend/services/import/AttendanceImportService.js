@@ -15,8 +15,8 @@ class AttendanceImportService {
     const errors = [];
     const rowNum = index + 1;
 
-    const studentRegisterNo = String(record.studentRegisterNo || record.registerNo || record.regNo || '').trim();
-    const subject = String(record.subject || record.subjectCode || '').trim();
+    const studentRegisterNo = String(record.studentRegisterNo || record.registerNo || record.regNo || record.registerno || '').trim();
+    const subject = String(record.subject || record.subjectCode || record.subjectcode || '').trim();
     const dateStr = String(record.date || new Date().toISOString().split('T')[0]).trim();
     const session = String(record.session || record.hour || 'Full Day').trim();
     const status = String(record.status || 'Present').trim();
@@ -30,7 +30,6 @@ class AttendanceImportService {
       errors.push({ row: rowNum, field: 'status', value: status, message: "Status must be 'Present', 'Absent', 'Late', or 'Permission'." });
     }
 
-    // Validate Student existence
     let studentObj = null;
     if (studentRegisterNo && studentMap) {
       studentObj = studentMap.get(studentRegisterNo);
@@ -39,12 +38,10 @@ class AttendanceImportService {
       }
     }
 
-    // Validate Subject existence
     if (subject && subjectMap && !subjectMap.has(subject.toUpperCase())) {
       errors.push({ row: rowNum, field: 'subject', value: subject, message: `Subject '${subject}' does not exist in database.` });
     }
 
-    // Validate Faculty existence (if specified)
     if (markedBy && markedBy !== 'Faculty Member' && facultyMap && !facultyMap.has(markedBy.toLowerCase())) {
       errors.push({ row: rowNum, field: 'markedBy', value: markedBy, message: `Faculty '${markedBy}' does not exist in database.` });
     }
@@ -77,7 +74,6 @@ class AttendanceImportService {
       return finalizeReport(report);
     }
 
-    // Pre-cache students, subjects, faculty
     const students = await Student.find({}, 'registerNo studentName department year semester section');
     const studentMap = new Map(students.map(s => [s.registerNo, s]));
 
@@ -126,59 +122,27 @@ class AttendanceImportService {
       return finalizeReport(report);
     }
 
-    let session = null;
-    try {
-      session = await mongoose.startSession();
-      session.startTransaction();
-
-      for (const rec of validatedRecords) {
-        const existing = await Attendance.findOne({
-          studentRegisterNo: rec.studentRegisterNo,
-          date: rec.date,
-          subject: rec.subject
-        }).session(session);
+    for (const rec of validatedRecords) {
+      try {
+        console.log('Saving Attendance:', rec.studentRegisterNo, rec.date, rec.subject);
+        const filter = { studentRegisterNo: rec.studentRegisterNo, date: rec.date, subject: rec.subject };
+        const existing = await Attendance.findOne(filter);
 
         if (existing) {
           report.duplicates++;
-          await Attendance.updateOne({ _id: existing._id }, { $set: rec }).session(session);
+          const updatedDoc = await Attendance.findOneAndUpdate({ _id: existing._id }, { $set: rec }, { new: true, runValidators: true });
           report.updated++;
-          report.successRecords.push(rec);
+          report.successRecords.push(updatedDoc.toObject());
         } else {
-          await Attendance.create([rec], { session });
+          const createdDoc = await Attendance.create(rec);
           report.inserted++;
-          report.successRecords.push(rec);
+          report.successRecords.push(createdDoc.toObject());
         }
+      } catch (dbErr) {
+        console.error(`❌ MongoDB Attendance Save Error [${rec.studentRegisterNo}]:`, dbErr.message);
+        report.failed++;
+        report.validationErrors.push({ row: 'DB Save', field: rec.studentRegisterNo, value: rec.studentRegisterNo, message: dbErr.message });
       }
-
-      await session.commitTransaction();
-    } catch (txErr) {
-      if (session) await session.abortTransaction();
-
-      for (const rec of validatedRecords) {
-        try {
-          const existing = await Attendance.findOne({
-            studentRegisterNo: rec.studentRegisterNo,
-            date: rec.date,
-            subject: rec.subject
-          });
-
-          if (existing) {
-            report.duplicates++;
-            await Attendance.updateOne({ _id: existing._id }, { $set: rec });
-            report.updated++;
-            report.successRecords.push(rec);
-          } else {
-            await Attendance.create(rec);
-            report.inserted++;
-            report.successRecords.push(rec);
-          }
-        } catch (dbErr) {
-          report.failed++;
-          report.validationErrors.push({ row: 'DB Save', field: rec.studentRegisterNo, value: rec.studentRegisterNo, message: dbErr.message });
-        }
-      }
-    } finally {
-      if (session) session.endSession();
     }
 
     return finalizeReport(report);

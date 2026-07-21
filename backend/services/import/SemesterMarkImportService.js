@@ -16,8 +16,8 @@ class SemesterMarkImportService {
     const errors = [];
     const rowNum = index + 1;
 
-    const studentRegisterNo = String(record.studentRegisterNo || record.registerNo || record.regNo || '').trim();
-    const subjectCode = String(record.subjectCode || record.subject || '').trim();
+    const studentRegisterNo = String(record.studentRegisterNo || record.registerNo || record.regNo || record.registerno || '').trim();
+    const subjectCode = String(record.subjectCode || record.subject || record.subjectcode || '').trim();
     const grade = String(record.grade || 'O').trim().toUpperCase();
     const marks = record.marks !== undefined && record.marks !== '' ? Number(record.marks) : 50;
     const credits = record.credits !== undefined && record.credits !== '' ? Number(record.credits) : 4;
@@ -135,57 +135,27 @@ class SemesterMarkImportService {
       return finalizeReport(report);
     }
 
-    let session = null;
-    try {
-      session = await mongoose.startSession();
-      session.startTransaction();
-
-      for (const rec of validatedRecords) {
-        const existing = await SemesterMark.findOne({
-          studentRegisterNo: rec.studentRegisterNo,
-          subjectCode: rec.subjectCode
-        }).session(session);
+    for (const rec of validatedRecords) {
+      try {
+        console.log('Saving Semester Mark:', rec.studentRegisterNo, rec.subjectCode, rec.grade);
+        const filter = { studentRegisterNo: rec.studentRegisterNo, subjectCode: rec.subjectCode };
+        const existing = await SemesterMark.findOne(filter);
 
         if (existing) {
           report.duplicates++;
-          await SemesterMark.updateOne({ _id: existing._id }, { $set: rec }).session(session);
+          const updatedDoc = await SemesterMark.findOneAndUpdate({ _id: existing._id }, { $set: rec }, { new: true, runValidators: true });
           report.updated++;
-          report.successRecords.push(rec);
+          report.successRecords.push(updatedDoc.toObject());
         } else {
-          await SemesterMark.create([rec], { session });
+          const createdDoc = await SemesterMark.create(rec);
           report.inserted++;
-          report.successRecords.push(rec);
+          report.successRecords.push(createdDoc.toObject());
         }
+      } catch (dbErr) {
+        console.error(`❌ MongoDB Semester Mark Save Error [${rec.studentRegisterNo}]:`, dbErr.message);
+        report.failed++;
+        report.validationErrors.push({ row: 'DB Save', field: rec.studentRegisterNo, value: rec.studentRegisterNo, message: dbErr.message });
       }
-
-      await session.commitTransaction();
-    } catch (txErr) {
-      if (session) await session.abortTransaction();
-
-      for (const rec of validatedRecords) {
-        try {
-          const existing = await SemesterMark.findOne({
-            studentRegisterNo: rec.studentRegisterNo,
-            subjectCode: rec.subjectCode
-          });
-
-          if (existing) {
-            report.duplicates++;
-            await SemesterMark.updateOne({ _id: existing._id }, { $set: rec });
-            report.updated++;
-            report.successRecords.push(rec);
-          } else {
-            await SemesterMark.create(rec);
-            report.inserted++;
-            report.successRecords.push(rec);
-          }
-        } catch (dbErr) {
-          report.failed++;
-          report.validationErrors.push({ row: 'DB Save', field: rec.studentRegisterNo, value: rec.studentRegisterNo, message: dbErr.message });
-        }
-      }
-    } finally {
-      if (session) session.endSession();
     }
 
     return finalizeReport(report);
