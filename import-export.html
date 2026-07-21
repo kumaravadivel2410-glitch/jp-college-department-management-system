@@ -50,6 +50,14 @@
       color: #1E40AF;
       margin-top: 0.75rem;
     }
+    .preview-info-card {
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 8px;
+      padding: 0.75rem;
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+    }
   </style>
 </head>
 <body>
@@ -133,9 +141,17 @@
           <div class="dropzone" id="entDropzone">
             <i class="fa-solid fa-file-arrow-up fa-3x" style="color: var(--primary); margin-bottom: 0.5rem;"></i>
             <h4 style="font-size: 1rem; color: #1E3A8A; font-weight: 700;">Drag & Drop Spreadsheet (.xlsx, .csv) or PDF / Doc File Here</h4>
-            <p style="font-size: 0.8rem; color: var(--text-secondary);">Automatic file type detection and field mapping</p>
+            <p style="font-size: 0.8rem; color: var(--text-secondary);">Automatic file type detection and intelligent module validation</p>
             <input type="file" id="entFileInput" accept=".xlsx,.xls,.csv,.pdf,.docx,.pptx,.zip" style="display: none;">
             <div id="entBadge" class="file-badge" style="display: none;"></div>
+          </div>
+
+          <!-- Auto Generate Checkbox -->
+          <div class="form-group" style="margin-top:0.75rem; margin-bottom:0.5rem;">
+            <label style="font-size:0.85rem; font-weight:700; color:#1E3A8A; display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+              <input type="checkbox" id="entAutoGenerateIds" style="width:16px; height:16px; accent-color:var(--primary);">
+              Allow Auto-Generating Missing IDs & Default Names (Off by Default)
+            </label>
           </div>
 
           <!-- Upload Progress -->
@@ -250,18 +266,51 @@
 
   </main>
 
+  <!-- Module Mismatch Modal -->
+  <div class="modal-overlay" id="entMismatchModal">
+    <div class="modal-box" style="max-width: 550px;">
+      <div class="modal-header" style="background:#FEE2E2; color:#991B1B; border-bottom:1px solid #FCA5A5;">
+        <h3 style="color:#991B1B;"><i class="fa-solid fa-triangle-exclamation"></i> Import Module Mismatch Detected</h3>
+        <button class="close-modal-btn" id="closeMismatchModalBtn">&times;</button>
+      </div>
+      <div style="padding: 1.25rem;">
+        <p id="mismatchMessageText" style="font-size: 1.05rem; font-weight: 700; color: #1E3A8A; margin-bottom: 1rem;"></p>
+        <div style="background:#FFFBEB; padding:0.85rem; border-radius:8px; border:1px solid #FDE68A; margin-bottom:1.25rem; font-size:0.85rem; color:#92400E;">
+          The uploaded file contains columns matching another ERP module. Importing into the wrong module is blocked to prevent data corruption.
+        </div>
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+          <button type="button" class="btn-secondary" id="cancelMismatchBtn">Cancel</button>
+          <button type="button" class="btn-primary" id="switchModuleBtn" style="background:#2563EB;">
+            <i class="fa-solid fa-arrows-rotate"></i> Switch Module & Re-process
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Live Row Data Preview Modal -->
   <div class="modal-overlay" id="entPreviewModal">
-    <div class="modal-box" style="max-width: 900px;">
+    <div class="modal-box" style="max-width: 950px;">
       <div class="modal-header">
-        <h3><i class="fa-solid fa-table" style="color: var(--primary);"></i> Live Data Row Preview</h3>
+        <h3><i class="fa-solid fa-table" style="color: var(--primary);"></i> Live Data Row & Module Analysis Preview</h3>
         <button class="close-modal-btn" id="closeEntPreviewBtn">&times;</button>
       </div>
-      <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-        <table class="custom-table">
-          <thead id="entPreviewThead"></thead>
-          <tbody id="entPreviewTbody"></tbody>
-        </table>
+      <div style="padding:1rem;">
+        <div class="preview-info-card" id="previewInfoCard">
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:0.75rem;">
+            <div><strong>Detected Module:</strong> <span id="prevDetectedModule" style="color:var(--primary); font-weight:800;">-</span></div>
+            <div><strong>Total Records:</strong> <span id="prevTotalRecords" style="font-weight:800;">0</span></div>
+            <div><strong>Detected Columns:</strong> <span id="prevDetectedColumns" style="font-weight:700;">-</span></div>
+          </div>
+          <div style="margin-top:0.5rem;"><strong>Mapped Schema Fields:</strong> <span id="prevMappedFields" style="color:#059669; font-weight:700;">-</span></div>
+        </div>
+
+        <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+          <table class="custom-table">
+            <thead id="entPreviewThead"></thead>
+            <tbody id="entPreviewTbody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -281,8 +330,10 @@
       const badge = document.getElementById('entBadge');
       const previewBtn = document.getElementById('entPreviewBtn');
       const previewModal = document.getElementById('entPreviewModal');
+      const mismatchModal = document.getElementById('entMismatchModal');
       let parsedRows = [];
       let currentImportId = null;
+      let pendingDetectedModule = null;
 
       dropzone.addEventListener('click', () => fileInput.click());
       dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
@@ -336,19 +387,67 @@
         reader.readAsArrayBuffer(file);
       };
 
-      previewBtn.addEventListener('click', () => {
-        if (!Array.isArray(parsedRows) || parsedRows.length === 0 || !parsedRows[0]) {
-          return alert('No rows parsed. Please verify file format or select a valid spreadsheet.');
+      previewBtn.addEventListener('click', async () => {
+        if (!fileInput.files[0] && parsedRows.length === 0) {
+          return alert('Please select a file to preview.');
         }
-        const keys = Object.keys(parsedRows[0]);
-        document.getElementById('entPreviewThead').innerHTML = `<tr>${keys.map(k => `<th>${k}</th>`).join('')}</tr>`;
-        document.getElementById('entPreviewTbody').innerHTML = parsedRows.slice(0, 15).map((r, idx) => `
-          <tr>${keys.map(k => `<td>${r[k] !== undefined ? r[k] : ''}</td>`).join('')}</tr>
-        `).join('');
-        previewModal.classList.add('active');
+
+        const moduleName = document.getElementById('impModule').value;
+        const formData = new FormData();
+        if (fileInput.files[0]) formData.append('file', fileInput.files[0]);
+        else formData.append('records', JSON.stringify(parsedRows));
+
+        try {
+          const token = localStorage.getItem('jp_dms_token');
+          const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+          const res = await fetch(`${baseUrl}/import/preview/${moduleName}`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+            body: formData
+          });
+
+          const json = await res.json();
+          if (json?.moduleMismatch) {
+            pendingDetectedModule = json.detectedModule;
+            document.getElementById('mismatchMessageText').textContent = json.message;
+            mismatchModal.classList.add('active');
+            return;
+          }
+
+          if (json?.success) {
+            document.getElementById('prevDetectedModule').textContent = json.detectedModuleName || json.detectedModule;
+            document.getElementById('prevTotalRecords').textContent = json.totalRecords;
+            document.getElementById('prevDetectedColumns').textContent = (json.detectedColumns || []).join(', ') || 'N/A';
+            document.getElementById('prevMappedFields').textContent = Object.keys(json.mappedFields || {}).join(', ') || 'N/A';
+
+            const samples = json.sampleRows || [];
+            if (samples.length > 0) {
+              const keys = Object.keys(samples[0]);
+              document.getElementById('entPreviewThead').innerHTML = `<tr>${keys.map(k => `<th>${k}</th>`).join('')}</tr>`;
+              document.getElementById('entPreviewTbody').innerHTML = samples.map(r => `
+                <tr>${keys.map(k => `<td>${r[k] !== undefined ? r[k] : ''}</td>`).join('')}</tr>
+              `).join('');
+            }
+            previewModal.classList.add('active');
+          } else {
+            alert(`Preview Failed: ${json.message}`);
+          }
+        } catch (err) {
+          alert(err?.message || 'Preview failed.');
+        }
       });
 
       document.getElementById('closeEntPreviewBtn')?.addEventListener('click', () => previewModal.classList.remove('active'));
+      document.getElementById('closeMismatchModalBtn')?.addEventListener('click', () => mismatchModal.classList.remove('active'));
+      document.getElementById('cancelMismatchBtn')?.addEventListener('click', () => mismatchModal.classList.remove('active'));
+
+      document.getElementById('switchModuleBtn')?.addEventListener('click', () => {
+        if (pendingDetectedModule) {
+          document.getElementById('impModule').value = pendingDetectedModule;
+          mismatchModal.classList.remove('active');
+          document.getElementById('enterpriseImportForm').requestSubmit();
+        }
+      });
 
       // Form Submit (Modular Dispatch)
       document.getElementById('enterpriseImportForm').addEventListener('submit', async (e) => {
@@ -356,6 +455,7 @@
         if (!fileInput.files[0]) return alert('Please select or drop an Excel, CSV, or PDF file.');
 
         const moduleName = document.getElementById('impModule').value;
+        const autoGenIds = document.getElementById('entAutoGenerateIds').checked;
         const submitBtn = document.getElementById('entSubmitBtn');
         const progressWrapper = document.getElementById('uploadProgressWrapper');
         const progressFill = document.getElementById('uploadProgressFill');
@@ -370,6 +470,7 @@
         try {
           const formData = new FormData();
           formData.append('file', fileInput.files[0]);
+          if (autoGenIds) formData.append('autoGenerateIds', 'true');
 
           const token = localStorage.getItem('jp_dms_token');
           const baseUrl = window.APP_CONFIG.getApiBaseUrl();
@@ -386,6 +487,13 @@
           const json = await res.json();
           progressFill.style.width = '100%';
           percentText.textContent = '100% - Pipeline Completed!';
+
+          if (json?.moduleMismatch) {
+            pendingDetectedModule = json.detectedModule;
+            document.getElementById('mismatchMessageText').textContent = json.message;
+            mismatchModal.classList.add('active');
+            return;
+          }
 
           if (json?.success) {
             currentImportId = json?.importId;

@@ -9,11 +9,13 @@ try {
 }
 
 const FIELD_DICTIONARY = {
+  departmentCode: ['departmentcode', 'code', 'deptcode', 'departmentCode', 'deptCode'],
+  departmentName: ['departmentname', 'deptname', 'branchname', 'departmentName', 'deptName', 'branchName'],
   registerNo: ['registerno', 'regno', 'regnumber', 'registrationnumber', 'studentregisternumber', 'registernumber', 'studentregno', 'studentregisterno', 'registerNo', 'registerNumber', 'regNo', 'registrationNumber', 'studentRegisterNumber'],
   studentName: ['studentname', 'name', 'fullname', 'candidatename', 'student', 'studentName', 'fullName', 'candidateName'],
   email: ['email', 'emailaddress', 'mail', 'studentemail', 'emailid', 'mailid', 'emailAddress', 'studentEmail'],
   phone: ['phone', 'phonenumber', 'mobile', 'mobilenumber', 'contact', 'contactnumber', 'cell', 'phoneno', 'mobileno', 'phoneNumber', 'mobileNumber', 'contactNumber'],
-  department: ['department', 'dept', 'branch', 'departmentcode', 'deptcode', 'stream', 'departmentCode', 'deptCode'],
+  department: ['department', 'dept', 'branch', 'stream'],
   semester: ['semester', 'sem', 'term'],
   section: ['section', 'sec', 'classsection', 'classSection'],
   year: ['year', 'academicyear', 'classyear', 'academicYear', 'classYear'],
@@ -31,8 +33,6 @@ const FIELD_DICTIONARY = {
   qualification: ['qualification', 'degree', 'degreequalified', 'degreeQualified'],
   experience: ['experience', 'exp', 'yearsofexperience', 'workexperience', 'yearsOfExperience', 'workExperience'],
 
-  departmentCode: ['departmentcode', 'code', 'deptcode', 'departmentCode', 'deptCode'],
-  departmentName: ['departmentname', 'deptname', 'branchname', 'departmentName', 'deptName', 'branchName'],
   hod: ['hod', 'hodname', 'headofdepartment', 'hodName', 'headOfDepartment'],
   building: ['building', 'block', 'location', 'description'],
 
@@ -76,6 +76,52 @@ const FIELD_DICTIONARY = {
 
   message: ['message', 'content', 'body', 'notificationmessage', 'notificationMessage'],
   recipientRole: ['recipientrole', 'role', 'targetrole', 'audience', 'recipientRole', 'targetRole']
+};
+
+const MODULE_SIGNATURES = {
+  faculty: ['facultyId', 'facId', 'facultyName', 'designation', 'qualification', 'experience'],
+  students: ['registerNo', 'rollNumber', 'parentName', 'parentPhone', 'dateOfBirth', 'bloodGroup'],
+  departments: ['departmentCode', 'hod', 'building'],
+  subjects: ['subjectCode', 'credits', 'regulation'],
+  classes: ['classAdvisor', 'roomNumber'],
+  attendance: ['session', 'morningStatus', 'afternoonStatus', 'markedBy'],
+  internalmarks: ['internal1', 'internal2', 'internal3', 'modelExam', 'assignmentMark'],
+  semestermarks: ['grade', 'gpa', 'cgpa', 'arrears'],
+  notes: ['fileName', 'fileSize', 'uploadedBy'],
+  assignments: ['dueDate', 'submissions'],
+  timetable: ['day', 'period', 'roomNo'],
+  notifications: ['recipientRole']
+};
+
+/**
+ * Intelligent file module detector based on signature columns
+ */
+const detectFileModule = (mappedRecords) => {
+  if (!Array.isArray(mappedRecords) || mappedRecords.length === 0) {
+    return { detectedModule: 'unknown', confidence: 0 };
+  }
+
+  const sampleRow = mappedRecords[0] || {};
+  const keys = Object.keys(sampleRow);
+
+  let bestMatch = 'unknown';
+  let maxScore = 0;
+
+  for (const [mod, signatures] of Object.entries(MODULE_SIGNATURES)) {
+    let score = 0;
+    signatures.forEach(sig => {
+      if (keys.includes(sig)) {
+        score++;
+      }
+    });
+
+    if (score > maxScore) {
+      maxScore = score;
+      bestMatch = mod;
+    }
+  }
+
+  return { detectedModule: bestMatch, confidence: maxScore, keys };
 };
 
 /**
@@ -351,6 +397,7 @@ const parsePdfBuffer = async (buffer) => {
 module.exports = {
   normalizeKey,
   smartMapRow,
+  detectFileModule,
   validateFileHeader,
   parseSpreadsheetOrPdf,
   parseExcelBuffer,

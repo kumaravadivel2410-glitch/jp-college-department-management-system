@@ -8,7 +8,8 @@ class DepartmentImportService {
     return await parseSpreadsheetOrPdf(file);
   }
 
-  static async validateDepartment(record, index, report) {
+  static async validateDepartment(record, index, report, options = {}) {
+    const errors = [];
     const warnings = [];
     const rowNum = index + 1;
 
@@ -25,13 +26,25 @@ class DepartmentImportService {
     }
 
     if (!departmentCode) {
-      departmentCode = `DEPT-${index + 1}`;
-      warnings.push({ row: rowNum, field: 'departmentCode', value: '', message: `Department Code missing. Generated automatically (${departmentCode}).` });
+      if (options.allowAutoGenerateIds) {
+        departmentCode = `DEPT-${index + 1}`;
+        warnings.push({ row: rowNum, field: 'departmentCode', value: '', message: `Department Code missing. Generated automatically (${departmentCode}).` });
+      } else {
+        errors.push({ row: rowNum, field: 'departmentCode', value: '', message: 'Department Code is required. Enable "Auto Generate IDs" to auto-assign.' });
+      }
     }
 
     if (!departmentName) {
-      departmentName = `Department of ${departmentCode}`;
-      warnings.push({ row: rowNum, field: 'departmentName', value: '', message: `Department Name missing. Defaulted to '${departmentName}'.` });
+      if (options.allowAutoGenerateIds) {
+        departmentName = `Department of ${departmentCode || 'Engineering'}`;
+        warnings.push({ row: rowNum, field: 'departmentName', value: '', message: `Department Name missing. Defaulted to '${departmentName}'.` });
+      } else {
+        errors.push({ row: rowNum, field: 'departmentName', value: '', message: 'Department Name is required.' });
+      }
+    }
+
+    if (errors.length > 0) {
+      return { isValid: false, errors, warnings, record: null };
     }
 
     if (report && warnings.length > 0) {
@@ -52,7 +65,7 @@ class DepartmentImportService {
     return { isValid: true, errors: [], warnings, record: cleanRecord };
   }
 
-  static async saveDepartments(records) {
+  static async saveDepartments(records, options = {}) {
     const report = createImportReport('Department Import');
     report.totalRecords = records.length;
 
@@ -62,7 +75,7 @@ class DepartmentImportService {
 
     const validatedRecords = [];
     for (let i = 0; i < records.length; i++) {
-      const val = await this.validateDepartment(records[i], i, report);
+      const val = await this.validateDepartment(records[i], i, report, options);
       if (!val.isValid) {
         report.failed++;
         report.validationErrors.push(...val.errors);

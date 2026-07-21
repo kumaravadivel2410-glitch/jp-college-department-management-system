@@ -23,7 +23,8 @@ class StudentImportService {
     return await parseSpreadsheetOrPdf(file);
   }
 
-  static async validateStudent(record, index, validDepartmentsSet, report) {
+  static async validateStudent(record, index, validDepartmentsSet, report, options = {}) {
+    const errors = [];
     const warnings = [];
     const rowNum = index + 1;
 
@@ -44,24 +45,42 @@ class StudentImportService {
       return { isValid: false, errors: [{ row: rowNum, field: 'all', value: '', message: 'Row contains no usable student data.' }], warnings: [], record: null };
     }
 
-    // Auto-generations & tolerant fallbacks
+    // Required Register Number Handling
     if (!registerNo) {
-      registerNo = `953621${Date.now().toString().slice(-4)}${index + 10}`;
-      warnings.push({ row: rowNum, field: 'registerNo', value: '', message: `Register Number missing. Generated automatically (${registerNo}).` });
+      if (options.allowAutoGenerateIds) {
+        registerNo = `953621${Date.now().toString().slice(-4)}${index + 10}`;
+        warnings.push({ row: rowNum, field: 'registerNo', value: '', message: `Register Number missing. Generated automatically (${registerNo}).` });
+      } else {
+        errors.push({ row: rowNum, field: 'registerNo', value: '', message: 'Register Number is missing. Enable "Auto Generate IDs" to auto-assign.' });
+      }
     }
 
     if (!studentName) {
-      studentName = email ? email.split('@')[0] : `Student ${registerNo.slice(-4)}`;
-      warnings.push({ row: rowNum, field: 'studentName', value: '', message: `Student Name missing. Defaulted to '${studentName}'.` });
+      if (options.allowAutoGenerateIds) {
+        studentName = email ? email.split('@')[0] : `Student ${registerNo.slice(-4)}`;
+        warnings.push({ row: rowNum, field: 'studentName', value: '', message: `Student Name missing. Defaulted to '${studentName}'.` });
+      } else {
+        errors.push({ row: rowNum, field: 'studentName', value: '', message: 'Student Name is required.' });
+      }
+    }
+
+    if (errors.length > 0) {
+      return { isValid: false, errors, warnings, record: null };
     }
 
     if (!email) {
-      email = `student_${registerNo.toLowerCase()}@jpcoe.ac.in`;
-      warnings.push({ row: rowNum, field: 'email', value: '', message: `Email missing. Saved as default (${email}).` });
+      if (options.allowAutoGenerateIds) {
+        email = `student_${registerNo.toLowerCase()}@jpcoe.ac.in`;
+        warnings.push({ row: rowNum, field: 'email', value: '', message: `Email missing. Saved as default (${email}).` });
+      } else {
+        email = '';
+      }
     } else if (!EMAIL_REGEX.test(email)) {
-      const fallbackEmail = `student_${registerNo.toLowerCase()}@jpcoe.ac.in`;
-      warnings.push({ row: rowNum, field: 'email', value: email, message: `Invalid email address format. Replaced with default (${fallbackEmail}).` });
-      email = fallbackEmail;
+      if (options.allowAutoGenerateIds) {
+        const fallbackEmail = `student_${registerNo.toLowerCase()}@jpcoe.ac.in`;
+        warnings.push({ row: rowNum, field: 'email', value: email, message: `Invalid email address format. Replaced with default (${fallbackEmail}).` });
+        email = fallbackEmail;
+      }
     }
 
     if (report && warnings.length > 0) {
@@ -118,7 +137,7 @@ class StudentImportService {
         row.department = userDept;
       }
 
-      const val = await this.validateStudent(row, i, validDeptsSet, report);
+      const val = await this.validateStudent(row, i, validDeptsSet, report, options);
       if (!val.isValid) {
         report.failed++;
         report.validationErrors.push(...val.errors);

@@ -51,6 +51,42 @@ const modelMap = {
   notifications: { model: Notification, collection: 'notifications' }
 };
 
+const normalizeModuleName = (mod) => {
+  if (!mod) return 'students';
+  const m = mod.toLowerCase().trim();
+  if (['student', 'students'].includes(m)) return 'students';
+  if (['faculty'].includes(m)) return 'faculty';
+  if (['department', 'departments'].includes(m)) return 'departments';
+  if (['subject', 'subjects'].includes(m)) return 'subjects';
+  if (['class', 'classes'].includes(m)) return 'classes';
+  if (['attendance'].includes(m)) return 'attendance';
+  if (['internalmarks', 'internal_marks', 'internal-marks'].includes(m)) return 'internalmarks';
+  if (['semestermarks', 'semester_marks', 'semester-marks'].includes(m)) return 'semestermarks';
+  if (['notes', 'subjectnotes', 'subject_notes'].includes(m)) return 'notes';
+  if (['assignment', 'assignments'].includes(m)) return 'assignments';
+  if (['timetable', 'timetables'].includes(m)) return 'timetable';
+  if (['notification', 'notifications'].includes(m)) return 'notifications';
+  return m;
+};
+
+const formatModuleName = (mod) => {
+  const map = {
+    students: 'Student',
+    faculty: 'Faculty',
+    departments: 'Department',
+    subjects: 'Subject',
+    classes: 'Class',
+    attendance: 'Attendance',
+    internalmarks: 'Internal Marks',
+    semestermarks: 'Semester Marks',
+    notes: 'Subject Notes',
+    assignments: 'Assignment',
+    timetable: 'Timetable',
+    notifications: 'Notification'
+  };
+  return map[mod] || mod;
+};
+
 /**
  * Main Controller handling independent module import execution with intelligent column mapping & warning reports
  */
@@ -62,6 +98,7 @@ const executeModuleImport = async (req, res) => {
 
   try {
     const targetModule = req.params.module || req.body.target || 'students';
+    const normTarget = normalizeModuleName(targetModule);
     const userRole = req.user ? req.user.role : 'admin';
 
     // 1. Verify MongoDB Connection
@@ -71,7 +108,7 @@ const executeModuleImport = async (req, res) => {
     }
 
     const dbName = mongoose.connection.name || mongoose.connection.db?.databaseName || 'collegeDB';
-    const targetInfo = modelMap[targetModule] || modelMap[targetModule.toLowerCase()] || { model: Student, collection: targetModule };
+    const targetInfo = modelMap[normTarget] || { model: Student, collection: normTarget };
     console.log(`✅ MongoDB Connected | Database: ${dbName} | Target Collection: ${targetInfo.collection}`);
 
     // 2. File Upload Logging
@@ -88,11 +125,11 @@ const executeModuleImport = async (req, res) => {
     }
 
     if (userRole === 'faculty') {
-      const allowedTargets = ['attendance', 'internalmarks', 'internalMarks', 'semestermarks', 'semesterMarks', 'notes', 'subjectNotes', 'assignments', 'timetable', 'timetables'];
-      if (!allowedTargets.includes(targetModule)) {
+      const allowedTargets = ['attendance', 'internalmarks', 'semestermarks', 'notes', 'assignments', 'timetable'];
+      if (!allowedTargets.includes(normTarget)) {
         return res.status(403).json({
           success: false,
-          message: `Faculty members are restricted from importing '${targetModule}'. Allowed modules: ${allowedTargets.join(', ')}.`
+          message: `Faculty members are restricted from importing '${normTarget}'. Allowed modules: ${allowedTargets.join(', ')}.`
         });
       }
     }
@@ -104,11 +141,11 @@ const executeModuleImport = async (req, res) => {
       });
     }
 
-    const service = getImportService(targetModule);
+    const service = getImportService(normTarget);
     let records = [];
 
     if (req.file) {
-      records = await service[`parse${getParseMethodName(targetModule)}File`](req.file);
+      records = await service[`parse${getParseMethodName(normTarget)}File`](req.file);
     } else if (Array.isArray(req.body.records)) {
       const { smartMapRow } = require('../services/import/fileParsers');
       records = req.body.records.map(r => smartMapRow(r));
@@ -121,12 +158,36 @@ const executeModuleImport = async (req, res) => {
       });
     }
 
+    // Intelligent Module Detection & Mismatch Prevention
+    const { detectFileModule } = require('../services/import/fileParsers');
+    const detection = detectFileModule(records);
+
+    if (detection.confidence >= 2 && detection.detectedModule !== 'unknown' && detection.detectedModule !== normTarget) {
+      const targetName = formatModuleName(normTarget);
+      const detectedName = formatModuleName(detection.detectedModule);
+      console.warn(`⚠️ Module Mismatch Detected: Selected '${targetName}', uploaded '${detectedName}'`);
+      return res.status(400).json({
+        success: false,
+        moduleMismatch: true,
+        expectedModule: normTarget,
+        detectedModule: detection.detectedModule,
+        expectedModuleName: targetName,
+        detectedModuleName: detectedName,
+        message: `You selected ${targetName} Import but uploaded a ${detectedName} Import file.`,
+        detectedColumns: detection.keys || [],
+        totalRecords: records.length,
+        data: []
+      });
+    }
+
     console.log(`📊 Rows Parsed: ${records.length}`);
     console.log(`   🔹 First Row:`, records[0]);
 
+    const allowAutoGenerateIds = req.body?.autoGenerateIds === true || req.body?.autoGenerateIds === 'true' || req.query?.autoGenerateIds === 'true';
+
     // Save records via independent service
-    const saveMethodName = `save${getSaveMethodName(targetModule)}`;
-    const report = await service[saveMethodName](records, { user: req.user });
+    const saveMethodName = `save${getSaveMethodName(normTarget)}`;
+    const report = await service[saveMethodName](records, { user: req.user, allowAutoGenerateIds });
 
     console.log(`📋 Rows Validated & Processed:`);
     console.log(`   ✅ Valid/Saved: ${report.inserted + report.updated} (Inserted: ${report.inserted}, Updated: ${report.updated})`);
@@ -198,93 +259,116 @@ const executeModuleImport = async (req, res) => {
 };
 
 /**
- * Controller for pre-import data dry-run preview and row validation
+ * Controller to preview file analysis without saving to DB
  */
 const previewImportFile = async (req, res) => {
   try {
     const targetModule = req.params.module || req.body.target || 'students';
-    if (!req.file) {
-      return res.status(400).json({ success: false, message: 'Please upload a spreadsheet file for preview.' });
+    const normTarget = normalizeModuleName(targetModule);
+
+    if (!req.file && !Array.isArray(req.body.records)) {
+      return res.status(400).json({ success: false, message: 'No file uploaded or spreadsheet records array provided.' });
     }
 
-    const service = getImportService(targetModule);
-    const records = await service[`parse${getParseMethodName(targetModule)}File`](req.file);
+    const service = getImportService(normTarget);
+    let records = [];
 
-    if (!Array.isArray(records) || records.length === 0) {
-      return res.status(400).json({ success: false, message: 'The uploaded file is empty or contains no valid data.' });
+    if (req.file) {
+      records = await service[`parse${getParseMethodName(normTarget)}File`](req.file);
+    } else if (Array.isArray(req.body.records)) {
+      const { smartMapRow } = require('../services/import/fileParsers');
+      records = req.body.records.map(r => smartMapRow(r));
     }
 
-    const firstRecord = records[0] || {};
-    const headers = Object.keys(firstRecord);
-    const sampleRows = records.slice(0, 50);
+    const { detectFileModule } = require('../services/import/fileParsers');
+    const detection = detectFileModule(records);
+
+    const isMismatch = (detection.confidence >= 2 && detection.detectedModule !== 'unknown' && detection.detectedModule !== normTarget);
+    const targetName = formatModuleName(normTarget);
+    const detectedName = formatModuleName(detection.detectedModule);
+
+    const firstRow = records[0] || {};
+    const detectedColumns = Object.keys(firstRow);
 
     res.json({
       success: true,
-      targetModule,
-      totalRows: records.length,
-      headers,
-      previewRows: sampleRows
+      moduleMismatch: isMismatch,
+      expectedModule: normTarget,
+      detectedModule: detection.detectedModule,
+      detectedModuleName: detectedName,
+      expectedModuleName: targetName,
+      message: isMismatch ? `You selected ${targetName} Import but uploaded a ${detectedName} Import file.` : 'File analyzed successfully.',
+      totalRecords: records.length,
+      detectedColumns,
+      mappedFields: firstRow,
+      sampleRows: records.slice(0, 10)
     });
-
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
   }
 };
 
-/**
- * Controller downloading error/warning report as CSV
- */
 const downloadErrorReport = (req, res) => {
-  const { importId } = req.params;
-  const report = getReport(importId);
-
-  if (!report) {
-    return res.status(404).send('Error report session expired or not found.');
+  try {
+    const { importId } = req.params;
+    const csvContent = generateErrorReportCSV(importId);
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="Import_Errors_${importId}.csv"`);
+    res.status(200).send(csvContent);
+  } catch (err) {
+    res.status(404).json({ success: false, message: err.message });
   }
-
-  const csv = generateErrorReportCSV(report);
-  res.setHeader('Content-Type', 'text/csv');
-  res.setHeader('Content-Disposition', `attachment; filename="Import_Report_${importId}.csv"`);
-  res.status(200).send(csv);
 };
 
-/**
- * Controller downloading success report as CSV
- */
 const downloadSuccessReport = (req, res) => {
-  const { importId } = req.params;
-  const report = getReport(importId);
-
-  if (!report) {
-    return res.status(404).send('Success report session expired or not found.');
+  try {
+    const { importId } = req.params;
+    const csvContent = generateSuccessReportCSV(importId);
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="Import_Success_${importId}.csv"`);
+    res.status(200).send(csvContent);
+  } catch (err) {
+    res.status(404).json({ success: false, message: err.message });
   }
-
-  const csv = generateSuccessReportCSV(report);
-  res.setHeader('Content-Type', 'text/csv');
-  res.setHeader('Content-Disposition', `attachment; filename="Import_Success_Report_${importId}.csv"`);
-  res.status(200).send(csv);
 };
 
-// Helper name maps
-function getParseMethodName(target) {
+const getParseMethodName = (target) => {
+  const norm = normalizeModuleName(target);
   const map = {
-    students: 'Student', faculty: 'Faculty', departments: 'Department', subjects: 'Subject',
-    classes: 'Class', attendance: 'Attendance', internalmarks: 'InternalMark', internalMarks: 'InternalMark',
-    semestermarks: 'SemesterMark', semesterMarks: 'SemesterMark', notes: 'Notes', subjectNotes: 'Notes',
-    assignments: 'Assignment', timetable: 'Timetable', timetables: 'Timetable', notifications: 'Notification'
+    students: 'Student',
+    faculty: 'Faculty',
+    departments: 'Department',
+    subjects: 'Subject',
+    classes: 'Class',
+    attendance: 'Attendance',
+    internalmarks: 'InternalMark',
+    semestermarks: 'SemesterMark',
+    notes: 'Notes',
+    assignments: 'Assignment',
+    timetable: 'Timetable',
+    notifications: 'Notification'
   };
-  return map[target] || map[target.toLowerCase()] || 'Student';
-}
+  return map[norm] || 'Student';
+};
 
-function getSaveMethodName(target) {
+const getSaveMethodName = (target) => {
+  const norm = normalizeModuleName(target);
   const map = {
-    students: 'Students', faculty: 'Faculty', departments: 'Departments', subjects: 'Subjects',
-    classes: 'Classes', attendance: 'Attendance', internalmarks: 'InternalMarks', internalMarks: 'InternalMarks',
-    semestermarks: 'SemesterMarks', semesterMarks: 'SemesterMarks', notes: 'Notes', subjectNotes: 'Notes',
-    assignments: 'Assignments', timetable: 'Timetable', timetables: 'Timetable', notifications: 'Notifications'
+    students: 'Students',
+    faculty: 'Faculty',
+    departments: 'Departments',
+    subjects: 'Subjects',
+    classes: 'Classes',
+    attendance: 'Attendance',
+    internalmarks: 'InternalMarks',
+    semestermarks: 'SemesterMarks',
+    notes: 'Notes',
+    assignments: 'Assignments',
+    timetable: 'Timetables',
+    notifications: 'Notifications'
   };
-  return map[target] || map[target.toLowerCase()] || 'Students';
-}
+  return map[norm] || 'Students';
+};
 
 module.exports = {
   executeModuleImport,

@@ -23,7 +23,8 @@ class FacultyImportService {
     return await parseSpreadsheetOrPdf(file);
   }
 
-  static async validateFaculty(record, index, validDepartmentsSet, report) {
+  static async validateFaculty(record, index, validDepartmentsSet, report, options = {}) {
+    const errors = [];
     const warnings = [];
     const rowNum = index + 1;
 
@@ -42,24 +43,42 @@ class FacultyImportService {
       return { isValid: false, errors: [{ row: rowNum, field: 'all', value: '', message: 'Row contains no usable faculty data.' }], warnings: [], record: null };
     }
 
-    // Tolerant fallbacks & auto-generation
+    // Required Faculty ID Handling
     if (!facultyId) {
-      facultyId = `JPC-FAC-${Date.now().toString().slice(-4)}${index + 10}`;
-      warnings.push({ row: rowNum, field: 'facultyId', value: '', message: `Faculty ID missing. Generated automatically (${facultyId}).` });
+      if (options.allowAutoGenerateIds) {
+        facultyId = `JPC-FAC-${Date.now().toString().slice(-4)}${index + 10}`;
+        warnings.push({ row: rowNum, field: 'facultyId', value: '', message: `Faculty ID missing. Generated automatically (${facultyId}).` });
+      } else {
+        errors.push({ row: rowNum, field: 'facultyId', value: '', message: 'Faculty ID is missing. Enable "Auto Generate IDs" to auto-assign.' });
+      }
     }
 
     if (!facultyName) {
-      facultyName = email ? email.split('@')[0] : `Faculty ${facultyId.slice(-4)}`;
-      warnings.push({ row: rowNum, field: 'facultyName', value: '', message: `Faculty Name missing. Defaulted to '${facultyName}'.` });
+      if (options.allowAutoGenerateIds) {
+        facultyName = email ? email.split('@')[0] : `Faculty ${facultyId.slice(-4)}`;
+        warnings.push({ row: rowNum, field: 'facultyName', value: '', message: `Faculty Name missing. Defaulted to '${facultyName}'.` });
+      } else {
+        errors.push({ row: rowNum, field: 'facultyName', value: '', message: 'Faculty Name is required.' });
+      }
+    }
+
+    if (errors.length > 0) {
+      return { isValid: false, errors, warnings, record: null };
     }
 
     if (!email) {
-      email = `faculty_${facultyId.toLowerCase().replace(/[^a-z0-9]/g, '')}@jpcoe.ac.in`;
-      warnings.push({ row: rowNum, field: 'email', value: '', message: `Email missing. Saved as default (${email}).` });
+      if (options.allowAutoGenerateIds) {
+        email = `faculty_${facultyId.toLowerCase().replace(/[^a-z0-9]/g, '')}@jpcoe.ac.in`;
+        warnings.push({ row: rowNum, field: 'email', value: '', message: `Email missing. Saved as default (${email}).` });
+      } else {
+        email = '';
+      }
     } else if (!EMAIL_REGEX.test(email)) {
-      const fallbackEmail = `faculty_${facultyId.toLowerCase().replace(/[^a-z0-9]/g, '')}@jpcoe.ac.in`;
-      warnings.push({ row: rowNum, field: 'email', value: email, message: `Invalid email address format. Replaced with default (${fallbackEmail}).` });
-      email = fallbackEmail;
+      if (options.allowAutoGenerateIds) {
+        const fallbackEmail = `faculty_${facultyId.toLowerCase().replace(/[^a-z0-9]/g, '')}@jpcoe.ac.in`;
+        warnings.push({ row: rowNum, field: 'email', value: email, message: `Invalid email address format. Replaced with default (${fallbackEmail}).` });
+        email = fallbackEmail;
+      }
     }
 
     if (report && warnings.length > 0) {
@@ -93,7 +112,7 @@ class FacultyImportService {
     const validatedRecords = [];
 
     for (let i = 0; i < records.length; i++) {
-      const val = await this.validateFaculty(records[i], i, validDeptsSet, report);
+      const val = await this.validateFaculty(records[i], i, validDeptsSet, report, options);
       if (!val.isValid) {
         report.failed++;
         report.validationErrors.push(...val.errors);

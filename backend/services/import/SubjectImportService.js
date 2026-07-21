@@ -4,58 +4,72 @@ const { parseSpreadsheetOrPdf } = require('./fileParsers');
 const { createImportReport, finalizeReport } = require('./importReport');
 const mongoose = require('mongoose');
 
-const getValidDepartmentsSet = async () => {
-  const depts = await Department.find({});
-  const set = new Set(['ai & ds', 'cse', 'ece', 'eee', 'mech', 'civil', 'it', 'aids', 'all']);
-  depts.forEach(d => {
-    if (d.code) set.add(d.code.toLowerCase());
-    if (d.departmentCode) set.add(d.departmentCode.toLowerCase());
-    if (d.name) set.add(d.name.toLowerCase());
-    if (d.departmentName) set.add(d.departmentName.toLowerCase());
-  });
-  return set;
-};
-
 class SubjectImportService {
   static async parseSubjectFile(file) {
     return await parseSpreadsheetOrPdf(file);
   }
 
-  static async validateSubject(record, index, validDepartmentsSet) {
+  static async validateSubject(record, index, report, options = {}) {
     const errors = [];
+    const warnings = [];
     const rowNum = index + 1;
 
-    const subjectCode = String(record.subjectCode || record.code || record.subjectcode || '').trim().toUpperCase();
-    const subjectName = String(record.subjectName || record.name || record.subjectname || '').trim();
-    const department = String(record.department || record.dept || 'AI & DS').trim();
-    const semester = String(record.semester || 'Semester V').trim();
-    const credits = Number(record.credits) || 4;
-    const regulation = String(record.regulation || '2021').trim();
-    const facultyName = String(record.faculty || record.facultyName || record.facultyAssigned || '').trim();
+    let subjectCode = String(record.subjectCode || record.code || record.subCode || record.courseCode || record.subjectcode || '').trim().toUpperCase();
+    let subjectName = String(record.subjectName || record.name || record.title || record.courseName || record.subjectname || '').trim();
+    const department = String(record.department || record.dept || record.branch || 'AI & DS').trim();
+    const semester = String(record.semester || record.sem || 'Semester V').trim();
+    const credits = parseInt(record.credits || record.credit || 4, 10) || 4;
+    const regulation = String(record.regulation || record.reg || '2021').trim();
+    const faculty = String(record.faculty || record.facultyName || '').trim();
 
-    if (!subjectCode) errors.push({ row: rowNum, field: 'subjectCode', value: record.subjectCode, message: 'Subject Code is required.' });
-    if (!subjectName) errors.push({ row: rowNum, field: 'subjectName', value: record.subjectName, message: 'Subject Name is required.' });
-    if (isNaN(credits) || credits < 0) errors.push({ row: rowNum, field: 'credits', value: record.credits, message: 'Credits must be a valid non-negative number.' });
+    // Check zero usable data
+    const nonKeys = Object.keys(record).filter(k => String(record[k] || '').trim().length > 0);
+    if (nonKeys.length === 0) {
+      return { isValid: false, errors: [{ row: rowNum, field: 'all', value: '', message: 'Row contains no usable subject data.' }], warnings: [], record: null };
+    }
 
-    if (department && validDepartmentsSet && !validDepartmentsSet.has(department.toLowerCase())) {
-      errors.push({ row: rowNum, field: 'department', value: department, message: `Department '${department}' does not exist.` });
+    if (!subjectCode) {
+      if (options.allowAutoGenerateIds) {
+        subjectCode = `SUB-${index + 301}`;
+        warnings.push({ row: rowNum, field: 'subjectCode', value: '', message: `Subject Code missing. Generated automatically (${subjectCode}).` });
+      } else {
+        errors.push({ row: rowNum, field: 'subjectCode', value: '', message: 'Subject Code is required. Enable "Auto Generate IDs" to auto-assign.' });
+      }
+    }
+
+    if (!subjectName) {
+      if (options.allowAutoGenerateIds) {
+        subjectName = `Subject ${subjectCode}`;
+        warnings.push({ row: rowNum, field: 'subjectName', value: '', message: `Subject Name missing. Defaulted to '${subjectName}'.` });
+      } else {
+        errors.push({ row: rowNum, field: 'subjectName', value: '', message: 'Subject Name is required.' });
+      }
+    }
+
+    if (errors.length > 0) {
+      return { isValid: false, errors, warnings, record: null };
+    }
+
+    if (report && warnings.length > 0) {
+      report.warnings.push(...warnings);
     }
 
     const cleanRecord = {
       subjectCode,
+      code: subjectCode,
       subjectName,
+      name: subjectName,
       department,
       semester,
       credits,
       regulation,
-      facultyName,
-      facultyAssigned: facultyName
+      faculty
     };
 
-    return { isValid: errors.length === 0, errors, record: cleanRecord };
+    return { isValid: true, errors: [], warnings, record: cleanRecord };
   }
 
-  static async saveSubjects(records) {
+  static async saveSubjects(records, options = {}) {
     const report = createImportReport('Subject Import');
     report.totalRecords = records.length;
 
@@ -63,10 +77,9 @@ class SubjectImportService {
       return finalizeReport(report);
     }
 
-    const validDeptsSet = await getValidDepartmentsSet();
     const validatedRecords = [];
     for (let i = 0; i < records.length; i++) {
-      const val = await this.validateSubject(records[i], i, validDeptsSet);
+      const val = await this.validateSubject(records[i], i, report, options);
       if (!val.isValid) {
         report.failed++;
         report.validationErrors.push(...val.errors);
@@ -82,7 +95,8 @@ class SubjectImportService {
     for (const rec of validatedRecords) {
       try {
         console.log('Saving Subject:', rec.subjectCode, rec.subjectName);
-        const existing = await Subject.findOne({ subjectCode: rec.subjectCode });
+        const filter = { $or: [{ subjectCode: rec.subjectCode }, { code: rec.code }] };
+        const existing = await Subject.findOne(filter);
 
         if (existing) {
           report.duplicates++;
