@@ -278,18 +278,46 @@ const createCrudControllers = (Model, modelName) => ({
 
       // Validation for Internal Marks
       if (modelName === 'InternalMark') {
-        const int1 = Number(req.body.internal1 !== undefined ? req.body.internal1 : existing.internal1);
-        const int2 = Number(req.body.internal2 !== undefined ? req.body.internal2 : existing.internal2);
-        const int3 = Number(req.body.internal3 !== undefined ? req.body.internal3 : existing.internal3);
-        const modelExam = Number(req.body.modelExam !== undefined ? req.body.modelExam : existing.modelExam);
-        const assignment = Number(req.body.assignmentMark !== undefined ? req.body.assignmentMark : existing.assignmentMark);
+        let maxMark = Number(existing.maxMark) || 50;
+        try {
+          const setting = await Setting.findOne();
+          if (setting && setting.maxInternalMarks) maxMark = Number(setting.maxInternalMarks);
+        } catch (e) {}
 
-        if (int1 > 50 || int2 > 50 || int3 > 50) return res.status(400).json({ success: false, message: 'Internal Assessment marks cannot exceed 50.' });
+        if (req.body.maxMark) maxMark = Number(req.body.maxMark);
+
+        const int1 = req.body.internal1 !== undefined ? Number(req.body.internal1) : existing.internal1;
+        const int2 = req.body.internal2 !== undefined ? Number(req.body.internal2) : existing.internal2;
+        const int3 = req.body.internal3 !== undefined ? Number(req.body.internal3) : existing.internal3;
+        const modelExam = req.body.modelExam !== undefined ? Number(req.body.modelExam) : existing.modelExam;
+        const assignment = req.body.assignmentMark !== undefined ? Number(req.body.assignmentMark) : existing.assignmentMark;
+
+        if (int1 > maxMark || int2 > maxMark || int3 > maxMark) {
+          return res.status(400).json({ success: false, message: `Internal Assessment marks cannot exceed configured maximum of ${maxMark}.` });
+        }
         if (modelExam > 100) return res.status(400).json({ success: false, message: 'Model Exam marks cannot exceed 100.' });
         if (assignment > 10) return res.status(400).json({ success: false, message: 'Assignment mark cannot exceed 10.' });
 
-        req.body.average = Math.round(((int1 + int2 + int3) / 3) * 10) / 10;
-        req.body.totalInternal = Math.round((req.body.average / 50) * 40 + assignment);
+        const editHistory = Array.isArray(existing.editHistory) ? existing.editHistory : [];
+        const editor = req.user ? `${req.user.name || req.user.email} (${req.user.role})` : 'Faculty User';
+
+        ['internal1', 'internal2', 'internal3', 'modelExam', 'assignmentMark'].forEach(field => {
+          if (req.body[field] !== undefined && Number(req.body[field]) !== existing[field]) {
+            editHistory.push({
+              markType: field,
+              oldValue: existing[field] || 0,
+              newValue: Number(req.body[field]),
+              editedBy: editor,
+              editedAt: new Date()
+            });
+          }
+        });
+
+        req.body.editHistory = editHistory;
+        req.body.maxMark = maxMark;
+        req.body.average = Number(((int1 + int2 + int3) / 3).toFixed(2));
+        req.body.status = req.body.average >= (maxMark * 0.4) ? 'PASS' : 'FAIL';
+        req.body.totalInternal = Math.round((req.body.average / maxMark) * 40 + assignment);
         req.body.lastUpdated = new Date().toISOString().split('T')[0];
       }
 
@@ -323,13 +351,13 @@ const createCrudControllers = (Model, modelName) => ({
 
       res.json({ success: true, message: `${modelName} updated successfully`, data: item });
     } catch (err) {
-      res.status(400).json({ success: false, error: err.message });
+      res.status(400).json({ success: false, message: err.message });
     }
   },
   delete: async (req, res) => {
     try {
       const existing = await Model.findById(req.params.id);
-      if (!existing) return res.status(404).json({ success: false, error: `${modelName} not found` });
+      if (!existing) return res.status(404).json({ success: false, message: `${modelName} not found` });
 
       if (modelName === 'User' && (existing.isProtected || existing.email.toLowerCase() === (process.env.SUPER_ADMIN_EMAIL || 'Adminjpcoe@gmail.com').toLowerCase())) {
         return res.status(403).json({ success: false, message: 'Permanent Super Admin account cannot be modified or deleted.' });
@@ -348,7 +376,45 @@ const createCrudControllers = (Model, modelName) => ({
 
       res.json({ success: true, message: `${modelName} deleted successfully` });
     } catch (err) {
-      res.status(500).json({ success: false, error: err.message });
+      res.status(500).json({ success: false, message: err.message });
+    }
+  },
+  bulkDelete: async (req, res) => {
+    try {
+      const { ids } = req.body;
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ success: false, message: 'No record IDs provided for bulk deletion.' });
+      }
+
+      let filter = { _id: { $in: ids } };
+      if (modelName === 'User') {
+        const protectedUser = await Model.findOne({
+          _id: { $in: ids },
+          $or: [{ isProtected: true }, { email: (process.env.SUPER_ADMIN_EMAIL || 'Adminjpcoe@gmail.com').toLowerCase() }]
+        });
+        if (protectedUser) {
+          return res.status(403).json({ success: false, message: 'Permanent Super Admin account cannot be deleted.' });
+        }
+      }
+
+      const result = await Model.deleteMany(filter);
+
+      await History.create({
+        date: new Date().toISOString().split('T')[0],
+        time: new Date().toLocaleTimeString(),
+        action: `Bulk Delete ${modelName}`,
+        user: req.user ? req.user.email : 'System User',
+        department: 'General',
+        details: `Bulk deleted ${result.deletedCount} ${modelName} records`
+      });
+
+      res.json({
+        success: true,
+        message: `Successfully deleted ${result.deletedCount} records permanently.`,
+        deletedCount: result.deletedCount
+      });
+    } catch (err) {
+      res.status(500).json({ success: false, message: err.message, totalRecords: 0, data: [] });
     }
   }
 });
@@ -1321,6 +1387,110 @@ const promoteStudents = async (req, res) => {
   }
 };
 
+const bulkUpdateInternalMarks = async (req, res) => {
+  try {
+    const { ids, markType, value, maxMark: inputMaxMark } = req.body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ success: false, message: 'No student record IDs selected for bulk update.' });
+    }
+
+    if (!['internal1', 'internal2', 'internal3'].includes(markType)) {
+      return res.status(400).json({ success: false, message: 'Invalid markType. Allowed: internal1, internal2, internal3.' });
+    }
+
+    let maxMark = Number(inputMaxMark) || 50;
+    try {
+      const setting = await Setting.findOne();
+      if (setting && setting.maxInternalMarks) maxMark = setting.maxInternalMarks;
+    } catch (e) {}
+
+    const markValue = Number(value);
+    if (isNaN(markValue) || markValue < 0 || markValue > maxMark) {
+      return res.status(400).json({ success: false, message: `Mark value must be between 0 and configured maximum of ${maxMark}.` });
+    }
+
+    const editor = req.user ? `${req.user.name || req.user.email} (${req.user.role})` : 'Faculty User';
+    const records = await InternalMark.find({ _id: { $in: ids } });
+
+    const updatePromises = records.map(async (doc) => {
+      const oldValue = doc[markType] || 0;
+      doc[markType] = markValue;
+      doc.maxMark = maxMark;
+
+      const i1 = Number(doc.internal1) || 0;
+      const i2 = Number(doc.internal2) || 0;
+      const i3 = Number(doc.internal3) || 0;
+      doc.average = Number(((i1 + i2 + i3) / 3).toFixed(2));
+      doc.status = doc.average >= (maxMark * 0.4) ? 'PASS' : 'FAIL';
+      doc.lastUpdated = new Date().toISOString().split('T')[0];
+
+      doc.editHistory.push({
+        markType,
+        oldValue,
+        newValue: markValue,
+        editedBy: editor,
+        editedAt: new Date()
+      });
+
+      return await doc.save();
+    });
+
+    const updatedDocs = await Promise.all(updatePromises);
+
+    res.json({
+      success: true,
+      message: `Bulk updated ${markType} to ${markValue} for ${updatedDocs.length} students.`,
+      updatedCount: updatedDocs.length,
+      data: updatedDocs
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message, totalRecords: 0, data: [] });
+  }
+};
+
+const getInternalMarkSettings = async (req, res) => {
+  try {
+    let setting = await Setting.findOne();
+    if (!setting) {
+      setting = await Setting.create({ maxInternalMarks: 50 });
+    }
+    res.json({ success: true, maxInternalMarks: setting.maxInternalMarks || 50, data: setting });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+const updateInternalMarkSettings = async (req, res) => {
+  try {
+    const { maxInternalMarks } = req.body;
+    const maxVal = Number(maxInternalMarks);
+
+    if (isNaN(maxVal) || maxVal <= 0) {
+      return res.status(400).json({ success: false, message: 'Maximum internal marks must be a positive number.' });
+    }
+
+    let setting = await Setting.findOne();
+    if (!setting) {
+      setting = new Setting({ maxInternalMarks: maxVal });
+    } else {
+      setting.maxInternalMarks = maxVal;
+    }
+    await setting.save();
+
+    await InternalMark.updateMany({}, { maxMark: maxVal });
+
+    res.json({
+      success: true,
+      message: `Maximum Internal Marks updated to ${maxVal} throughout the ERP!`,
+      maxInternalMarks: maxVal,
+      data: setting
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 module.exports = {
   students: createCrudControllers(Student, 'Student'),
   faculty: createCrudControllers(Faculty, 'Faculty'),
@@ -1345,5 +1515,8 @@ module.exports = {
   batchAttendance,
   generateQR,
   scanQR,
-  promoteStudents
+  promoteStudents,
+  bulkUpdateInternalMarks,
+  getInternalMarkSettings,
+  updateInternalMarkSettings
 };

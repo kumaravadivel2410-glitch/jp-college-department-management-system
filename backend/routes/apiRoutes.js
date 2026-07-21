@@ -25,7 +25,9 @@ const upload = multer({
 const mountCrud = (prefix, controller) => {
   router.get(`/${prefix}`, verifyToken, enforceFacultyAcademicScope, enforceStudentAcademicScope, controller.getAll);
   router.post(`/${prefix}`, verifyToken, enforceFacultyAcademicScope, enforceStudentAcademicScope, controller.create);
+  router.post(`/${prefix}/bulk-delete`, verifyToken, enforceFacultyAcademicScope, enforceStudentAcademicScope, controller.bulkDelete);
   router.put(`/${prefix}/:id`, verifyToken, enforceFacultyAcademicScope, enforceStudentAcademicScope, controller.update);
+  router.patch(`/${prefix}/:id`, verifyToken, enforceFacultyAcademicScope, enforceStudentAcademicScope, controller.update);
   router.delete(`/${prefix}/:id`, verifyToken, enforceFacultyAcademicScope, enforceStudentAcademicScope, controller.delete);
 };
 
@@ -35,6 +37,11 @@ router.post('/auth/register', controllers.auth.register);
 router.get('/auth/pending-categorized', verifyToken, authorizeRoles('admin', 'super_admin'), controllers.auth.getPendingCategorized);
 router.put('/auth/approve/:userId', verifyToken, authorizeRoles('admin', 'super_admin'), controllers.auth.approveUser);
 router.put('/auth/reject/:userId', verifyToken, authorizeRoles('admin', 'super_admin'), controllers.auth.rejectUser);
+
+// Internal Marks Custom Endpoints
+router.get('/settings/internal-marks', verifyToken, controllers.getInternalMarkSettings);
+router.put('/settings/internal-marks', verifyToken, authorizeRoles('admin', 'super_admin'), controllers.updateInternalMarkSettings);
+router.post('/internal-marks/bulk-update', verifyToken, controllers.bulkUpdateInternalMarks);
 
 // Core CRUD Routes with Student Scope Security
 mountCrud('students', controllers.students);
@@ -57,16 +64,19 @@ mountCrud('settings', controllers.settings);
 // Assignments Routes
 router.get('/assignments', verifyToken, enforceStudentAcademicScope, controllers.assignments.getAll);
 router.post('/assignments', verifyToken, enforceStudentAcademicScope, controllers.assignments.create);
+router.post('/assignments/bulk-delete', verifyToken, controllers.students.bulkDelete);
 router.post('/assignments/:id/submit', verifyToken, enforceStudentAcademicScope, controllers.assignments.submitAssignment);
 router.delete('/assignments/:id', verifyToken, enforceStudentAcademicScope, controllers.assignments.delete);
 
 // Timetables Routes
 router.get('/timetables', verifyToken, enforceStudentAcademicScope, controllers.timetables.getAll);
 router.post('/timetables', verifyToken, enforceStudentAcademicScope, controllers.timetables.saveTimetable);
+router.post('/timetables/bulk-delete', verifyToken, controllers.students.bulkDelete);
 
 // Subject Notes Routes
 router.get('/notes', verifyToken, enforceStudentAcademicScope, controllers.notes.getAll);
 router.post('/notes/upload', verifyToken, enforceStudentAcademicScope, upload.single('file'), controllers.notes.upload);
+router.post('/notes/bulk-delete', verifyToken, controllers.students.bulkDelete);
 router.delete('/notes/:id', verifyToken, enforceStudentAcademicScope, controllers.notes.delete);
 
 // Notifications & Reports
