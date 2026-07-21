@@ -16,6 +16,7 @@ const Notification = require('../models/Notification');
 const Report = require('../models/Report');
 const Assignment = require('../models/Assignment');
 const Timetable = require('../models/Timetable');
+const Section = require('../models/Section');
 const { JWT_SECRET } = require('../middleware/authMiddleware');
 
 // Initial MongoDB Atlas Seed Data
@@ -173,6 +174,11 @@ const autoSeedDatabase = async () => {
       }
     }
 
+    const sectionCount = await Section.countDocuments();
+    if (sectionCount === 0) {
+      await Section.insertMany([{ name: 'A' }, { name: 'B' }, { name: 'C' }, { name: 'D' }, { name: 'E' }]);
+    }
+
     const deptCount = await Department.countDocuments();
     if (deptCount === 0) {
       await Department.insertMany(SEED_DATA.departments);
@@ -217,7 +223,10 @@ const createCrudControllers = (Model, modelName) => ({
           { facultyName: regex },
           { facultyId: regex },
           { subjectName: regex },
-          { subjectCode: regex }
+          { subjectCode: regex },
+          { department: regex },
+          { phone: regex },
+          { email: regex }
         ];
       }
 
@@ -431,12 +440,60 @@ const createCrudControllers = (Model, modelName) => ({
 
       res.json({
         success: true,
-        message: `Successfully deleted ${result.deletedCount} ${modelName.toLowerCase()} records.`,
-        deleted: result.deletedCount,
-        deletedCount: result.deletedCount
+        message: `Successfully deleted ${result.deletedCount} ${modelName} records!`,
+        count: result.deletedCount
       });
     } catch (err) {
-      res.status(500).json({ success: false, message: err.message, totalRecords: 0, data: [] });
+      res.status(500).json({ success: false, message: err.message });
+    }
+  },
+  bulkUpdate: async (req, res) => {
+    try {
+      const { ids, updateData } = req.body;
+      if (!Array.isArray(ids) || ids.length === 0 || !updateData || typeof updateData !== 'object') {
+        return res.status(400).json({ success: false, message: 'Invalid payload for bulk update.' });
+      }
+
+      const validObjectIds = ids.filter(id => typeof id === 'string' && /^[0-9a-fA-F]{24}$/.test(id));
+      const stringIds = ids.filter(id => typeof id === 'string' && !/^[0-9a-fA-F]{24}$/.test(id));
+
+      const orConditions = [];
+      if (validObjectIds.length > 0) {
+        orConditions.push({ _id: { $in: validObjectIds } });
+      }
+      if (stringIds.length > 0) {
+        orConditions.push(
+          { facultyId: { $in: stringIds } },
+          { registerNo: { $in: stringIds } },
+          { departmentCode: { $in: stringIds } },
+          { subjectCode: { $in: stringIds } }
+        );
+      }
+
+      if (orConditions.length === 0) {
+        return res.status(400).json({ success: false, message: 'No valid record IDs provided for bulk update.' });
+      }
+
+      const filter = orConditions.length === 1 ? orConditions[0] : { $or: orConditions };
+
+      const result = await Model.updateMany(filter, { $set: updateData });
+
+      await History.create({
+        date: new Date().toISOString().split('T')[0],
+        time: new Date().toLocaleTimeString(),
+        action: `Bulk Update ${modelName}`,
+        user: req.user ? req.user.email : 'System User',
+        department: 'General',
+        details: `Bulk updated ${result.modifiedCount} ${modelName} records.`
+      });
+
+      res.json({
+        success: true,
+        message: `Successfully updated ${result.modifiedCount} ${modelName} records!`,
+        count: result.modifiedCount
+      });
+    } catch (err) {
+      res.status(500).json({ success: false, message: err.message });
     }
   }
 });
@@ -1624,6 +1681,7 @@ module.exports = {
   history: createCrudControllers(History, 'History'),
   settings: createCrudControllers(Setting, 'Setting'),
   users: createCrudControllers(User, 'User'),
+  sections: createCrudControllers(Section, 'Section'),
   assignments,
   timetables,
   auth,

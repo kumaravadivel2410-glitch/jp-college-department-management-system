@@ -61,6 +61,17 @@ class TableSelectionManager {
         <button type="button" id="erpBulkPrintBtn" style="background:#3B82F6; color:#FFF; border:none; padding:0.4rem 0.85rem; border-radius:20px; font-weight:700; cursor:pointer; font-size:0.8rem; display:inline-flex; align-items:center; gap:0.4rem;">
           <i class="fa-solid fa-print"></i> Print Selected
         </button>
+        <select id="erpBulkActionSelect" style="background:#2563EB; color:#FFF; border:none; padding:0.4rem 0.85rem; border-radius:20px; font-weight:700; cursor:pointer; font-size:0.8rem;">
+          <option value="" disabled selected>⚡ Bulk Actions & Updates...</option>
+          <option value="changeDepartment">Change Department</option>
+          <option value="changeYear">Change Year</option>
+          <option value="changeSemester">Change Semester</option>
+          <option value="changeSection">Change Section</option>
+          <option value="changeFaculty">Change Faculty</option>
+          <option value="changeSubject">Change Subject</option>
+          <option value="activate">Activate Selected</option>
+          <option value="deactivate">Deactivate Selected</option>
+        </select>
         <button type="button" id="erpCancelSelectionBtn" style="background:rgba(255,255,255,0.15); color:#FFF; border:1px solid rgba(255,255,255,0.3); padding:0.4rem 0.85rem; border-radius:20px; font-weight:700; cursor:pointer; font-size:0.8rem; display:inline-flex; align-items:center; gap:0.4rem;">
           Cancel Selection
         </button>
@@ -73,6 +84,13 @@ class TableSelectionManager {
     document.getElementById('erpBulkDeleteBtn').addEventListener('click', () => this.handleBulkDelete());
     document.getElementById('erpBulkExportBtn').addEventListener('click', () => this.handleBulkExport());
     document.getElementById('erpBulkPrintBtn').addEventListener('click', () => this.handleBulkPrint());
+    document.getElementById('erpBulkActionSelect').addEventListener('change', (e) => {
+      const val = e.target.value;
+      if (val) {
+        this.handleBulkUpdate(val);
+        e.target.value = '';
+      }
+    });
     document.getElementById('erpCancelSelectionBtn').addEventListener('click', () => this.clearSelection());
   }
 
@@ -309,6 +327,69 @@ class TableSelectionManager {
     printWin.document.close();
     printWin.focus();
     setTimeout(() => { printWin.print(); printWin.close(); }, 500);
+  }
+
+  async handleBulkUpdate(actionType) {
+    const selectedIds = Array.from(this.selectedIds);
+    if (selectedIds.length === 0) return alert('No records selected.');
+
+    let updateData = {};
+
+    if (actionType === 'activate') {
+      updateData = { status: 'Active', approvalStatus: 'approved' };
+    } else if (actionType === 'deactivate') {
+      updateData = { status: 'Inactive', approvalStatus: 'rejected' };
+    } else if (actionType === 'changeDepartment') {
+      const dept = prompt('Enter target Department:\n(AI & DS, CSE, IT, ECE, EEE, Mechanical, Civil, MBA, English, Mathematics, Physics, Chemistry)');
+      if (!dept) return;
+      updateData = { department: dept.trim() };
+    } else if (actionType === 'changeYear') {
+      const yr = prompt('Enter target Academic Year:\n(I Year, II Year, III Year, IV Year)');
+      if (!yr) return;
+      updateData = { year: yr.trim() };
+    } else if (actionType === 'changeSemester') {
+      const sem = prompt('Enter target Semester:\n(Semester I, Semester II, ..., Semester VIII)');
+      if (!sem) return;
+      updateData = { semester: sem.trim() };
+    } else if (actionType === 'changeSection') {
+      const sec = prompt('Enter target Section:\n(A, B, C, D, E)');
+      if (!sec) return;
+      updateData = { section: sec.trim() };
+    } else if (actionType === 'changeFaculty') {
+      const fac = prompt('Enter Faculty Name or Faculty ID:');
+      if (!fac) return;
+      updateData = { facultyName: fac.trim(), assignedFaculty: fac.trim() };
+    } else if (actionType === 'changeSubject') {
+      const subj = prompt('Enter Subject Name or Subject Code:');
+      if (!subj) return;
+      updateData = { subjectName: subj.trim(), subject: subj.trim() };
+    }
+
+    if (Object.keys(updateData).length === 0) return;
+
+    try {
+      const baseUrl = window.APP_CONFIG ? window.APP_CONFIG.getApiBaseUrl() : 'http://localhost:5000/api';
+      const token = localStorage.getItem('jp_dms_token');
+      const res = await fetch(`${baseUrl}/${this.resource}/bulk-update`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ ids: selectedIds, updateData })
+      });
+      const json = await res.json();
+      if (json.success) {
+        alert(`✅ ${json.message}`);
+        this.clearSelection();
+        if (typeof this.onDeleteCallback === 'function') this.onDeleteCallback();
+        else window.location.reload();
+      } else {
+        alert(`❌ Bulk update failed: ${json.message}`);
+      }
+    } catch(err) {
+      alert(`❌ Error performing bulk update: ${err.message}`);
+    }
   }
 }
 

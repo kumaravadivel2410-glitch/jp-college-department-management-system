@@ -104,6 +104,33 @@
         </div>
       </div>
 
+      <!-- Section Settings Management Card -->
+      <div class="card-glass" style="grid-column: 1 / -1; margin-top: 1rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1.25rem; flex-wrap:wrap; gap:1rem;">
+          <h3 style="font-size: 1.2rem; font-weight: 800; color: #1E3A8A; margin:0; display: flex; align-items: center; gap: 0.6rem;">
+            <i class="fa-solid fa-list-check" style="color: var(--primary);"></i> ERP Section Settings (Admin Editable Options)
+          </h3>
+          <button type="button" id="addSectionBtn" class="btn-primary" style="padding:0.4rem 1rem; font-size:0.85rem;">
+            <i class="fa-solid fa-plus"></i> Add Section
+          </button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Section Name</th>
+                <th>Created At</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="sectionsTbody">
+              <!-- Dynamically populated from MongoDB -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
   </main>
 
@@ -261,6 +288,117 @@
           startBtn.innerHTML = '<i class="fa-solid fa-file-import"></i> Start MongoDB Atlas Import & Sync';
         }
       });
+
+      // Section Management Functions
+      const loadSections = async () => {
+        try {
+          const token = localStorage.getItem('jp_dms_token');
+          const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+          const res = await fetch(`${baseUrl}/sections`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const json = await res.json();
+          const sections = json.data || [];
+          document.getElementById('sectionsTbody').innerHTML = sections.map(s => `
+            <tr>
+              <td><strong style="color:var(--primary); font-size:1.05rem;">Section ${s.name}</strong></td>
+              <td>${new Date(s.createdAt || Date.now()).toLocaleDateString()}</td>
+              <td>
+                <button class="btn-sm btn-outline-primary edit-sec-btn" data-id="${s._id}" data-name="${s.name}"><i class="fa-solid fa-pen"></i> Edit</button>
+                <button class="btn-sm btn-outline-danger delete-sec-btn" data-id="${s._id}" data-name="${s.name}"><i class="fa-solid fa-trash"></i> Delete</button>
+              </td>
+            </tr>
+          `).join('');
+
+          // Bind click listeners
+          document.querySelectorAll('.edit-sec-btn').forEach(btn => {
+            btn.addEventListener('click', () => editSection(btn.dataset.id, btn.dataset.name));
+          });
+          document.querySelectorAll('.delete-sec-btn').forEach(btn => {
+            btn.addEventListener('click', () => deleteSection(btn.dataset.id, btn.dataset.name));
+          });
+        } catch(e) {
+          console.error('Failed to load sections:', e);
+        }
+      };
+
+      document.getElementById('addSectionBtn').addEventListener('click', async () => {
+        const secName = prompt('Enter new Section Name (e.g. A, B, C, D, E, F):');
+        if (!secName || !secName.trim()) return;
+
+        try {
+          const token = localStorage.getItem('jp_dms_token');
+          const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+          const res = await fetch(`${baseUrl}/sections`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ name: secName.trim().toUpperCase() })
+          });
+          const json = await res.json();
+          if (json.success) {
+            alert(`✅ Section ${secName} added successfully!`);
+            loadSections();
+          } else {
+            alert(`Error: ${json.error || json.message}`);
+          }
+        } catch(e) {
+          alert('Failed to add section.');
+        }
+      });
+
+      const editSection = async (id, currentName) => {
+        const newName = prompt('Edit Section Name:', currentName);
+        if (!newName || !newName.trim() || newName.trim().toUpperCase() === currentName) return;
+
+        try {
+          const token = localStorage.getItem('jp_dms_token');
+          const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+          const res = await fetch(`${baseUrl}/sections/${id}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ name: newName.trim().toUpperCase() })
+          });
+          const json = await res.json();
+          if (json.success) {
+            alert(`✅ Section updated to ${newName.trim().toUpperCase()}!`);
+            loadSections();
+          } else {
+            alert(`Error: ${json.error || json.message}`);
+          }
+        } catch(e) {
+          alert('Failed to edit section.');
+        }
+      };
+
+      const deleteSection = async (id, name) => {
+        if (!confirm(`Are you sure you want to delete Section ${name}?`)) return;
+
+        try {
+          const token = localStorage.getItem('jp_dms_token');
+          const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+          const res = await fetch(`${baseUrl}/sections/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const json = await res.json();
+          if (json.success) {
+            alert(`✅ Section ${name} deleted successfully!`);
+            loadSections();
+          } else {
+            alert(`Error: ${json.error || json.message}`);
+          }
+        } catch(e) {
+          alert('Failed to delete section.');
+        }
+      };
+
+      loadSections();
     });
   </script>
 </body>

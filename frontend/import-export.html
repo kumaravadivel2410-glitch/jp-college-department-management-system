@@ -107,32 +107,68 @@
 
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem; margin-bottom: 1rem;">
             <div class="form-group" style="margin-bottom:0;">
-              <label class="form-label">Department</label>
+              <label class="form-label">Department *</label>
               <select id="impDept" class="form-control">
+                <option value="All">All Departments</option>
                 <option value="AI & DS" selected>AI & DS</option>
                 <option value="CSE">CSE</option>
+                <option value="IT">IT</option>
                 <option value="ECE">ECE</option>
                 <option value="EEE">EEE</option>
-                <option value="MECH">Mechanical</option>
-                <option value="CIVIL">Civil</option>
+                <option value="Mechanical">Mechanical</option>
+                <option value="Civil">Civil</option>
+                <option value="MBA">MBA</option>
+                <option value="English">English</option>
+                <option value="Mathematics">Mathematics</option>
+                <option value="Physics">Physics</option>
+                <option value="Chemistry">Chemistry</option>
               </select>
             </div>
 
             <div class="form-group" style="margin-bottom:0;">
-              <label class="form-label">Year</label>
+              <label class="form-label">Academic Year *</label>
               <select id="impYear" class="form-control">
-                <option value="III Year" selected>III Year</option>
+                <option value="All">All Years</option>
                 <option value="I Year">I Year</option>
                 <option value="II Year">II Year</option>
+                <option value="III Year" selected>III Year</option>
                 <option value="IV Year">IV Year</option>
               </select>
             </div>
 
             <div class="form-group" style="margin-bottom:0;">
-              <label class="form-label">Semester</label>
+              <label class="form-label">Semester *</label>
               <select id="impSem" class="form-control">
+                <option value="All">All Semesters</option>
+                <option value="Semester I">Semester I</option>
+                <option value="Semester II">Semester II</option>
+                <option value="Semester III">Semester III</option>
+                <option value="Semester IV">Semester IV</option>
                 <option value="Semester V" selected>Semester V</option>
                 <option value="Semester VI">Semester VI</option>
+                <option value="Semester VII">Semester VII</option>
+                <option value="Semester VIII">Semester VIII</option>
+              </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Section *</label>
+              <select id="impSection" class="form-control">
+                <option value="All">All Sections</option>
+                <option value="A" selected>Section A</option>
+                <option value="B">Section B</option>
+                <option value="C">Section C</option>
+                <option value="D">Section D</option>
+                <option value="E">Section E</option>
+              </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Regulation</label>
+              <select id="impRegulation" class="form-control">
+                <option value="R2021" selected>R2021</option>
+                <option value="R2025">R2025</option>
+                <option value="Other">Other</option>
               </select>
             </div>
           </div>
@@ -140,18 +176,52 @@
           <!-- Dropzone -->
           <div class="dropzone" id="entDropzone">
             <i class="fa-solid fa-file-arrow-up fa-3x" style="color: var(--primary); margin-bottom: 0.5rem;"></i>
-            <h4 style="font-size: 1rem; color: #1E3A8A; font-weight: 700;">Drag & Drop Spreadsheet (.xlsx, .csv) or PDF / Doc File Here</h4>
-            <p style="font-size: 0.8rem; color: var(--text-secondary);">Automatic file type detection and intelligent module validation</p>
-            <input type="file" id="entFileInput" accept=".xlsx,.xls,.csv,.pdf,.docx,.pptx,.zip" style="display: none;">
+            <h4 style="font-size: 1rem; color: #1E3A8A; font-weight: 700;">Drag & Drop File (.xlsx, .csv, .pdf, .doc, .docx) Here</h4>
+            <p style="font-size: 0.8rem; color: var(--text-secondary);">Automatic file type detection & intelligent multi-format data parser</p>
+            <input type="file" id="entFileInput" accept=".xlsx,.xls,.csv,.pdf,.doc,.docx" style="display: none;">
             <div id="entBadge" class="file-badge" style="display: none;"></div>
           </div>
 
-          <!-- Auto Generate Checkbox -->
-          <div class="form-group" style="margin-top:0.75rem; margin-bottom:0.5rem;">
-            <label style="font-size:0.85rem; font-weight:700; color:#1E3A8A; display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
-              <input type="checkbox" id="entAutoGenerateIds" style="width:16px; height:16px; accent-color:var(--primary);">
-              Allow Auto-Generating Missing IDs & Default Names (Off by Default)
-            </label>
+          <!-- Advanced Import Configuration Options Checkboxes Grid -->
+          <div style="margin-top: 1rem; background: #F8FAFC; border: 1px solid var(--border-subtle); padding: 0.85rem; border-radius: 8px;">
+            <h4 style="font-size:0.85rem; font-weight:800; color:#1E3A8A; margin-bottom:0.6rem; display:flex; align-items:center; gap:0.4rem;">
+              <i class="fa-solid fa-sliders" style="color:var(--primary);"></i> Advanced Import Options & Flags
+            </h4>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem; font-size: 0.78rem; font-weight: 600; color: #334155;">
+              <label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
+                <input type="checkbox" id="entAutoGenerateRegNo" checked> Auto Generate Register Numbers
+              </label>
+              <label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
+                <input type="checkbox" id="entAutoGenerateRollNo" checked> Auto Generate Roll Numbers
+              </label>
+              <label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
+                <input type="checkbox" id="entAutoGenerateIds" checked> Auto Generate Student IDs
+              </label>
+              <label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
+                <input type="checkbox" id="entCreateMissingDepts" checked> Create Missing Departments
+              </label>
+              <label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
+                <input type="checkbox" id="entCreateMissingSections" checked> Create Missing Sections
+              </label>
+              <label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
+                <input type="checkbox" id="entCreateMissingSubjects" checked> Create Missing Subjects
+              </label>
+              <label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
+                <input type="checkbox" id="entSkipDuplicates"> Skip Duplicate Records
+              </label>
+              <label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
+                <input type="checkbox" id="entUpdateExisting" checked> Update Existing Records
+              </label>
+              <label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
+                <input type="checkbox" id="entValidateData" checked> Validate Data Before Import
+              </label>
+              <label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
+                <input type="checkbox" id="entImportPhotos" checked> Import Photos (if available)
+              </label>
+              <label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
+                <input type="checkbox" id="entSaveHistory" checked> Save Import History
+              </label>
+            </div>
           </div>
 
           <!-- Upload Progress -->
@@ -335,6 +405,25 @@
       let currentImportId = null;
       let pendingDetectedModule = null;
 
+      // Dynamic Year -> Semester filtering
+      const yearSelect = document.getElementById('impYear');
+      const semSelect = document.getElementById('impSem');
+      const semMap = {
+        'I Year': ['Semester I', 'Semester II'],
+        'II Year': ['Semester III', 'Semester IV'],
+        'III Year': ['Semester V', 'Semester VI'],
+        'IV Year': ['Semester VII', 'Semester VIII'],
+        'All': ['Semester I', 'Semester II', 'Semester III', 'Semester IV', 'Semester V', 'Semester VI', 'Semester VII', 'Semester VIII']
+      };
+
+      if (yearSelect && semSelect) {
+        yearSelect.addEventListener('change', () => {
+          const selectedYr = yearSelect.value;
+          const sems = semMap[selectedYr] || semMap['All'];
+          semSelect.innerHTML = `<option value="All">All Semesters</option>` + sems.map(s => `<option value="${s}">${s}</option>`).join('');
+        });
+      }
+
       dropzone.addEventListener('click', () => fileInput.click());
       dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
       dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
@@ -470,7 +559,23 @@
         try {
           const formData = new FormData();
           formData.append('file', fileInput.files[0]);
-          if (autoGenIds) formData.append('autoGenerateIds', 'true');
+          formData.append('department', document.getElementById('impDept').value);
+          formData.append('year', document.getElementById('impYear').value);
+          formData.append('semester', document.getElementById('impSem').value);
+          formData.append('section', document.getElementById('impSection').value);
+          formData.append('regulation', document.getElementById('impRegulation').value);
+
+          if (document.getElementById('entAutoGenerateRegNo')?.checked) formData.append('autoGenerateRegisterNo', 'true');
+          if (document.getElementById('entAutoGenerateRollNo')?.checked) formData.append('autoGenerateRollNo', 'true');
+          if (document.getElementById('entAutoGenerateIds')?.checked) formData.append('allowAutoGenerateIds', 'true');
+          if (document.getElementById('entCreateMissingDepts')?.checked) formData.append('createMissingDepartments', 'true');
+          if (document.getElementById('entCreateMissingSections')?.checked) formData.append('createMissingSections', 'true');
+          if (document.getElementById('entCreateMissingSubjects')?.checked) formData.append('createMissingSubjects', 'true');
+          if (document.getElementById('entSkipDuplicates')?.checked) formData.append('skipDuplicates', 'true');
+          if (document.getElementById('entUpdateExisting')?.checked) formData.append('updateExisting', 'true');
+          if (document.getElementById('entValidateData')?.checked) formData.append('validateData', 'true');
+          if (document.getElementById('entImportPhotos')?.checked) formData.append('importPhotos', 'true');
+          if (document.getElementById('entSaveHistory')?.checked) formData.append('saveHistory', 'true');
 
           const token = localStorage.getItem('jp_dms_token');
           const baseUrl = window.APP_CONFIG.getApiBaseUrl();

@@ -75,6 +75,11 @@ class Application {
       const intRes = await api.request('internal-marks');
       this.data.internalMarks = Array.isArray(intRes) ? intRes : (intRes?.data || []);
 
+      try {
+        const secRes = await api.request('sections');
+        this.data.sections = Array.isArray(secRes) ? secRes : (secRes?.data || []);
+      } catch(e) { this.data.sections = [{ name: 'A' }, { name: 'B' }, { name: 'C' }, { name: 'D' }, { name: 'E' }]; }
+
       if (this.role === 'admin') {
         const histRes = await api.request('history');
         this.data.history = Array.isArray(histRes) ? histRes : (histRes?.data || []);
@@ -83,9 +88,67 @@ class Application {
           this.data.pendingUsers = Array.isArray(pendRes) ? pendRes : (pendRes?.data || []);
         } catch (e) { this.data.pendingUsers = []; }
       }
+
+      this.populateDynamicDropdowns();
     } catch (err) {
       console.warn('API Data load fallback:', err.message);
     }
+  }
+
+  populateDynamicDropdowns() {
+    const depts = this.data.departments || [];
+    const deptDropdowns = document.querySelectorAll('select.department-select, select#filterDept, select#studentDept, select#facultyDept, select#deptFilter');
+    deptDropdowns.forEach(select => {
+      const currentVal = select.value;
+      if (select.children.length <= 1 || select.querySelector('option[value="All"]')) {
+        const hasAll = select.querySelector('option[value="All"]') || select.querySelector('option[value=""]');
+        let html = hasAll ? `<option value="${hasAll.value}">${hasAll.textContent}</option>` : '';
+        const deptNames = ['AI & DS', 'CSE', 'IT', 'ECE', 'EEE', 'Mechanical', 'Civil', 'MBA', 'English', 'Mathematics', 'Physics', 'Chemistry'];
+        const allDepts = Array.from(new Set([...deptNames, ...depts.map(d => d.name || d.code)]));
+        html += allDepts.map(d => `<option value="${d}">${d}</option>`).join('');
+        select.innerHTML = html;
+        if (currentVal) select.value = currentVal;
+      }
+    });
+
+    const sections = this.data.sections || [{ name: 'A' }, { name: 'B' }, { name: 'C' }, { name: 'D' }, { name: 'E' }];
+    const secDropdowns = document.querySelectorAll('select.section-select, select#filterSection, select#studentSection, select#classSection, select#attendanceSection');
+    secDropdowns.forEach(select => {
+      const currentVal = select.value;
+      if (select.children.length <= 1 || select.querySelector('option[value="All"]')) {
+        const hasAll = select.querySelector('option[value="All"]') || select.querySelector('option[value=""]');
+        let html = hasAll ? `<option value="${hasAll.value}">${hasAll.textContent}</option>` : '';
+        html += sections.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+        select.innerHTML = html;
+        if (currentVal) select.value = currentVal;
+      }
+    });
+
+    const faculty = this.data.faculty || [];
+    const facDropdowns = document.querySelectorAll('select.faculty-select, select#filterFaculty, select#subjectFaculty, select#classFaculty, select#attendanceFaculty');
+    facDropdowns.forEach(select => {
+      const currentVal = select.value;
+      if (select.children.length <= 1 || select.querySelector('option[value="All"]')) {
+        const hasAll = select.querySelector('option[value="All"]') || select.querySelector('option[value=""]');
+        let html = hasAll ? `<option value="${hasAll.value}">${hasAll.textContent}</option>` : '';
+        html += faculty.map(f => `<option value="${f.facultyName}">${f.facultyName} (${f.department})</option>`).join('');
+        select.innerHTML = html;
+        if (currentVal) select.value = currentVal;
+      }
+    });
+
+    const subjects = this.data.subjects || [];
+    const subjDropdowns = document.querySelectorAll('select.subject-select, select#filterSubject, select#attendanceSubject, select#classSubject, select#markSubject');
+    subjDropdowns.forEach(select => {
+      const currentVal = select.value;
+      if (select.children.length <= 1 || select.querySelector('option[value="All"]')) {
+        const hasAll = select.querySelector('option[value="All"]') || select.querySelector('option[value=""]');
+        let html = hasAll ? `<option value="${hasAll.value}">${hasAll.textContent}</option>` : '';
+        html += subjects.map(s => `<option value="${s.subjectCode}">${s.subjectCode} - ${s.subjectName}</option>`).join('');
+        select.innerHTML = html;
+        if (currentVal) select.value = currentVal;
+      }
+    });
   }
 
   // Enforce role-based UI restrictions (Hide edit buttons, add forms for Students, etc.)

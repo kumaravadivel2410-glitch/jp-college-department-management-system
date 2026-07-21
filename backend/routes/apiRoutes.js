@@ -26,6 +26,7 @@ const mountCrud = (prefix, controller) => {
   router.get(`/${prefix}`, verifyToken, enforceFacultyAcademicScope, enforceStudentAcademicScope, controller.getAll);
   router.post(`/${prefix}`, verifyToken, enforceFacultyAcademicScope, enforceStudentAcademicScope, controller.create);
   router.post(`/${prefix}/bulk-delete`, verifyToken, enforceFacultyAcademicScope, enforceStudentAcademicScope, controller.bulkDelete);
+  router.post(`/${prefix}/bulk-update`, verifyToken, enforceFacultyAcademicScope, enforceStudentAcademicScope, controller.bulkUpdate);
   router.put(`/${prefix}/:id`, verifyToken, enforceFacultyAcademicScope, enforceStudentAcademicScope, controller.update);
   router.patch(`/${prefix}/:id`, verifyToken, enforceFacultyAcademicScope, enforceStudentAcademicScope, controller.update);
   router.delete(`/${prefix}/:id`, verifyToken, enforceFacultyAcademicScope, enforceStudentAcademicScope, controller.delete);
@@ -61,6 +62,7 @@ mountCrud('marks', controllers.internalMarks);
 mountCrud('users', controllers.users);
 mountCrud('history', controllers.history);
 mountCrud('settings', controllers.settings);
+mountCrud('sections', controllers.sections);
 
 // Assignments Routes
 router.get('/assignments', verifyToken, enforceStudentAcademicScope, controllers.assignments.getAll);
