@@ -259,7 +259,8 @@ class TableSelectionManager {
           if (typeof window.app.renderCurrentPage === 'function') window.app.renderCurrentPage();
         }
       } else {
-        alert(`Delete Failed: ${json.message}`);
+        const errorMsg = json?.message || json?.error || 'Deletion failed.';
+        alert(`Delete Failed: ${errorMsg}`);
       }
     } catch (err) {
       alert(`Network Error: ${err.message}`);

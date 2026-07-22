@@ -34,34 +34,34 @@ const SEED_DATA = {
     { facultyId: 'JPC-FAC-102', facultyName: 'Prof. Anitha Raj', department: 'CSE', subject: 'Data Structures', qualification: 'M.E. Computer Science', phone: '9876543211', email: 'anitha@jpcoe.ac.in', experience: '8 Years', designation: 'Associate Professor', approvalStatus: 'approved' }
   ],
   students: [
-    { registerNo: '953621104001', studentName: 'Aarav Kumar', rollNumber: '21AD01', department: 'AI & DS', year: 'III Year', semester: 'Semester V', section: 'A', phone: '9123456780', email: 'aarav.21ad@jpcoe.ac.in', address: 'Tenkasi, Tamil Nadu', parentName: 'R. Kumar', parentPhone: '9443322110', bloodGroup: 'O+', dateOfBirth: '2003-05-14', photo: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80', approvalStatus: 'approved' },
-    { registerNo: '953621104002', studentName: 'Bhavna Sharma', rollNumber: '21AD02', department: 'AI & DS', year: 'III Year', semester: 'Semester V', section: 'A', phone: '9123456781', email: 'bhavna.21ad@jpcoe.ac.in', address: 'Tirunelveli, Tamil Nadu', parentName: 'S. Sharma', parentPhone: '9443322111', bloodGroup: 'A+', dateOfBirth: '2003-08-22', photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80', approvalStatus: 'approved' }
+    { registerNo: '953621104001', studentName: 'Aarav Kumar', department: 'AI & DS', year: 'III Year', semester: 'Semester 5', section: 'A', phone: '9123456780', email: 'aarav.21ad@jpcoe.ac.in', address: 'Tenkasi, Tamil Nadu', parentName: 'R. Kumar', parentPhone: '9443322110', bloodGroup: 'O+', dateOfBirth: '2003-05-14', photo: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80', approvalStatus: 'approved' },
+    { registerNo: '953621104002', studentName: 'Bhavna Sharma', department: 'AI & DS', year: 'III Year', semester: 'Semester 5', section: 'A', phone: '9123456781', email: 'bhavna.21ad@jpcoe.ac.in', address: 'Tirunelveli, Tamil Nadu', parentName: 'S. Sharma', parentPhone: '9443322111', bloodGroup: 'A+', dateOfBirth: '2003-08-22', photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80', approvalStatus: 'approved' }
   ],
   subjects: [
-    { subjectCode: 'AD3501', subjectName: 'Deep Learning', credits: 4, facultyName: 'Dr. M. Senthil Kumar', department: 'AI & DS', semester: 'Semester V' },
-    { subjectCode: 'CS3401', subjectName: 'Algorithms & Data Structures', credits: 3, facultyName: 'Prof. Anitha Raj', department: 'CSE', semester: 'Semester V' }
+    { subjectCode: 'AD3501', subjectName: 'Deep Learning', credits: 4, facultyName: 'Dr. M. Senthil Kumar', department: 'AI & DS', semester: 'Semester 5' },
+    { subjectCode: 'CS3401', subjectName: 'Algorithms & Data Structures', credits: 3, facultyName: 'Prof. Anitha Raj', department: 'CSE', semester: 'Semester 5' }
   ],
   classes: [
-    { className: 'III AI&DS A', department: 'AI & DS', year: 'III Year', semester: 'Semester V', section: 'A', classAdvisor: 'Dr. M. Senthil Kumar' },
-    { className: 'III CSE B', department: 'CSE', year: 'III Year', semester: 'Semester V', section: 'B', classAdvisor: 'Prof. Anitha Raj' }
+    { className: 'III AI&DS A', department: 'AI & DS', year: 'III Year', semester: 'Semester 5', section: 'A', classAdvisor: 'Dr. M. Senthil Kumar' },
+    { className: 'III CSE B', department: 'CSE', year: 'III Year', semester: 'Semester 5', section: 'B', classAdvisor: 'Prof. Anitha Raj' }
   ],
   attendance: [
-    { studentRegisterNo: '953621104001', studentName: 'Aarav Kumar', department: 'AI & DS', year: 'III Year', semester: 'Semester V', section: 'A', date: new Date().toISOString().split('T')[0], session: 'Full Day', morningStatus: 'Present', afternoonStatus: 'Present', status: 'Present', percentage: 96, remarks: 'On Time' },
-    { studentRegisterNo: '953621104002', studentName: 'Bhavna Sharma', department: 'AI & DS', year: 'III Year', semester: 'Semester V', section: 'A', date: new Date().toISOString().split('T')[0], session: 'Full Day', morningStatus: 'Present', afternoonStatus: 'Present', status: 'Present', percentage: 98, remarks: 'On Time' }
+    { studentRegisterNo: '953621104001', studentName: 'Aarav Kumar', department: 'AI & DS', year: 'III Year', semester: 'Semester 5', section: 'A', date: new Date().toISOString().split('T')[0], session: 'Full Day', morningStatus: 'Present', afternoonStatus: 'Present', status: 'Present', percentage: 96, remarks: 'On Time' },
+    { studentRegisterNo: '953621104002', studentName: 'Bhavna Sharma', department: 'AI & DS', year: 'III Year', semester: 'Semester 5', section: 'A', date: new Date().toISOString().split('T')[0], session: 'Full Day', morningStatus: 'Present', afternoonStatus: 'Present', status: 'Present', percentage: 98, remarks: 'On Time' }
   ],
   semesterMarks: [
-    { studentRegisterNo: '953621104001', studentName: 'Aarav Kumar', department: 'AI & DS', year: 'III Year', semester: 'Semester V', section: 'A', subjectCode: 'AD3501', subjectName: 'Deep Learning', grade: 'O', marks: 95, credits: 4, gpa: 9.5, cgpa: 9.2, arrears: 0, result: 'PASS' },
-    { studentRegisterNo: '953621104002', studentName: 'Bhavna Sharma', department: 'AI & DS', year: 'III Year', semester: 'Semester V', section: 'A', subjectCode: 'AD3501', subjectName: 'Deep Learning', grade: 'A+', marks: 89, credits: 4, gpa: 8.9, cgpa: 8.8, arrears: 0, result: 'PASS' }
+    { studentRegisterNo: '953621104001', studentName: 'Aarav Kumar', department: 'AI & DS', year: 'III Year', semester: 'Semester 5', section: 'A', subjectCode: 'AD3501', subjectName: 'Deep Learning', grade: 'O', marks: 95, credits: 4, gpa: 9.5, cgpa: 9.2, arrears: 0, result: 'PASS' },
+    { studentRegisterNo: '953621104002', studentName: 'Bhavna Sharma', department: 'AI & DS', year: 'III Year', semester: 'Semester 5', section: 'A', subjectCode: 'AD3501', subjectName: 'Deep Learning', grade: 'A+', marks: 89, credits: 4, gpa: 8.9, cgpa: 8.8, arrears: 0, result: 'PASS' }
   ],
   internalMarks: [
-    { studentRegisterNo: '953621104001', studentName: 'Aarav Kumar', department: 'AI & DS', year: 'III Year', semester: 'Semester V', section: 'A', subjectCode: 'AD3501', subjectName: 'Deep Learning', facultyName: 'Dr. M. Senthil Kumar', internal1: 48, internal2: 46, internal3: 49, average: 47.6, modelExam: 92, assignmentMark: 10, totalInternal: 98, lastUpdated: '2026-07-20' },
-    { studentRegisterNo: '953621104002', studentName: 'Bhavna Sharma', department: 'AI & DS', year: 'III Year', semester: 'Semester V', section: 'A', subjectCode: 'AD3501', subjectName: 'Deep Learning', facultyName: 'Dr. M. Senthil Kumar', internal1: 45, internal2: 47, internal3: 46, average: 46.0, modelExam: 89, assignmentMark: 10, totalInternal: 94, lastUpdated: '2026-07-20' }
+    { studentRegisterNo: '953621104001', studentName: 'Aarav Kumar', department: 'AI & DS', year: 'III Year', semester: 'Semester 5', section: 'A', subjectCode: 'AD3501', subjectName: 'Deep Learning', facultyName: 'Dr. M. Senthil Kumar', internal1: 48, internal2: 46, internal3: 49, average: 47.6, modelExam: 92, assignmentMark: 10, totalInternal: 98, lastUpdated: '2026-07-20' },
+    { studentRegisterNo: '953621104002', studentName: 'Bhavna Sharma', department: 'AI & DS', year: 'III Year', semester: 'Semester 5', section: 'A', subjectCode: 'AD3501', subjectName: 'Deep Learning', facultyName: 'Dr. M. Senthil Kumar', internal1: 45, internal2: 47, internal3: 46, average: 46.0, modelExam: 89, assignmentMark: 10, totalInternal: 94, lastUpdated: '2026-07-20' }
   ],
   notes: [
     {
       title: 'Deep Learning Module 1 - Neural Networks Overview',
       department: 'AI & DS',
-      semester: 'Semester V',
+      semester: 'Semester 5',
       section: 'A',
       subjectCode: 'AD3501',
       subjectName: 'Deep Learning',
@@ -79,7 +79,7 @@ const SEED_DATA = {
       description: 'Implement a ResNet model for image classification using PyTorch/TensorFlow.',
       department: 'AI & DS',
       year: 'III Year',
-      semester: 'Semester V',
+      semester: 'Semester 5',
       section: 'A',
       subjectCode: 'AD3501',
       subjectName: 'Deep Learning',
@@ -96,7 +96,7 @@ const SEED_DATA = {
     {
       department: 'AI & DS',
       year: 'III Year',
-      semester: 'Semester V',
+      semester: 'Semester 5',
       section: 'A',
       day: 'Monday',
       schedule: [
@@ -163,8 +163,8 @@ const autoSeedDatabase = async () => {
     const initialUsers = [
       { email: 'senthil@jpcoe.ac.in', password: facultyPass, role: 'faculty', name: 'Dr. M. Senthil Kumar', status: 'Approved', isApproved: true, isActive: true, department: 'AI & DS', facultyId: 'JPC-FAC-101' },
       { email: 'anitha@jpcoe.ac.in', password: facultyPass, role: 'faculty', name: 'Prof. Anitha Raj', status: 'Approved', isApproved: true, isActive: true, department: 'CSE', facultyId: 'JPC-FAC-102' },
-      { email: 'aarav.21ad@jpcoe.ac.in', password: studentPass, role: 'student', name: 'Aarav Kumar', status: 'Approved', isApproved: true, isActive: true, department: 'AI & DS', registerNo: '953621104001', rollNumber: '21AD01', year: 'III Year', semester: 'Semester V', section: 'A' },
-      { email: 'bhavna.21ad@jpcoe.ac.in', password: studentPass, role: 'student', name: 'Bhavna Sharma', status: 'Approved', isApproved: true, isActive: true, department: 'AI & DS', registerNo: '953621104002', rollNumber: '21AD02', year: 'III Year', semester: 'Semester V', section: 'A' }
+      { email: 'aarav.21ad@jpcoe.ac.in', password: studentPass, role: 'student', name: 'Aarav Kumar', status: 'Approved', isApproved: true, isActive: true, department: 'AI & DS', registerNo: '953621104001', year: 'III Year', semester: 'Semester 5', section: 'A' },
+      { email: 'bhavna.21ad@jpcoe.ac.in', password: studentPass, role: 'student', name: 'Bhavna Sharma', status: 'Approved', isApproved: true, isActive: true, department: 'AI & DS', registerNo: '953621104002', year: 'III Year', semester: 'Semester 5', section: 'A' }
     ];
 
     for (const u of initialUsers) {
@@ -497,25 +497,34 @@ const createCrudControllers = (Model, modelName) => ({
     }
   }
 });
-
 // AUTH CONTROLLERS
 const auth = {
   login: async (req, res) => {
     try {
-      const { email, password } = req.body;
-      if (!email || !password) {
-        return res.status(400).json({ success: false, message: 'Please provide email and password' });
+      const { email, registerNo, username, password } = req.body;
+      const loginIdentifier = (registerNo || email || username || '').trim();
+
+      if (!loginIdentifier || !password) {
+        return res.status(400).json({ success: false, message: 'Please provide Register Number / Email and password' });
       }
 
-      const cleanEmail = email.toLowerCase().trim();
-      const user = await User.findOne({ email: cleanEmail });
+      const cleanIdentifier = loginIdentifier.toLowerCase();
+
+      // Find user by email or registerNo
+      const user = await User.findOne({
+        $or: [
+          { email: cleanIdentifier },
+          { registerNo: loginIdentifier }
+        ]
+      });
+
       if (!user) {
-        return res.status(401).json({ success: false, message: 'Invalid email or password' });
+        return res.status(401).json({ success: false, message: 'Invalid credentials or Register Number not found.' });
       }
 
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
-        return res.status(401).json({ success: false, message: 'Invalid email or password' });
+        return res.status(401).json({ success: false, message: 'Invalid credentials or incorrect password.' });
       }
 
       if (user.status === 'Pending' || (!user.isApproved && user.role !== 'super_admin')) {
@@ -546,7 +555,6 @@ const auth = {
         section: user.section,
         facultyId: user.facultyId,
         registerNo: user.registerNo,
-        rollNumber: user.rollNumber,
         photo: user.photo
       };
 
@@ -574,62 +582,22 @@ const auth = {
       let user = await User.findOne({ email: cleanEmail });
 
       if (!user) {
-        // First login: Auto-create user
         user = new User({
-          name,
           email: cleanEmail,
+          name: name || 'Google User',
           googleId,
           photo: photo || '',
           role: role || 'student',
           status: 'Approved',
           isApproved: true,
+          isActive: true,
+          department: 'General',
           loginTime: new Date()
         });
-
-        // Set some default registerNo or facultyId for Google logins
-        if (user.role === 'student') {
-          user.registerNo = 'G-' + Math.floor(1000000000 + Math.random() * 9000000000);
-          user.rollNumber = 'G-' + Math.floor(100000 + Math.random() * 900000);
-          user.year = 'III Year';
-          user.semester = 'Semester V';
-          user.section = 'A';
-          user.department = 'AI & DS';
-          
-          const Student = require('../models/Student');
-          await Student.create({
-            registerNo: user.registerNo,
-            studentName: user.name,
-            email: user.email,
-            department: user.department,
-            semester: user.semester,
-            section: user.section,
-            rollNumber: user.rollNumber,
-            phone: '9998887770',
-            approvalStatus: 'approved'
-          });
-        } else if (user.role === 'faculty') {
-          user.facultyId = 'GFAC-' + Math.floor(1000 + Math.random() * 9000);
-          user.designation = 'Assistant Professor';
-          user.department = 'AI & DS';
-          user.qualification = 'M.E. / Ph.D.';
-          
-          const Faculty = require('../models/Faculty');
-          await Faculty.create({
-            facultyId: user.facultyId,
-            facultyName: user.name,
-            email: user.email,
-            department: user.department,
-            designation: user.designation,
-            qualification: user.qualification,
-            phone: '9998887770',
-            approvalStatus: 'approved'
-          });
-        }
         await user.save();
       } else {
-        user.googleId = googleId;
         user.loginTime = new Date();
-        if (photo && !user.photo) user.photo = photo;
+        if (photo) user.photo = photo;
         await user.save();
       }
 
@@ -645,7 +613,6 @@ const auth = {
         section: user.section,
         facultyId: user.facultyId,
         registerNo: user.registerNo,
-        rollNumber: user.rollNumber,
         photo: user.photo
       };
 
@@ -666,7 +633,7 @@ const auth = {
     try {
       const {
         name, email, password, role, department, mobileNumber, address, photo,
-        employeeId, reasonForAdmin, registerNo, rollNumber, year, semester, section,
+        employeeId, reasonForAdmin, registerNo, year, semester, section,
         facultyId, designation, subjectsAssigned, qualification
       } = req.body;
 
@@ -681,22 +648,62 @@ const auth = {
         return res.status(400).json({ success: false, message: 'Email address is already registered.' });
       }
 
-      if (role === 'student' && registerNo) {
-        const existingRegNo = await User.findOne({ registerNo: registerNo.trim() });
-        if (existingRegNo) {
-          return res.status(400).json({ success: false, message: 'Register Number already exists.' });
+      // Requirement 6: Faculty Registration Pre-check against Faculty database
+      if (role === 'faculty') {
+        const queryFacultyId = (facultyId || '').trim();
+        if (!queryFacultyId && !cleanEmail) {
+          return res.status(400).json({ success: false, message: 'Please provide Faculty ID or Email.' });
+        }
+
+        const matchingFaculty = await Faculty.findOne({
+          $or: [
+            { facultyId: queryFacultyId },
+            { email: cleanEmail }
+          ]
+        });
+
+        if (!matchingFaculty) {
+          return res.status(400).json({ success: false, message: 'Faculty record not found. Please contact the administrator.' });
+        }
+
+        const existingFacUser = await User.findOne({
+          $or: [
+            { email: cleanEmail },
+            { facultyId: matchingFaculty.facultyId }
+          ]
+        });
+
+        if (existingFacUser) {
+          return res.status(400).json({ success: false, message: 'Faculty account already exists for this Faculty ID or Email.' });
         }
       }
 
-      if (role === 'faculty' && facultyId) {
-        const existingFacId = await User.findOne({ facultyId: facultyId.trim() });
-        if (existingFacId) {
-          return res.status(400).json({ success: false, message: 'Faculty ID already exists.' });
+      // Requirement 8: Student Register Number Duplication Prevention
+      if (role === 'student') {
+        const cleanRegNo = (registerNo || '').trim();
+        if (!cleanRegNo) {
+          return res.status(400).json({ success: false, message: 'Register Number is required for student registration.' });
+        }
+
+        const existingRegNo = await User.findOne({ registerNo: cleanRegNo });
+        if (existingRegNo) {
+          return res.status(400).json({ success: false, message: 'Register Number is already registered.' });
         }
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
       const targetRole = role === 'admin' ? 'admin' : (role === 'faculty' ? 'faculty' : 'student');
+
+      // Semester Normalization (Semester 1..8)
+      const normalizeSem = (s) => {
+        if (!s) return 'Semester 5';
+        const numMatch = s.match(/\d+/);
+        if (numMatch) return `Semester ${numMatch[0]}`;
+        const romanMap = { 'i': 1, 'ii': 2, 'iii': 3, 'iv': 4, 'v': 5, 'vi': 6, 'vii': 7, 'viii': 8 };
+        const clean = s.replace(/semester/i, '').trim().toLowerCase();
+        if (romanMap[clean]) return `Semester ${romanMap[clean]}`;
+        return s;
+      };
 
       const user = new User({
         name,
@@ -711,12 +718,11 @@ const auth = {
         photo: photo || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
         employeeId: employeeId || '',
         reasonForAdmin: reasonForAdmin || '',
-        registerNo: registerNo || '',
-        rollNumber: rollNumber || '',
+        registerNo: registerNo ? registerNo.trim() : '',
         year: year || 'III Year',
-        semester: semester || 'Semester V',
+        semester: normalizeSem(semester),
         section: section || 'A',
-        facultyId: facultyId || '',
+        facultyId: facultyId ? facultyId.trim() : '',
         designation: designation || '',
         subjectsAssigned: subjectsAssigned || '',
         qualification: qualification || ''

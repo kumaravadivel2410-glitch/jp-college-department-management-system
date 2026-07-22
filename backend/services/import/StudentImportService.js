@@ -40,7 +40,9 @@ class StudentImportService {
     const phone = String(record.phone || record.phoneNumber || record.mobile || record.contact || '').trim();
     const department = String(record.department || record.dept || record.branch || options.department || 'AI & DS').trim();
     const year = String(record.year || options.year || 'III Year').trim();
-    const semester = String(record.semester || options.semester || 'Semester V').trim();
+    const rawSem = String(record.semester || options.semester || 'Semester 5').trim();
+    const semNumMatch = rawSem.match(/\d+/);
+    const semester = semNumMatch ? `Semester ${semNumMatch[0]}` : (rawSem.replace(/semester/i, '').trim() ? `Semester ${rawSem.replace(/semester/i, '').trim()}` : 'Semester 5');
     const section = String(record.section || options.section || 'A').trim();
     const regulation = String(record.regulation || options.regulation || 'R2021').trim();
     const gender = String(record.gender || 'Male').trim();

@@ -293,14 +293,14 @@
             headers: { 'Authorization': `Bearer ${token}` }
           });
           const json = await res.json();
-          if (json?.success) {
-            alert('Faculty record deleted.');
+          if (res.ok && json?.success !== false) {
+            alert(json.message || 'Faculty record deleted.');
             fetchFaculty();
           } else {
-            alert(`Delete Failed: ${json.message}`);
+            alert(`Delete Failed: ${json?.message || json?.error || 'Deletion failed.'}`);
           }
         } catch (e) {
-          alert('Delete failed.');
+          alert(`Delete Failed: ${e.message}`);
         }
       };
 

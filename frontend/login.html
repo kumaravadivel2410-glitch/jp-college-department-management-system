@@ -29,10 +29,10 @@
       <input type="hidden" id="selectedRoleInput" value="admin">
 
       <div class="form-group">
-        <label class="form-label">Email Address *</label>
+        <label class="form-label" id="loginFieldLabel">Register Number / Email *</label>
         <div style="position: relative;">
-          <input type="email" id="loginEmail" class="form-control" style="padding-left: 2.3rem;" placeholder="name@jpcoe.ac.in" required>
-          <i class="fa-solid fa-envelope" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--primary);"></i>
+          <input type="text" id="loginEmail" class="form-control" style="padding-left: 2.3rem;" placeholder="Register Number (Student) or Email" required>
+          <i class="fa-solid fa-user-graduate" id="loginFieldIcon" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--primary);"></i>
         </div>
       </div>
 
@@ -159,7 +159,7 @@
     const defaultCredentials = {
       admin: { email: 'Adminjpcoe@gmail.com', pass: 'Adminhod123' },
       faculty: { email: 'senthil@jpcoe.ac.in', pass: 'faculty123' },
-      student: { email: 'aarav.21ad@jpcoe.ac.in', pass: 'student123' }
+      student: { email: '953621104001', pass: 'student123' }
     };
 
     roleBtns.forEach(btn => {

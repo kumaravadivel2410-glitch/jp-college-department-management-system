@@ -56,6 +56,9 @@ connectDB().then(() => {
 app.use('/api', apiRoutes);
 
 // Static frontend serving (Root & Frontend directories)
+const frontendPath = fs.existsSync(path.join(__dirname, '../frontend/login.html')) 
+  ? path.join(__dirname, '../frontend') 
+  : path.join(__dirname, '..');
 app.use(express.static(path.join(__dirname, '..')));
 app.use(express.static(path.join(__dirname, '../frontend')));
 

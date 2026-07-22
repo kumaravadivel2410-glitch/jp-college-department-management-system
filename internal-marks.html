@@ -105,8 +105,14 @@
           <label class="form-label">Semester</label>
           <select id="intFilterSem" class="form-control">
             <option value="All">All Semesters</option>
-            <option value="Semester V" selected>Semester V</option>
-            <option value="Semester VI">Semester VI</option>
+            <option value="Semester 1">Semester 1</option>
+            <option value="Semester 2">Semester 2</option>
+            <option value="Semester 3">Semester 3</option>
+            <option value="Semester 4">Semester 4</option>
+            <option value="Semester 5" selected>Semester 5</option>
+            <option value="Semester 6">Semester 6</option>
+            <option value="Semester 7">Semester 7</option>
+            <option value="Semester 8">Semester 8</option>
           </select>
         </div>
 
@@ -695,14 +701,14 @@
             headers: { 'Authorization': `Bearer ${token}` }
           });
           const json = await res.json();
-          if (json?.success) {
-            alert('Record deleted.');
+          if (res.ok && json?.success !== false) {
+            alert(json.message || 'Record deleted.');
             await fetchInternalMarks();
           } else {
-            alert(`Delete Failed: ${json.message}`);
+            alert(`Delete Failed: ${json?.message || json?.error || 'Deletion failed.'}`);
           }
         } catch (e) {
-          alert('Delete failed.');
+          alert(`Delete Failed: ${e.message}`);
         }
       };
 

@@ -231,13 +231,23 @@
 
       window.deleteNote = async (id) => {
         if (!confirm('Delete this subject note?')) return;
-        const baseUrl = window.APP_CONFIG.getApiBaseUrl();
-        const token = localStorage.getItem('jp_dms_token');
-        await fetch(`${baseUrl}/notes/${id}`, {
-          method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        fetchNotes();
+        try {
+          const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+          const token = localStorage.getItem('jp_dms_token');
+          const res = await fetch(`${baseUrl}/notes/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const json = await res.json();
+          if (res.ok && json.success !== false) {
+            alert(json.message || 'Note deleted successfully.');
+            fetchNotes();
+          } else {
+            alert(`Delete Failed: ${json?.message || json?.error || 'Deletion failed.'}`);
+          }
+        } catch (e) {
+          alert(`Delete Error: ${e.message}`);
+        }
       };
 
       fetchNotes();

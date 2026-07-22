@@ -474,9 +474,16 @@
         try {
           const baseUrl = window.APP_CONFIG.getApiBaseUrl();
           const dept = user.department || 'AI & DS';
-          const res = await fetch(`${baseUrl}/stats`);
+          const res = await fetch(`${baseUrl}/students?department=${encodeURIComponent(dept)}`);
           const json = await res.json();
-          // Fallback population
+          const list = json.data || [];
+          document.getElementById('facStudentsTbody').innerHTML = list.slice(0, 10).map(s => `
+            <tr>
+              <td><strong>${s.registerNo}</strong></td>
+              <td>${s.studentName}</td>
+              <td>${s.semester || 'Semester V'} - ${s.section || 'A'}</td>
+            </tr>
+          `).join('');
         } catch(e){}
 
       } else {

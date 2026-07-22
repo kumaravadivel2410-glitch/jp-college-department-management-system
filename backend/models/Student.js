@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const StudentSchema = new mongoose.Schema(
   {
     registerNo: { type: String, required: true, unique: true, trim: true, index: true },
-    rollNumber: { type: String, default: '', index: true },
     studentName: { type: String, required: true, trim: true },
     email: { type: String, default: '', lowercase: true, trim: true, index: true },
     phone: { type: String, default: '' },
@@ -11,7 +10,7 @@ const StudentSchema = new mongoose.Schema(
     dateOfBirth: { type: String, default: '' },
     department: { type: String, default: 'AI & DS', index: true },
     year: { type: String, default: 'III Year', index: true },
-    semester: { type: String, default: 'Semester V', index: true },
+    semester: { type: String, default: 'Semester 5', index: true },
     section: { type: String, default: 'A', index: true },
     batch: { type: String, default: '2021 - 2025' },
     parentName: { type: String, default: '' },

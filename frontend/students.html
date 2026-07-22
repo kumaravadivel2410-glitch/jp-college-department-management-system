@@ -84,7 +84,6 @@
         <thead>
           <tr>
             <th>Register No</th>
-            <th>Roll No</th>
             <th>Student Name</th>
             <th>Department</th>
             <th>Year & Sem</th>
@@ -164,14 +163,10 @@
       <form id="studentForm">
         <input type="hidden" id="editStudentDbId">
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
           <div class="form-group">
             <label class="form-label">Register Number *</label>
             <input type="text" id="mRegisterNo" class="form-control" placeholder="953621104001" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Roll Number</label>
-            <input type="text" id="mRollNo" class="form-control" placeholder="21AD01">
           </div>
           <div class="form-group">
             <label class="form-label">Full Name *</label>
@@ -319,7 +314,6 @@
           tbody.innerHTML = studentsList.map(s => `
             <tr>
               <td style="font-weight:700; color:var(--primary);">${s.registerNo}</td>
-              <td>${s.rollNumber || '-'}</td>
               <td style="font-weight:700; color:#1E3A8A;">${s.studentName}</td>
               <td>${s.department}</td>
               <td>${s.year} (${s.semester})</td>
@@ -336,7 +330,7 @@
           `).join('');
 
         } catch (err) {
-          tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:var(--error);">Failed to load students.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--error);">Failed to load students.</td></tr>';
         }
       };
 
@@ -369,7 +363,6 @@
         const id = document.getElementById('editStudentDbId').value;
         const payload = {
           registerNo: document.getElementById('mRegisterNo').value,
-          rollNumber: document.getElementById('mRollNo').value,
           studentName: document.getElementById('mStudentName').value,
           email: document.getElementById('mEmail').value,
           phone: document.getElementById('mPhone').value,
@@ -395,9 +388,13 @@
         });
 
         const data = await res.json();
-        alert(data.message || 'Student record saved!');
-        modal.classList.remove('active');
-        fetchStudents();
+        if (res.ok && data.success !== false) {
+          alert(data.message || 'Student record saved successfully!');
+          modal.classList.remove('active');
+          fetchStudents();
+        } else {
+          alert(`Save Failed: ${data.message || 'Validation error'}`);
+        }
       });
 
       window.editStudent = (id) => {
@@ -406,7 +403,6 @@
 
         document.getElementById('editStudentDbId').value = s._id;
         document.getElementById('mRegisterNo').value = s.registerNo;
-        document.getElementById('mRollNo').value = s.rollNumber || '';
         document.getElementById('mStudentName').value = s.studentName;
         document.getElementById('mEmail').value = s.email;
         document.getElementById('mPhone').value = s.phone || '';
@@ -425,13 +421,23 @@
 
       window.deleteStudent = async (id) => {
         if (!confirm('Are you sure you want to delete this student record?')) return;
-        const baseUrl = window.APP_CONFIG.getApiBaseUrl();
-        const token = localStorage.getItem('jp_dms_token');
-        await fetch(`${baseUrl}/students/${id}`, {
-          method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        fetchStudents();
+        try {
+          const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+          const token = localStorage.getItem('jp_dms_token');
+          const res = await fetch(`${baseUrl}/students/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const json = await res.json();
+          if (res.ok && json.success !== false) {
+            alert(json.message || 'Student deleted successfully.');
+            fetchStudents();
+          } else {
+            alert(`Delete Failed: ${json?.message || json?.error || 'Unknown error'}`);
+          }
+        } catch (e) {
+          alert(`Delete error: ${e.message}`);
+        }
       };
 
       document.getElementById('exportStudentsBtn').addEventListener('click', () => {

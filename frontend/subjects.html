@@ -331,13 +331,23 @@
 
       window.deleteSubject = async (id) => {
         if (!confirm('Delete this course subject?')) return;
-        const baseUrl = window.APP_CONFIG.getApiBaseUrl();
-        const token = localStorage.getItem('jp_dms_token');
-        await fetch(`${baseUrl}/subjects/${id}`, {
-          method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        fetchSubjects();
+        try {
+          const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+          const token = localStorage.getItem('jp_dms_token');
+          const res = await fetch(`${baseUrl}/subjects/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const json = await res.json();
+          if (res.ok && json.success !== false) {
+            alert(json.message || 'Subject deleted successfully.');
+            fetchSubjects();
+          } else {
+            alert(`Delete Failed: ${json?.message || json?.error || 'Deletion failed.'}`);
+          }
+        } catch (e) {
+          alert(`Delete Error: ${e.message}`);
+        }
       };
 
       document.getElementById('exportSubjectsBtn').addEventListener('click', () => {

@@ -1,8 +1,13 @@
-/**
- * JP College ERP - Core Application Engine & Data Controller
- * Supports Super Admin, Faculty, and Student Workflows, Role-Based Access Control,
- * Attendance Marking (Morning/Afternoon), Import/Export, and Reports.
- */
+window.normalizeSemester = (sem) => {
+  if (!sem) return 'Semester 5';
+  const str = String(sem);
+  const numMatch = str.match(/\d+/);
+  if (numMatch) return `Semester ${numMatch[0]}`;
+  const romanMap = { 'i': 1, 'ii': 2, 'iii': 3, 'iv': 4, 'v': 5, 'vi': 6, 'vii': 7, 'viii': 8 };
+  const clean = str.replace(/semester/i, '').trim().toLowerCase();
+  if (romanMap[clean]) return `Semester ${romanMap[clean]}`;
+  return str;
+};
 
 class Application {
   constructor() {
@@ -256,9 +261,8 @@ class Application {
       <tr>
         <td><strong>${s.registerNo}</strong></td>
         <td>${s.studentName}</td>
-        <td>${s.rollNumber || 'N/A'}</td>
         <td><span class="badge badge-primary">${s.department}</span></td>
-        <td>${s.semester || 'Semester V'}</td>
+        <td>${window.normalizeSemester(s.semester)}</td>
         <td>${s.email || 'N/A'}</td>
         <td>
           <span class="badge ${s.approvalStatus === 'approved' ? 'badge-success' : 'badge-warning'}">
@@ -313,7 +317,7 @@ class Application {
         <td><strong>${s.subjectCode}</strong></td>
         <td>${s.subjectName}</td>
         <td><span class="badge badge-primary">${s.department}</span></td>
-        <td>${s.semester || 'Semester V'}</td>
+        <td>${window.normalizeSemester(s.semester)}</td>
         <td>${s.credits || 3} Credits</td>
         <td>${s.facultyName || 'Faculty'}</td>
       </tr>
@@ -329,7 +333,7 @@ class Application {
       <div class="card-glass">
         <h3 style="font-size:1.1rem; font-weight:700; color:#1E293B; margin-bottom:0.5rem;">${c.className}</h3>
         <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.4rem;">Department: <strong>${c.department}</strong></p>
-        <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.4rem;">Semester: ${c.semester || 'Semester V'} | Section ${c.section || 'A'}</p>
+        <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.4rem;">Semester: ${window.normalizeSemester(c.semester)} | Section ${c.section || 'A'}</p>
         <p style="font-size:0.85rem; color:var(--primary); font-weight:600;">Advisor: ${c.classAdvisor || 'Faculty Advisor'}</p>
       </div>
     `).join('');

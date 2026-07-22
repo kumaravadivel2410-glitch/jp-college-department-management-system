@@ -53,14 +53,14 @@
           <label class="form-label">Semester</label>
           <select id="semFilterSem" class="form-control">
             <option value="All">All Semesters</option>
-            <option value="Semester I">Semester I</option>
-            <option value="Semester II">Semester II</option>
-            <option value="Semester III">Semester III</option>
-            <option value="Semester IV">Semester IV</option>
-            <option value="Semester V" selected>Semester V</option>
-            <option value="Semester VI">Semester VI</option>
-            <option value="Semester VII">Semester VII</option>
-            <option value="Semester VIII">Semester VIII</option>
+            <option value="Semester 1">Semester 1</option>
+            <option value="Semester 2">Semester 2</option>
+            <option value="Semester 3">Semester 3</option>
+            <option value="Semester 4">Semester 4</option>
+            <option value="Semester 5" selected>Semester 5</option>
+            <option value="Semester 6">Semester 6</option>
+            <option value="Semester 7">Semester 7</option>
+            <option value="Semester 8">Semester 8</option>
           </select>
         </div>
 
@@ -290,13 +290,23 @@
 
       window.deleteSemesterMark = async (id) => {
         if (!confirm('Delete this semester mark record?')) return;
-        const baseUrl = window.APP_CONFIG.getApiBaseUrl();
-        const token = localStorage.getItem('jp_dms_token');
-        await fetch(`${baseUrl}/semester-marks/${id}`, {
-          method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        fetchSemesterMarks();
+        try {
+          const baseUrl = window.APP_CONFIG.getApiBaseUrl();
+          const token = localStorage.getItem('jp_dms_token');
+          const res = await fetch(`${baseUrl}/semester-marks/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const json = await res.json();
+          if (res.ok && json.success !== false) {
+            alert(json.message || 'Semester mark record deleted.');
+            fetchSemesterMarks();
+          } else {
+            alert(`Delete Failed: ${json?.message || json?.error || 'Deletion failed.'}`);
+          }
+        } catch (e) {
+          alert(`Delete Error: ${e.message}`);
+        }
       };
 
       document.getElementById('exportSemMarksBtn').addEventListener('click', () => {

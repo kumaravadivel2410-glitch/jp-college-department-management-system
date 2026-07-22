@@ -27,7 +27,6 @@ const UserSchema = new mongoose.Schema(
 
     // Student specific fields
     registerNo: { type: String, default: '' },
-    rollNumber: { type: String, default: '' },
     year: { type: String, default: '' },
     semester: { type: String, default: '' },
     section: { type: String, default: '' },
