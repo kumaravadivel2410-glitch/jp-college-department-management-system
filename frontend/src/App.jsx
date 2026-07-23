@@ -20,19 +20,7 @@ const PerformanceAnalytics = lazy(() => import('./pages/ai/PerformanceAnalytics'
 const ModelManagement = lazy(() => import('./pages/ai/ModelManagement'));
 const AIReports = lazy(() => import('./pages/ai/AIReports'));
 
-const Layout = ({ children }) => {
-  return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900">
-      <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0">
-        <Navbar />
-        <main className="flex-1 overflow-y-auto">
-          {children}
-        </main>
-      </div>
-    </div>
-  );
-};
+import MainLayout from './layouts/MainLayout';
 
 const LoadingSpinner = () => (
   <div className="p-12 text-center text-slate-500 font-semibold text-xs flex items-center justify-center min-h-[400px]">
@@ -53,15 +41,15 @@ const App = () => {
 
               {/* Protected ERP & AI Routes */}
               <Route element={<ProtectedRoute />}>
-                <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
+                <Route path="/dashboard" element={<MainLayout><Dashboard /></MainLayout>} />
                 
                 {/* Machine Learning Module Routes */}
-                <Route path="/ai-dashboard" element={<Layout><AIDashboard /></Layout>} />
-                <Route path="/ai-predictions" element={<Layout><StudentPrediction /></Layout>} />
-                <Route path="/ai-attendance-predictions" element={<Layout><AttendancePrediction /></Layout>} />
-                <Route path="/ai-analytics" element={<Layout><PerformanceAnalytics /></Layout>} />
-                <Route path="/ai-models" element={<Layout><ModelManagement /></Layout>} />
-                <Route path="/ai-reports" element={<Layout><AIReports /></Layout>} />
+                <Route path="/ai-dashboard" element={<MainLayout><AIDashboard /></MainLayout>} />
+                <Route path="/ai-predictions" element={<MainLayout><StudentPrediction /></MainLayout>} />
+                <Route path="/ai-attendance-predictions" element={<MainLayout><AttendancePrediction /></MainLayout>} />
+                <Route path="/ai-analytics" element={<MainLayout><PerformanceAnalytics /></MainLayout>} />
+                <Route path="/ai-models" element={<MainLayout><ModelManagement /></MainLayout>} />
+                <Route path="/ai-reports" element={<MainLayout><AIReports /></MainLayout>} />
 
                 {/* Default Route Redirects */}
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />

@@ -55,12 +55,14 @@ connectDB().then(() => {
 // API Routes
 app.use('/api', apiRoutes);
 
-// Static frontend serving (Root & Frontend directories)
-const frontendPath = fs.existsSync(path.join(__dirname, '../frontend/login.html')) 
-  ? path.join(__dirname, '../frontend') 
-  : path.join(__dirname, '..');
-app.use(express.static(path.join(__dirname, '..')));
-app.use(express.static(path.join(__dirname, '../frontend')));
+// Static frontend serving (Strictly inside frontend directory)
+const frontendPath = fs.existsSync(path.join(__dirname, '../frontend/dist/index.html'))
+  ? path.join(__dirname, '../frontend/dist')
+  : path.join(__dirname, '../frontend');
+
+app.use(express.static(frontendPath));
+app.use(express.static(path.join(__dirname, '../frontend/public')));
+app.use(express.static(path.join(__dirname, '../frontend/src')));
 
 // Clean URL Route Mappings for Multi-Page Navigation
 const pageRoutes = [
