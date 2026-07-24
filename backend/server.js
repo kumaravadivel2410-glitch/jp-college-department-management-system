@@ -1,115 +1,75 @@
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const compression = require('compression');
-const path = require('path');
-const fs = require('fs');
-require('dotenv').config();
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import connectDB from './config/db.js';
+import apiRoutes from './routes/index.js';
+import { seedDatabase } from './utils/seedData.js';
+import { errorHandler } from './middleware/errorHandler.js';
 
-const connectDB = require('./config/db');
-const apiRoutes = require('./routes/apiRoutes');
+dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// Ensure Uploads Folder Exists
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-// Enable CORS for Netlify Production & Localhost Development
 const allowedOrigins = [
-  'http://localhost:5000',
+  'http://localhost:3000',
   'http://localhost:5173',
-  'http://127.0.0.1:5000',
-  'http://127.0.0.1:5173'
-];
+  'http://localhost:4173',
+  'http://127.0.0.1:5173',
+  process.env.CLIENT_URL
+].filter(Boolean);
 
-app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin) || origin.endsWith('.github.io') || origin.endsWith('.netlify.app') || origin.includes('localhost') || origin.includes('127.0.0.1')) {
+    if (
+      allowedOrigins.includes(origin) ||
+      origin.endsWith('.vercel.app') ||
+      origin.endsWith('.github.io') ||
+      process.env.NODE_ENV !== 'production'
+    ) {
       return callback(null, true);
     }
     return callback(null, true);
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-user-role']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-user-role', 'x-user-name']
 }));
 
-app.use(compression());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Static directory for uploaded files
-app.use('/uploads', express.static(uploadsDir));
-
-// Connect DB & Auto-Seed MongoDB Atlas if empty
-connectDB().then(() => {
-  const { autoSeedDatabase } = require('./controllers/apiControllers');
-  autoSeedDatabase();
+// Health Check
+app.get('/api/health', (req, res) => {
+  res.json({ success: true, status: 'Healthy', college: 'J.P. COLLEGE OF ENGINEERING ERP' });
 });
 
 // API Routes
 app.use('/api', apiRoutes);
 
-// Static frontend serving (Strictly inside frontend directory)
-const frontendPath = fs.existsSync(path.join(__dirname, '../frontend/dist/index.html'))
-  ? path.join(__dirname, '../frontend/dist')
-  : path.join(__dirname, '../frontend');
+// Error Handler
+app.use(errorHandler);
 
-app.use(express.static(frontendPath));
-app.use(express.static(path.join(__dirname, '../frontend/public')));
-app.use(express.static(path.join(__dirname, '../frontend/src')));
+const PORT = process.env.PORT || 5000;
 
-// Clean URL Route Mappings for Multi-Page Navigation
-const pageRoutes = [
-  { path: '/', file: 'login.html' },
-  { path: '/login', file: 'login.html' },
-  { path: '/register', file: 'register.html' },
-  { path: '/approvals', file: 'approvals.html' },
-  { path: '/dashboard', file: 'dashboard.html' },
-  { path: '/students', file: 'students.html' },
-  { path: '/faculty', file: 'faculty.html' },
-  { path: '/departments', file: 'departments.html' },
-  { path: '/subjects', file: 'subjects.html' },
-  { path: '/classes', file: 'classes.html' },
-  { path: '/attendance', file: 'attendance.html' },
-  { path: '/semester-marks', file: 'semester-marks.html' },
-  { path: '/internal-marks', file: 'internal-marks.html' },
-  { path: '/subject-notes', file: 'subject-notes.html' },
-  { path: '/assignments', file: 'assignments.html' },
-  { path: '/timetable', file: 'timetable.html' },
-  { path: '/reports', file: 'reports.html' },
-  { path: '/downloads', file: 'downloads.html' },
-  { path: '/history', file: 'history.html' },
-  { path: '/settings', file: 'settings.html' },
-  { path: '/about', file: 'about.html' }
-];
-
-pageRoutes.forEach(r => {
-  app.get(r.path, (req, res) => {
-    res.sendFile(path.join(frontendPath, r.file));
+// Connect DB & Launch Local Express Server
+connectDB().then((isConnected) => {
+  if (isConnected) {
+    seedDatabase();
+  }
+  app.listen(PORT, () => {
+    console.log(`🚀 JP College ERP Backend Server running on http://localhost:${PORT}`);
+  });
+}).catch(err => {
+  console.error('Failed to start server:', err);
+  app.listen(PORT, () => {
+    console.log(`🚀 JP College ERP Server running (Offline DB mode) on port ${PORT}`);
   });
 });
 
-// Fallback Route
-app.get('*', (req, res) => {
-  if (req.path.startsWith('/api')) {
-    return res.status(404).json({ success: false, message: 'API Endpoint Not Found' });
-  }
-  res.sendFile(path.join(frontendPath, 'login.html'));
-});
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error('Unhandled Error:', err);
-  res.status(500).json({ success: false, error: err.message || 'Internal Server Error' });
-});
-
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 JP College ERP Server running on port ${PORT}`);
-});
+export default app;

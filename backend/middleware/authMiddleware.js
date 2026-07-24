@@ -1,118 +1,51 @@
-const jwt = require('jsonwebtoken');
+import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'jp_college_dms_jwt_secret_key_2026';
+export const protect = async (req, res, next) => {
+  let token;
 
-// Verify JWT Token Middleware
-const verifyToken = (req, res, next) => {
-  let token = req.headers['authorization'] || req.headers['x-access-token'];
-
-  if (token && token.startsWith('Bearer ')) {
-    token = token.slice(7, token.length).trim();
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    try {
+      token = req.headers.authorization.split(' ')[1];
+      const secret = process.env.JWT_SECRET || 'jp_college_secret_jwt_key_2026';
+      const decoded = jwt.verify(token, secret);
+      
+      const user = await User.findById(decoded.id).select('-password');
+      if (user) {
+        req.user = user;
+      } else {
+        req.user = { id: decoded.id, role: decoded.role || 'Admin', name: 'User' };
+      }
+      return next();
+    } catch (error) {
+      console.error('Token verification error:', error.message);
+      return res.status(401).json({ success: false, message: 'Not authorized, token failed' });
+    }
   }
 
-  if (!token) {
+  // Fallback for development/preview if token header is simulated
+  if (req.headers['x-user-role']) {
     req.user = {
-      role: req.headers['x-user-role'] || 'super_admin',
-      email: process.env.SUPER_ADMIN_EMAIL || 'Adminjpcoe@gmail.com',
-      department: 'All'
+      role: req.headers['x-user-role'],
+      name: req.headers['x-user-name'] || 'ERP User',
+      email: 'user@jpcollege.edu'
     };
     return next();
   }
 
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded;
-    next();
-  } catch (err) {
-    return res.status(401).json({ success: false, message: 'Invalid or expired token. Please log in again.' });
-  }
+  return res.status(401).json({ success: false, message: 'Not authorized, no token provided' });
 };
 
-// Require Specific Roles Middleware
-const authorizeRoles = (...roles) => {
-  return (req, res, next) => {
-    if (!req.user || !req.user.role) {
-      return res.status(403).json({ success: false, message: 'Access denied. User role not identified.' });
-    }
-
-    if (!roles.includes(req.user.role) && req.user.role !== 'admin' && req.user.role !== 'super_admin') {
-      return res.status(403).json({ 
-        success: false, 
-        message: `Access denied. ${req.user.role.toUpperCase()} role is not authorized for this action.` 
-      });
-    }
-
-    next();
-  };
+export const adminOnly = (req, res, next) => {
+  if (req.user && req.user.role === 'Admin') {
+    return next();
+  }
+  return res.status(403).json({ success: false, message: 'Access denied: Admin role required' });
 };
 
-// Enforcement Middleware for Student Academic Scope
-const enforceStudentAcademicScope = (req, res, next) => {
-  if (!req.user || req.user.role !== 'student') {
-    return next(); // Admins and Faculty bypass student scope restrictions
+export const facultyOrAdminOnly = (req, res, next) => {
+  if (req.user && (req.user.role === 'Admin' || req.user.role === 'Faculty')) {
+    return next();
   }
-
-  // Reject write operations for Students
-  if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
-    // Exception: Student submitting their own QR attendance scan
-    if (req.path.includes('/attendance/qr/scan') || req.path.includes('/assignments/submit')) {
-      return next();
-    }
-    return res.status(403).json({
-      success: false,
-      message: 'Access denied. Student accounts are restricted to read-only access.'
-    });
-  }
-
-  // Enforce Year & Semester constraints based on Student Year
-  const yearSemMap = {
-    'I Year': ['Semester 1', 'Semester 2'],
-    'II Year': ['Semester 3', 'Semester 4'],
-    'III Year': ['Semester 5', 'Semester 6'],
-    'IV Year': ['Semester 7', 'Semester 8']
-  };
-
-  const studentYear = req.user.year || 'III Year';
-  const allowedSemesters = yearSemMap[studentYear] || ['Semester 5', 'Semester 6'];
-
-  // Inject strict query filters into request query for student
-  req.query.department = req.user.department || 'AI & DS';
-  req.query.year = studentYear;
-
-  // If query specifies a semester outside student's year, override or reject
-  if (req.query.semester && req.query.semester !== 'All' && !allowedSemesters.includes(req.query.semester)) {
-    return res.status(403).json({
-      success: false,
-      message: `Access denied. Students in ${studentYear} can only access ${allowedSemesters.join(' and ')}.`
-    });
-  }
-
-  if (req.user.registerNo) {
-    req.query.studentRegisterNo = req.user.registerNo;
-  }
-
-  next();
-};
-
-// Enforcement Middleware for Faculty Academic Scope
-const enforceFacultyAcademicScope = (req, res, next) => {
-  if (!req.user || req.user.role !== 'faculty') {
-    return next(); // Admins bypass faculty scope restrictions
-  }
-
-  if (req.user.department && req.user.department !== 'All') {
-    if (!req.query.department || req.query.department === 'All') {
-      req.query.department = req.user.department;
-    }
-  }
-
-  next();
-};
-
-module.exports = {
-  verifyToken,
-  authorizeRoles,
-  enforceStudentAcademicScope,
-  enforceFacultyAcademicScope,
-  JWT_SECRET
+  return res.status(403).json({ success: false, message: 'Access denied: Faculty or Admin role required' });
 };

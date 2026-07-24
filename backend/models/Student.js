@@ -1,31 +1,68 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
-const StudentSchema = new mongoose.Schema(
+const studentSchema = new mongoose.Schema(
   {
-    registerNo: { type: String, required: true, unique: true, trim: true, index: true },
-    studentName: { type: String, required: true, trim: true },
-    email: { type: String, default: '', lowercase: true, trim: true, index: true },
-    phone: { type: String, default: '' },
-    gender: { type: String, enum: ['Male', 'Female', 'Other'], default: 'Male' },
-    dateOfBirth: { type: String, default: '' },
-    department: { type: String, default: 'AI & DS', index: true },
-    year: { type: String, default: 'III Year', index: true },
-    semester: { type: String, default: 'Semester 5', index: true },
-    section: { type: String, default: 'A', index: true },
-    batch: { type: String, default: '2021 - 2025' },
-    parentName: { type: String, default: '' },
-    parentPhone: { type: String, default: '' },
-    address: { type: String, default: '' },
-    bloodGroup: { type: String, default: '' },
-    profilePhoto: { type: String, default: '' },
-    photo: { type: String, default: '' },
-    status: { type: String, enum: ['Active', 'Inactive'], default: 'Active', index: true },
-    approvalStatus: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'approved' }
+    registerNumber: {
+      type: String,
+      required: [true, 'Register Number is required'],
+      unique: true,
+      uppercase: true,
+      trim: true
+    },
+    name: {
+      type: String,
+      required: [true, 'Student Name is required'],
+      trim: true
+    },
+    email: {
+      type: String,
+      required: [true, 'Email Address is required'],
+      unique: true,
+      lowercase: true,
+      trim: true
+    },
+    department: {
+      type: String,
+      required: [true, 'Department is required']
+    },
+    year: {
+      type: Number,
+      required: [true, 'Year is required'],
+      min: 1,
+      max: 4
+    },
+    semester: {
+      type: Number,
+      required: [true, 'Semester is required'],
+      min: 1,
+      max: 8
+    },
+    section: {
+      type: String,
+      required: [true, 'Section is required'],
+      default: 'A'
+    },
+    phone: {
+      type: String,
+      default: ''
+    },
+    cgpa: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 10
+    },
+    photoUrl: {
+      type: String,
+      default: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
+    },
+    status: {
+      type: String,
+      enum: ['Active', 'Suspended', 'Alumni'],
+      default: 'Active'
+    }
   },
   { timestamps: true }
 );
 
-StudentSchema.index({ department: 1, year: 1, semester: 1, section: 1 });
-StudentSchema.index({ studentName: 'text', registerNo: 'text' });
-
-module.exports = mongoose.model('Student', StudentSchema);
+export default mongoose.models.Student || mongoose.model('Student', studentSchema);

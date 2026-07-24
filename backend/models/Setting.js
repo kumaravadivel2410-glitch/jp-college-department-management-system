@@ -1,15 +1,34 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
-const SettingSchema = new mongoose.Schema(
+const settingSchema = new mongoose.Schema(
   {
-    collegeName: { type: String, default: 'JP College of Engineering' },
-    academicYear: { type: String, default: '2025-2026' },
-    activeSemester: { type: String, default: 'Even Semester' },
-    maxInternalMarks: { type: Number, default: 50 },
-    theme: { type: String, default: 'golden-dark' },
-    autoRefreshInterval: { type: Number, default: 30 }
+    collegeName: {
+      type: String,
+      default: 'J.P. COLLEGE OF ENGINEERING'
+    },
+    collegeCode: {
+      type: String,
+      default: 'JPC-9511'
+    },
+    academicYear: {
+      type: String,
+      default: '2025-2026'
+    },
+    currentSemesterType: {
+      type: String,
+      enum: ['Odd', 'Even'],
+      default: 'Odd'
+    },
+    emailNotifications: {
+      type: Boolean,
+      default: true
+    },
+    systemMaintenance: {
+      type: Boolean,
+      default: false
+    }
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model('Setting', SettingSchema);
+export default mongoose.models.Setting || mongoose.model('Setting', settingSchema);

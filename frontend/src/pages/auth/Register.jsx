@@ -41,12 +41,16 @@ const Register = () => {
     setSubmitting(true);
     try {
       const res = await apiClient.post('/auth/register', { ...formData, role });
-      if (res.data.success) {
-        setSuccess(res.data.message || 'Registration request submitted! Awaiting Admin approval.');
+      const isSuccess = res?.success || res?.data?.success;
+      const msg = res?.message || res?.data?.message || 'Registration request submitted!';
+      if (isSuccess) {
+        setSuccess(msg);
         setTimeout(() => navigate('/login'), 2500);
+      } else {
+        setError(msg || 'Registration failed.');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration request failed.');
+      setError(err.response?.data?.message || err.message || 'Registration request failed.');
     } finally {
       setSubmitting(false);
     }

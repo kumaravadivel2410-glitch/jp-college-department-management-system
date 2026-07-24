@@ -1,28 +1,42 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
-const DepartmentSchema = new mongoose.Schema(
+const departmentSchema = new mongoose.Schema(
   {
-    departmentCode: { type: String, required: true, unique: true, trim: true },
-    code: { type: String, trim: true },
-    departmentName: { type: String, required: true, trim: true },
-    name: { type: String, trim: true },
-    hod: { type: String, default: '' },
-    hodName: { type: String, default: '' },
-    description: { type: String, default: '' },
-    assignedFaculty: [{ type: String }],
-    establishedYear: { type: String, default: '2010' }
+    code: {
+      type: String,
+      required: [true, 'Department Code is required'],
+      unique: true,
+      uppercase: true,
+      trim: true
+    },
+    name: {
+      type: String,
+      required: [true, 'Department Name is required'],
+      trim: true
+    },
+    hod: {
+      type: String,
+      default: 'To be assigned'
+    },
+    totalFaculty: {
+      type: Number,
+      default: 0
+    },
+    totalStudents: {
+      type: Number,
+      default: 0
+    },
+    establishedYear: {
+      type: Number,
+      default: 2011
+    },
+    status: {
+      type: String,
+      enum: ['Active', 'Inactive'],
+      default: 'Active'
+    }
   },
   { timestamps: true }
 );
 
-DepartmentSchema.pre('save', function (next) {
-  if (this.departmentCode && !this.code) this.code = this.departmentCode;
-  if (this.code && !this.departmentCode) this.departmentCode = this.code;
-  if (this.departmentName && !this.name) this.name = this.departmentName;
-  if (this.name && !this.departmentName) this.departmentName = this.name;
-  if (this.hod && !this.hodName) this.hodName = this.hod;
-  if (this.hodName && !this.hod) this.hod = this.hodName;
-  next();
-});
-
-module.exports = mongoose.model('Department', DepartmentSchema);
+export default mongoose.models.Department || mongoose.model('Department', departmentSchema);

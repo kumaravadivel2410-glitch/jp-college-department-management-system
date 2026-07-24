@@ -1,8 +1,9 @@
 {
-  "name": "jp-college-dms-backend",
+  "name": "jp-college-erp-backend",
   "version": "1.0.0",
-  "description": "Backend REST API for JP College of Engineering Department Management System",
+  "description": "Backend REST API & Serverless Functions for J.P. College of Engineering ERP System",
   "main": "server.js",
+  "type": "module",
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js"
@@ -10,24 +11,18 @@
   "keywords": [
     "express",
     "mongodb",
-    "college-management",
-    "dms",
-    "jp-college"
+    "college-erp",
+    "jp-college",
+    "vercel"
   ],
-  "author": "JP College of Engineering",
+  "author": "J.P. College of Engineering",
   "license": "MIT",
   "dependencies": {
     "bcryptjs": "^3.0.3",
-    "compression": "^1.7.4",
     "cors": "^2.8.5",
-    "csv-parser": "^3.2.1",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^8.3.1",
-    "multer": "^1.4.5-lts.1",
-    "pdf-parse": "^1.1.1",
-    "xlsx": "^0.18.5"
+    "mongoose": "^8.3.1"
   }
 }

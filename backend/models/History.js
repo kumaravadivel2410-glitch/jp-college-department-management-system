@@ -1,15 +1,29 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
-const HistorySchema = new mongoose.Schema(
+const historySchema = new mongoose.Schema(
   {
-    date: { type: String, required: true },
-    time: { type: String, required: true },
-    action: { type: String, required: true },
-    user: { type: String, default: 'Faculty/Admin' },
-    department: { type: String, default: 'General' },
-    details: { type: String, default: '' }
+    action: {
+      type: String,
+      required: true
+    },
+    performedBy: {
+      type: String,
+      required: true
+    },
+    role: {
+      type: String,
+      default: 'Admin'
+    },
+    ipAddress: {
+      type: String,
+      default: '127.0.0.1'
+    },
+    details: {
+      type: String,
+      default: ''
+    }
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model('History', HistorySchema);
+export default mongoose.models.History || mongoose.model('History', historySchema);

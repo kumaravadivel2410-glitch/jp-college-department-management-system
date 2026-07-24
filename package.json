@@ -1,0 +1,21 @@
+{
+  "name": "jp-college-erp-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Production Monorepo for JP College of Engineering ERP System",
+  "scripts": {
+    "build:frontend": "npm run build --prefix frontend",
+    "start:backend": "npm start --prefix backend",
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:frontend": "npm run dev --prefix frontend"
+  },
+  "keywords": [
+    "vercel",
+    "mongodb",
+    "express",
+    "react",
+    "college-erp"
+  ],
+  "author": "J.P. College of Engineering",
+  "license": "MIT"
+}

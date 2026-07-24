@@ -1,26 +1,42 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
-const SubjectSchema = new mongoose.Schema(
+const subjectSchema = new mongoose.Schema(
   {
-    subjectCode: { type: String, required: true, unique: true, trim: true, index: true },
-    subjectName: { type: String, required: true, trim: true },
-    department: { type: String, default: 'AI & DS', index: true },
-    regulation: { type: String, default: '2021', index: true },
-    year: { type: String, default: '3rd Year', index: true },
-    semester: { type: String, default: 'Semester V', index: true },
-    category: { type: String, enum: ['Theory', 'Practical', 'Laboratory', 'Project'], default: 'Theory' },
-    credits: { type: Number, default: 4 },
-    hoursPerWeek: { type: Number, default: 4 },
-    facultyName: { type: String, default: '' },
-    facultyAssigned: { type: String, default: '' }
+    code: {
+      type: String,
+      required: [true, 'Subject Code is required'],
+      unique: true,
+      uppercase: true,
+      trim: true
+    },
+    name: {
+      type: String,
+      required: [true, 'Subject Name is required'],
+      trim: true
+    },
+    department: {
+      type: String,
+      required: [true, 'Department is required']
+    },
+    semester: {
+      type: Number,
+      required: [true, 'Semester is required'],
+      min: 1,
+      max: 8
+    },
+    credits: {
+      type: Number,
+      required: [true, 'Credits are required'],
+      min: 1,
+      max: 6
+    },
+    type: {
+      type: String,
+      enum: ['Theory', 'Practical', 'Project', 'Elective'],
+      default: 'Theory'
+    }
   },
   { timestamps: true }
 );
 
-SubjectSchema.pre('save', function (next) {
-  if (this.facultyName && !this.facultyAssigned) this.facultyAssigned = this.facultyName;
-  if (this.facultyAssigned && !this.facultyName) this.facultyName = this.facultyAssigned;
-  next();
-});
-
-module.exports = mongoose.model('Subject', SubjectSchema);
+export default mongoose.models.Subject || mongoose.model('Subject', subjectSchema);

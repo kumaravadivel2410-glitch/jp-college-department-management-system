@@ -1,17 +1,18 @@
 import React from 'react';
-import Sidebar from '../components/layout/Sidebar';
-import Navbar from '../components/layout/Navbar';
+import Header from '../components/layout/Header';
+import TopNav from '../components/layout/TopNav';
 
 const MainLayout = ({ children }) => {
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900">
-      <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0">
-        <Navbar />
-        <main className="flex-1 overflow-y-auto p-4 md:p-6">
-          {children}
-        </main>
-      </div>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-primary)' }}>
+      <Header />
+      <TopNav />
+      <main style={{ flex: 1, padding: '1.5rem', maxWidth: '1440px', width: '100%', margin: '0 auto' }}>
+        {children}
+      </main>
+      <footer style={{ borderTop: '1px solid var(--border-color)', padding: '1rem', textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+        © {new Date().getFullYear()} J.P. College of Engineering - Department Management & ERP System | Deployed with MongoDB Atlas & Vercel
+      </footer>
     </div>
   );
 };

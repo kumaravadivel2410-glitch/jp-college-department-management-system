@@ -3,24 +3,24 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState(() => localStorage.getItem('jp_dms_theme') || 'light');
+  const [darkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem('jpc_theme') === 'dark';
+  });
 
   useEffect(() => {
-    const root = document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
+    if (darkMode) {
+      document.documentElement.classList.add('dark-theme');
+      localStorage.setItem('jpc_theme', 'dark');
     } else {
-      root.classList.remove('dark');
+      document.documentElement.classList.remove('dark-theme');
+      localStorage.setItem('jpc_theme', 'light');
     }
-    localStorage.setItem('jp_dms_theme', theme);
-  }, [theme]);
+  }, [darkMode]);
 
-  const toggleTheme = () => {
-    setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
-  };
+  const toggleTheme = () => setDarkMode(prev => !prev);
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ darkMode, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );

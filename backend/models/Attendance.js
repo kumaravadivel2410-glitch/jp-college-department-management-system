@@ -1,31 +1,67 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
-const AttendanceSchema = new mongoose.Schema(
+const attendanceSchema = new mongoose.Schema(
   {
-    studentRegisterNo: { type: String, required: true, index: true },
-    studentName: { type: String, default: '' },
-    department: { type: String, default: 'AI & DS', index: true },
-    regulation: { type: String, default: '2021' },
-    batch: { type: String, default: '2021 - 2025' },
-    year: { type: String, default: 'III Year', index: true },
-    semester: { type: String, default: 'Semester 5', index: true },
-    section: { type: String, default: 'A', index: true },
-    subject: { type: String, default: 'AD3501 - Deep Learning', index: true },
-    date: { type: String, required: true, index: true },
-    session: { type: String, enum: ['Morning', 'Afternoon', 'Full Day'], default: 'Full Day' },
-    morningStatus: { type: String, default: 'Present' },
-    afternoonStatus: { type: String, default: 'Present' },
-    status: { type: String, enum: ['Present', 'Absent', 'Late', 'Permission'], default: 'Present', index: true },
-    percentage: { type: Number, default: 100 },
-    remarks: { type: String, default: '' },
-    markedBy: { type: String, default: 'Faculty Member' },
-    scanMethod: { type: String, enum: ['Manual', 'QR_Scan'], default: 'Manual' },
-    scanTime: { type: String, default: '' },
-    deviceInfo: { type: String, default: '' }
+    registerNumber: {
+      type: String,
+      required: [true, 'Register Number is required'],
+      uppercase: true,
+      trim: true
+    },
+    studentName: {
+      type: String,
+      required: [true, 'Student Name is required']
+    },
+    subjectCode: {
+      type: String,
+      required: [true, 'Subject Code is required'],
+      uppercase: true
+    },
+    subjectName: {
+      type: String,
+      default: ''
+    },
+    department: {
+      type: String,
+      required: true
+    },
+    year: {
+      type: Number,
+      default: 3
+    },
+    semester: {
+      type: Number,
+      default: 6
+    },
+    section: {
+      type: String,
+      default: 'A'
+    },
+    facultyId: {
+      type: String,
+      default: 'JPC-FAC-101'
+    },
+    date: {
+      type: Date,
+      required: [true, 'Date is required'],
+      default: Date.now
+    },
+    status: {
+      type: String,
+      enum: ['Present', 'Absent', 'Leave', 'OD'],
+      required: true,
+      default: 'Present'
+    },
+    remarks: {
+      type: String,
+      default: 'Regular'
+    },
+    updatedTime: {
+      type: Date,
+      default: Date.now
+    }
   },
   { timestamps: true }
 );
 
-AttendanceSchema.index({ department: 1, year: 1, semester: 1, section: 1, date: 1, subject: 1 });
-
-module.exports = mongoose.model('Attendance', AttendanceSchema);
+export default mongoose.models.Attendance || mongoose.model('Attendance', attendanceSchema);

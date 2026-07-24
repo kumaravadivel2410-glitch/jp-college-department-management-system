@@ -1,21 +1,44 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
-const NoteSchema = new mongoose.Schema(
+const noteSchema = new mongoose.Schema(
   {
-    title: { type: String, required: true },
-    department: { type: String, default: '' },
-    semester: { type: String, default: '' },
-    section: { type: String, default: '' },
-    subjectCode: { type: String, default: '' },
-    subjectName: { type: String, default: '' },
-    fileUrl: { type: String, required: true },
-    fileType: { type: String, default: 'pdf' }, // pdf, ppt, docx, zip, image
-    fileName: { type: String, default: '' },
-    fileSize: { type: String, default: '' },
-    uploadedBy: { type: String, default: '' },
-    uploaderEmail: { type: String, default: '' }
+    title: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    subjectCode: {
+      type: String,
+      required: true
+    },
+    subjectName: {
+      type: String,
+      default: ''
+    },
+    department: {
+      type: String,
+      required: true
+    },
+    unitNumber: {
+      type: Number,
+      required: true,
+      min: 1,
+      max: 5
+    },
+    uploadedBy: {
+      type: String,
+      default: 'Faculty'
+    },
+    fileUrl: {
+      type: String,
+      default: ''
+    },
+    fileType: {
+      type: String,
+      default: 'PDF'
+    }
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model('Note', NoteSchema);
+export default mongoose.models.Note || mongoose.model('Note', noteSchema);

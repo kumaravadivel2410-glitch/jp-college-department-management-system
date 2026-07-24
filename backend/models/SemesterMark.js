@@ -1,24 +1,46 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
-const SemesterMarkSchema = new mongoose.Schema(
+const semesterMarkSchema = new mongoose.Schema(
   {
-    studentRegisterNo: { type: String, required: true },
-    studentName: { type: String, default: '' },
-    department: { type: String, default: '' },
-    year: { type: String, default: 'III Year' },
-    semester: { type: String, default: '' },
-    section: { type: String, default: 'A' },
-    subjectCode: { type: String, default: '' },
-    subjectName: { type: String, default: '' },
-    grade: { type: String, default: 'O' },
-    marks: { type: Number, default: 92 },
-    credits: { type: Number, default: 4 },
-    gpa: { type: Number, default: 9.2 },
-    cgpa: { type: Number, default: 9.0 },
-    arrears: { type: Number, default: 0 },
-    result: { type: String, enum: ['PASS', 'FAIL', 'ARREAR'], default: 'PASS' }
+    registerNumber: {
+      type: String,
+      required: true,
+      uppercase: true,
+      trim: true
+    },
+    studentName: {
+      type: String,
+      required: true
+    },
+    department: {
+      type: String,
+      required: true
+    },
+    semester: {
+      type: Number,
+      required: true
+    },
+    gpa: {
+      type: Number,
+      required: true,
+      min: 0,
+      max: 10
+    },
+    status: {
+      type: String,
+      enum: ['Pass', 'Fail', 'Arrear', 'Withheld'],
+      default: 'Pass'
+    },
+    subjectsCount: {
+      type: Number,
+      default: 6
+    },
+    arrearsCount: {
+      type: Number,
+      default: 0
+    }
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model('SemesterMark', SemesterMarkSchema);
+export default mongoose.models.SemesterMark || mongoose.model('SemesterMark', semesterMarkSchema);

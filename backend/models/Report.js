@@ -1,16 +1,30 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
-const ReportSchema = new mongoose.Schema(
+const reportSchema = new mongoose.Schema(
   {
-    reportTitle: { type: String, required: true },
-    reportType: { type: String, required: true }, // Attendance, Internal Marks, Semester Marks, Faculty, Student, Department
-    generatedBy: { type: String, default: '' },
-    department: { type: String, default: 'All' },
-    semester: { type: String, default: 'All' },
-    format: { type: String, default: 'PDF' },
-    summary: { type: String, default: '' }
+    title: {
+      type: String,
+      required: true
+    },
+    category: {
+      type: String,
+      enum: ['Academic', 'Attendance', 'Marks', 'Faculty', 'Financial'],
+      default: 'Academic'
+    },
+    generatedBy: {
+      type: String,
+      default: 'System Admin'
+    },
+    downloadUrl: {
+      type: String,
+      default: '#'
+    },
+    format: {
+      type: String,
+      default: 'PDF'
+    }
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model('Report', ReportSchema);
+export default mongoose.models.Report || mongoose.model('Report', reportSchema);

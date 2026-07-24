@@ -1,23 +1,48 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
-const ScheduleSlotSchema = new mongoose.Schema({
-  period: { type: String, required: true }, // e.g. "09:00 - 10:00 AM"
-  subjectCode: { type: String, default: '' },
-  subjectName: { type: String, default: '' },
-  facultyName: { type: String, default: '' },
-  roomNo: { type: String, default: 'Lab 1' }
-});
-
-const TimetableSchema = new mongoose.Schema(
+const timetableSchema = new mongoose.Schema(
   {
-    department: { type: String, required: true },
-    year: { type: String, required: true },
-    semester: { type: String, required: true },
-    section: { type: String, required: true },
-    day: { type: String, enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], required: true },
-    schedule: [ScheduleSlotSchema]
+    department: {
+      type: String,
+      required: true
+    },
+    year: {
+      type: Number,
+      required: true
+    },
+    section: {
+      type: String,
+      default: 'A'
+    },
+    day: {
+      type: String,
+      enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+      required: true
+    },
+    period: {
+      type: Number,
+      required: true,
+      min: 1,
+      max: 8
+    },
+    subjectCode: {
+      type: String,
+      required: true
+    },
+    subjectName: {
+      type: String,
+      default: ''
+    },
+    facultyName: {
+      type: String,
+      default: 'Faculty'
+    },
+    room: {
+      type: String,
+      default: 'LH-101'
+    }
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model('Timetable', TimetableSchema);
+export default mongoose.models.Timetable || mongoose.model('Timetable', timetableSchema);

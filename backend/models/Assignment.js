@@ -1,31 +1,46 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
-const SubmissionSchema = new mongoose.Schema({
-  studentRegisterNo: { type: String, required: true },
-  studentName: { type: String, default: '' },
-  submissionUrl: { type: String, required: true },
-  submittedAt: { type: Date, default: Date.now },
-  grade: { type: String, default: 'Pending' },
-  status: { type: String, enum: ['Submitted', 'Graded', 'Late'], default: 'Submitted' }
-});
-
-const AssignmentSchema = new mongoose.Schema(
+const assignmentSchema = new mongoose.Schema(
   {
-    title: { type: String, required: true },
-    description: { type: String, default: '' },
-    department: { type: String, default: '' },
-    year: { type: String, default: 'III Year' },
-    semester: { type: String, default: 'Semester V' },
-    section: { type: String, default: 'A' },
-    subjectCode: { type: String, default: '' },
-    subjectName: { type: String, default: '' },
-    fileUrl: { type: String, default: '' },
-    dueDate: { type: String, required: true },
-    uploadedBy: { type: String, default: 'Faculty' },
-    uploaderEmail: { type: String, default: '' },
-    submissions: [SubmissionSchema]
+    title: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    subjectCode: {
+      type: String,
+      required: true
+    },
+    department: {
+      type: String,
+      required: true
+    },
+    facultyName: {
+      type: String,
+      default: 'Faculty'
+    },
+    dueDate: {
+      type: Date,
+      required: true
+    },
+    maxMarks: {
+      type: Number,
+      default: 100
+    },
+    description: {
+      type: String,
+      default: ''
+    },
+    submissionsCount: {
+      type: Number,
+      default: 0
+    },
+    fileUrl: {
+      type: String,
+      default: ''
+    }
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model('Assignment', AssignmentSchema);
+export default mongoose.models.Assignment || mongoose.model('Assignment', assignmentSchema);
