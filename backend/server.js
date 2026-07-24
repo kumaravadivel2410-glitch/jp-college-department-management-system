@@ -45,12 +45,13 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Health Check
-app.get('/api/health', (req, res) => {
+app.get(['/api/health', '/health'], (req, res) => {
   res.json({ success: true, status: 'Healthy', college: 'J.P. COLLEGE OF ENGINEERING ERP' });
 });
 
 // API Routes
 app.use('/api', apiRoutes);
+app.use('/', apiRoutes);
 
 // Error Handler
 app.use(errorHandler);

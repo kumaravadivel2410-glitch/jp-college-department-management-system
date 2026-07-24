@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const getApiBaseUrl = () => {
-  let url = import.meta.env.VITE_API_URL || '/api';
+  let url = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '/api';
   if (typeof url === 'string' && url.endsWith('/') && url.length > 1) {
     url = url.slice(0, -1);
   }

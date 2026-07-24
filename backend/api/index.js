@@ -54,12 +54,13 @@ app.use(async (req, res, next) => {
 });
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
+app.get(['/api/health', '/health'], (req, res) => {
   res.json({ success: true, status: 'Healthy', college: 'J.P. COLLEGE OF ENGINEERING ERP' });
 });
 
-// Main API Routes
+// Main API Routes (Supports both /api prefix and direct serverless route rewrites)
 app.use('/api', apiRoutes);
+app.use('/', apiRoutes);
 
 // Global Error Handler
 app.use(errorHandler);
