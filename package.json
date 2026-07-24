@@ -4,6 +4,7 @@
   "private": true,
   "description": "Production Monorepo for JP College of Engineering ERP System",
   "scripts": {
+    "build": "npm run build --prefix frontend",
     "build:frontend": "npm run build --prefix frontend",
     "start:backend": "npm start --prefix backend",
     "dev:backend": "npm run dev --prefix backend",
